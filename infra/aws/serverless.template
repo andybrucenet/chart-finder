@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: ChartFinder API deployed via AWS SAM
+Parameters:
+  OwnerEmail:
+    Type: String
+    Default: andybrucenet@gmail.com
+    Description: Email of the primary owner for tagging and notifications.
+
+Globals:
+  Function:
+    Runtime: dotnet8
+    Architectures:
+      - arm64
+    Timeout: 30
+    MemorySize: 512
+
+Resources:
+  ChartsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-charts'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      Tags:
+        - Key: Project
+          Value: ChartFinder
+        - Key: Environment
+          Value: dev
+        - Key: Owner
+          Value: !Ref OwnerEmail
+
+  AspNetCoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ChartFinder.Api::ChartFinder.Api.LambdaEntryPoint::FunctionHandlerAsync
+      CodeUri: ../../src/backend/ChartFinder.Api
+      Runtime: dotnet8
+      MemorySize: 1024
+      Timeout: 30
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ChartsTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChartsTable
+      Tags:
+        Project: ChartFinder
+        Environment: dev
+        Owner: !Ref OwnerEmail
