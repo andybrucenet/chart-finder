@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ChartFinder.Api\ChartFinder.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\backend\ChartFinder.Api\ChartFinder.Api.csproj" />
   </ItemGroup>
 
 </Project>

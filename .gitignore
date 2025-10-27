@@ -7,6 +7,39 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 
+##############################################################
+# AI-recommended additional entries
+#
+# AWS SAM build cache
+.aws-sam/
+#
+# macOS Finder junk
+.DS_Store
+#
+# IDE/user-specific files
+*.user
+*.suo
+.vscode/
+.idea/
+#
+# Flutter / Dart tooling
+.dart_tool/
+.packages
+.melos_tool/
+build/
+#
+# Android build artifacts
+android/.gradle/
+android/app/*.keystore
+android/app/src/*/gen/
+android/local.properties
+#
+# iOS build artifacts
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.podspec
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
