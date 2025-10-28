@@ -6,3 +6,6 @@ csharp_style_namespace_declarations = block_scoped
 
 # IDE0160: Convert to block scoped namespace
 csharp_style_namespace_declarations = file_scoped
+
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none

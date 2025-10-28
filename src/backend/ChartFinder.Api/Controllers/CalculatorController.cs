@@ -1,15 +1,21 @@
+using ChartFinder.Api.Configuration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace ChartFinder.Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("calculator/v1")]
 public class CalculatorController : ControllerBase
 {
+    private readonly DynamoOptions _dynamoOptions;
     private readonly ILogger<CalculatorController> _logger;
 
-    public CalculatorController(ILogger<CalculatorController> logger)
+    public CalculatorController(
+        IOptions<DynamoOptions> dynamoOptions,
+        ILogger<CalculatorController> logger)
     {
+        _dynamoOptions = dynamoOptions.Value;
         _logger = logger;
     }
 
@@ -63,5 +69,15 @@ public class CalculatorController : ControllerBase
     {
         _logger.LogInformation($"{x} divide {y} is {x / y}");
         return x / y;
+    }
+
+    /// <summary>
+    /// Return some configuration data
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("config")]
+    public IActionResult GetConfig()
+    {
+        return Ok(new { TableName = _dynamoOptions.TableName, Region = _dynamoOptions.Region });
     }
 }

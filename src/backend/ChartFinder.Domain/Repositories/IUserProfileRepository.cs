@@ -10,20 +10,20 @@ public interface IUserProfileRepository
     /// </summary>
     /// <param name="id">Identifier produced by the domain; implementation treats it as an opaque key.</param>
     /// <param name="cancellationToken">Optional cancellation notification.</param>
-    /// <returns>The chart when found; otherwise <c>null</c>.</returns>
-    Task<Chart?> GetAsync(string id, CancellationToken cancellationToken = default);
+    /// <returns>The user profile when found; otherwise <c>null</c>.</returns>
+    Task<UserProfile?> GetAsync(string id, CancellationToken cancellationToken = default);
 
-    /// <summary>
+    /// <summary>Í
     /// Returns all user profiles visible to the caller.
     /// </summary>
     /// <param name="cancellationToken">Optional cancellation notification.</param>
-    /// <returns>A read-only list containing zero or more charts.</returns>
-    Task<IReadOnlyList<Chart>> ListAsync(CancellationToken cancellationToken = default);
+    /// <returns>A read-only list containing zero or more user profiles.</returns>
+    Task<IReadOnlyList<UserProfile>> ListAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates or updates a user profile in the underlying store.
     /// </summary>
-    /// <param name="userProfile">The chart to persist.</param>
+    /// <param name="userProfile">The user profile to persist.</param>
     /// <param name="cancellationToken">Optional cancellation notification.</param>
     Task SaveAsync(UserProfile userProfile, CancellationToken cancellationToken = default);
 
