@@ -7,6 +7,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 
+# ignore local configuration
+.local/
+
 ##############################################################
 # AI-recommended additional entries
 #
@@ -85,3 +88,5 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+# SAM local overrides
+infra/aws/samconfig.local.toml

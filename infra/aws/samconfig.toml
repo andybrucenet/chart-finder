@@ -1,0 +1,80 @@
+# samconfig.toml, ABr
+# build defaults for AWS serverless integration
+
+version = 0.1
+
+##############################################################
+## PROD target
+[prod.build.parameters]
+template_file = "infra/aws/serverless.template"
+build_dir = ".aws-sam/build"
+cached = true
+parallel = true
+
+[prod.deploy.parameters]
+template_file = ".aws-sam/build/template.yaml"
+stack_name = "chart-finder-prod"
+resolve_s3 = true
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+disable_rollback = false
+parameter_overrides = "OwnerEmail=dbmail1771+prod@gmail.com"
+region = "us-east-2"
+profile = "prod-profile"
+
+##############################################################
+## STAGE target
+[stage.build.parameters]
+template_file = "infra/aws/serverless.template"
+build_dir = ".aws-sam/build"
+cached = true
+parallel = true
+
+[stage.deploy.parameters]
+template_file = ".aws-sam/build/template.yaml"
+stack_name = "chart-finder-stage"
+resolve_s3 = true
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+disable_rollback = false
+parameter_overrides = "OwnerEmail=dbmail1771+stage@gmail.com"
+region = "us-east-2"
+profile = "stage-profile"
+
+##############################################################
+## TEST target
+[test.build.parameters]
+template_file = "infra/aws/serverless.template"
+build_dir = ".aws-sam/build"
+cached = true
+parallel = true
+
+[test.deploy.parameters]
+template_file = ".aws-sam/build/template.yaml"
+stack_name = "chart-finder-test"
+resolve_s3 = true
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+disable_rollback = false
+parameter_overrides = "OwnerEmail=dbmail1771+test@gmail.com"
+region = "us-east-2"
+profile = "test-profile"
+
+##############################################################
+## DEV target
+[dev.build.parameters]
+template_file = "infra/aws/serverless.template"
+build_dir = ".aws-sam/build"
+cached = true
+parallel = true
+
+[dev.deploy.parameters]
+template_file = ".aws-sam/build/template.yaml"
+stack_name = "chart-finder-dev-CF_LOCAL_DEV_ID"
+resolve_s3 = true
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+disable_rollback = false
+parameter_overrides = "OwnerEmail=CF_LOCAL_USEREMAIL"
+region = "CF_LOCAL_AWS_REGION"
+profile = "CF_LOCAL_AWS_PROFILE"
