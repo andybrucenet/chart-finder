@@ -1,13 +1,16 @@
+# doc-1: AWS SAM template that provisions the serverless ChartFinder API stack.
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: ChartFinder API deployed via AWS SAM
 Parameters:
+# doc-2: Parameterized owner email keeps tags and notifications flexible between envs.
   OwnerEmail:
     Type: String
     Default: andybrucenet@gmail.com
     Description: Email of the primary owner for tagging and notifications.
 
 Globals:
+# doc-3: Shared defaults for all Lambda functions unless overridden individually.
   Function:
     Runtime: dotnet8
     Architectures:
@@ -16,6 +19,7 @@ Globals:
     MemorySize: 512
 
 Resources:
+# doc-4: DynamoDB table storing chart definitions keyed by chart Id.
   ChartsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -35,6 +39,7 @@ Resources:
         - Key: Owner
           Value: !Ref OwnerEmail
 
+# doc-5: ASP.NET Core Lambda function that exposes the ChartFinder API.
   AspNetCoreFunction:
     Type: AWS::Serverless::Function
     Properties:

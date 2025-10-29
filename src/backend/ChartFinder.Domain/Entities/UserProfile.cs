@@ -1,15 +1,10 @@
-namespace ChartFinder.Domain;
+namespace ChartFinder.Domain.Entities;
 
 /// <summary>
 /// Represents an authenticated person in the system without persisting sensitive identity attributes.
 /// </summary>
-public sealed class UserProfile
+public sealed class UserProfile : EntityBase
 {
-    /// <summary>
-    /// Local identifier used by domain logic (can be a GUID, slug, etc.).
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
     /// <summary>
     /// Stable subject identifier supplied by the upstream identity provider.
     /// </summary>

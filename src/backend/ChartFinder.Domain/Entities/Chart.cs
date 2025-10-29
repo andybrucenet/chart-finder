@@ -1,11 +1,11 @@
 using ChartFinder.Domain.Enums;
 
-namespace ChartFinder.Domain;
+namespace ChartFinder.Domain.Entities;
 
 /// <summary>
 /// Represents an arrangement or chart with metadata that helps musicians discover, preview, and purchase music.
 /// </summary>
-public sealed class Chart
+public sealed class Chart : EntityBase
 {
     /// <summary>
     /// Creates a new <see cref="Chart" /> with empty list properties to satisfy JSON serializers that require settable collections.
@@ -13,11 +13,6 @@ public sealed class Chart
     public Chart()
     {
     }
-
-    /// <summary>
-    /// Unique identifier for the chart, such as a slug or an external catalog number.
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// Title that performers will recognize on a set list or in a catalog.
