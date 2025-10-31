@@ -25,7 +25,7 @@ the_setup_dev_env_root_dir="$( realpath "$the_setup_dev_env_script_dir"/.. )"
 
 # required tools
 the_setup_dev_env_tools_ok=1
-the_setup_dev_env_tools='which sam aws jq'
+the_setup_dev_env_tools='which aws rsync sam jq'
 for i in $the_setup_dev_env_tools ; do
   ! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL $i" && the_setup_dev_env_tools_ok=0
 done

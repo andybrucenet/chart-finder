@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - set -euo pipefail
+      - echo "=== Runtime diagnostics ==="
+      - dotnet --info
+      - sam --version
+  pre_build:
+    commands:
+      - set -euo pipefail
+      - echo "=== Running unit tests ==="
+      - dotnet test ChartFinder.sln --configuration Release
+  build:
+    commands:
+      - set -euo pipefail
+      - echo "=== Building SAM package ==="
+      - ./scripts/aws-sam-build.sh
+  post_build:
+    commands:
+      - echo "=== Build completed at $(date -u +"%Y-%m-%dT%H:%M:%SZ") ==="
+
+artifacts:
+  files:
+    - '.aws-sam/build/**/*'
