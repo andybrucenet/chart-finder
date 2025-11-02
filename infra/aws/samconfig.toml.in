@@ -1,5 +1,6 @@
 # samconfig.toml, ABr
-# build defaults for AWS serverless integration
+# build defaults for AWS serverless integration; must be
+# hydrated by scripts/setup-dev-env.sh
 
 version = 0.1
 
@@ -70,11 +71,11 @@ parallel = true
 
 [dev.deploy.parameters]
 template_file = ".aws-sam/build/template.yaml"
-stack_name = "chart-finder-dev-CF_LOCAL_DEV_ID"
+stack_name = "chart-finder-dev-$CF_LOCAL_DEV_ID"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 disable_rollback = false
-parameter_overrides = "OwnerEmail=CF_LOCAL_USEREMAIL"
-region = "CF_LOCAL_AWS_REGION"
-profile = "CF_LOCAL_AWS_PROFILE"
+parameter_overrides = "OwnerEmail=$CF_LOCAL_USEREMAIL"
+region = "$CF_LOCAL_AWS_REGION"
+profile = "$CF_LOCAL_AWS_PROFILE"
