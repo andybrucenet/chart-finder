@@ -9,7 +9,10 @@
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        "Resource": "arn:aws:logs:<REGION>:<ACCOUNT_ID>:log-group:/aws/codebuild/<PROJECT_NAME>*"
+        "Resource": [
+          "arn:aws:logs:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:log-group:/aws/codebuild/$CF_LOCAL_ENV_ID*",
+          "arn:aws:logs:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:log-group:/aws/codebuild/$CF_LOCAL_ENV_ID*:log-stream:*"
+        ]
       },
       {
         "Sid": "Artifacts",
@@ -22,8 +25,8 @@
           "s3:ListBucket"
         ],
         "Resource": [
-          "arn:aws:s3:::<ARTIFACT_BUCKET>",
-          "arn:aws:s3:::<ARTIFACT_BUCKET>/*"
+          "arn:aws:s3:::$CF_LOCAL_AWS_ARTIFACT_BUCKET",
+          "arn:aws:s3:::$CF_LOCAL_AWS_ARTIFACT_BUCKET/*"
         ]
       }
       // add service-specific statements here (e.g., CloudFormation/SAM, DynamoDB, ECR, Secrets Manager)
