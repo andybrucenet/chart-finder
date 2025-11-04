@@ -44,7 +44,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: ChartFinder.Api
-      CodeUri: ../../src/backend/ChartFinder.Api
+      CodeUri: $CF_ROOT/src/backend/ChartFinder.Api
       Runtime: dotnet8
       MemorySize: 1024
       Timeout: 30

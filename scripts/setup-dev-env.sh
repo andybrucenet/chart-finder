@@ -69,6 +69,15 @@ if [ x"$SETUP_DEV_ENV_OPTION_RESET_USER_SETTINGS" = x1 ] ; then
 fi
 lcl_dot_local_settings_source "$the_setup_dev_env_root_dir"
 #
+if [ x"$CF_ROOT" = x ] ; then
+  the_default_value="$the_setup_dev_env_root_dir"
+  read -p "  Enter value for CF_ROOT [$the_default_value]: " CF_ROOT
+  CF_ROOT="${CF_ROOT:-$the_default_value}"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_ROOT "$CF_ROOT" || exit $?
+  export CF_ROOT
+fi
+echo "  CF_ROOT='$CF_ROOT'"
+#
 if [ x"$CF_LOCAL_DEV_ID" = x ] ; then
   the_default_value="$(whoami | sed -e 's/^l[\.\-]//')"
   read -p "  Enter value for CF_LOCAL_DEV_ID [$the_default_value]: " CF_LOCAL_DEV_ID
