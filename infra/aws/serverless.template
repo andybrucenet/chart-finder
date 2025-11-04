@@ -43,7 +43,7 @@ Resources:
   AspNetCoreFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: ChartFinder.Api::ChartFinder.Api.LambdaEntryPoint::FunctionHandlerAsync
+      Handler: ChartFinder.Api
       CodeUri: ../../src/backend/ChartFinder.Api
       Runtime: dotnet8
       MemorySize: 1024

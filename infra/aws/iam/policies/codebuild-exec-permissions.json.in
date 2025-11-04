@@ -29,6 +29,5 @@
           "arn:aws:s3:::$CF_LOCAL_AWS_ARTIFACT_BUCKET/*"
         ]
       }
-      // add service-specific statements here (e.g., CloudFormation/SAM, DynamoDB, ECR, Secrets Manager)
     ]
   }

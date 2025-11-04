@@ -9,7 +9,7 @@
       "Action": "sts:AssumeRole",
       "Condition": {
         "StringEquals": {
-          "aws:SourceArn": "arn:aws:codebuild:us-east-2:835972387595:project/cf-abruce-*"
+          "aws:SourceArn": "arn:aws:codebuild:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:project/$CF_LOCAL_ENV_ID-*"
         }
       }
     }

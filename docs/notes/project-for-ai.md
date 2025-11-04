@@ -1,0 +1,22 @@
+# Chart Finder – Daily Reload Snapshot
+
+## Project Focus
+- Deliver a musician-facing service that identifies played tunes and surfaces purchasable charts.
+- Backend (`ChartFinder.Api`) is an ASP.NET Core app hosted on AWS Lambda via SAM; domain models live in `src/backend/ChartFinder.Domain`.
+- Infrastructure templates reside under `infra/` and are hydrated into `.local/` for per-developer runs.
+
+## Active Objective
+- Finish the AWS bootstrap so the existing calculator controller is reachable through an API Gateway endpoint.
+- Prioritize CI/CD enablement (SAM build/deploy, CodeBuild pipeline, IAM, artifact buckets) before expanding application features.
+
+## Working Agreements
+- User executes all build, deploy, dotnet, and AWS CLI commands; the AI never runs them.
+- Do not modify or generate code without explicit user direction.
+- Treat `.local/` as the source of truth for hydrated configuration; consult those files when validating deploy settings.
+- Keep onboarding notes in `docs/notes/` and use existing scripts (`setup-dev-env.sh`, `sync-configs.sh`) for repo hydration.
+
+## Quick Daily Kickoff
+1. Rehydrate configs if needed: `./scripts/setup-dev-env-aws.sh` or `./scripts/sync-configs.sh`.
+2. Verify SAM handler (`ChartFinder.Api`) is in both `infra/aws/serverless.template` and `.local/infra/aws/serverless.template`.
+3. Build and deploy manually: `./scripts/aws-sam-build.sh`, then `sam deploy --config-env dev`.
+4. Hit `/calculator/v1/add/{x}/{y}` on the deployed API Gateway URL for a smoke test.
