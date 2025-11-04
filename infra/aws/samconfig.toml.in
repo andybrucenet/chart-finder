@@ -70,7 +70,8 @@ cached = true
 parallel = true
 
 [dev.deploy.parameters]
-template_file = ".aws-sam/build/template.yaml"
+template_file = ".local/infra/aws/serverless.template"
+#template_file = ".aws-sam/build/template.yaml"
 stack_name = "chart-finder-dev-$CF_LOCAL_DEV_ID"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
