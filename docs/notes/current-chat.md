@@ -31,3 +31,7 @@
 
 ## 2025-01-20 Session Notes
 - Do not invoke build, deploy, or AWS CLI commands from the AI; those must be run manually by the user.
+- Still unable to run AWS CI/CD end-to-end; time is going into provisioning per-dev artifacts and IAM roles.
+- Admin bootstrap flow: dev hydrates `.local` (including `samconfig.toml`), admin runs `scripts/admin/admin-setup-dev-env.sh` against it to create the artifact bucket and scoped CodeBuild role/policy.
+- `samconfig.toml` and `serverless.template` hydration still need refinement (e.g., `CodeUri` path adjustments) before the process is push-button.
+- Next task: craft the IAM policy that grants `iam:PassRole` (plus CloudFormation/Lambda actions) to the dev permission set and have the admin bootstrap script attach that policy to the correct Identity Center permission set.

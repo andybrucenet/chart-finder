@@ -24,13 +24,14 @@ source "$THE_ADMIN_SETUP_DEV_ENV_AWS_ROOT_DIR"/scripts/lcl-os-checks.sh 'source-
 # tmp is problematic on cygwin
 THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_DIR="$(lcl_os_tmp_dir)"
 THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_PREFIX='admin-setup-dev-env-aws-'
-THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_PATH_PREFIX="$THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_DIR/$THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_PREFIX"
-TMP_FILES=()
+THE_ADMIN_SETUP_DEV_ENV_AWS_RUN_DIR=$(mktemp -d "${THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_DIR}/${THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_PREFIX}run-XXXX")
+if [ ! -d "$THE_ADMIN_SETUP_DEV_ENV_AWS_RUN_DIR" ]; then
+  echo 'ERROR: FAILED_TO_CREATE_TMP_DIR' >&2
+  exit 1
+fi
 
 cleanup_tmp_files() {
-  if [ ${#TMP_FILES[@]} -gt 0 ]; then
-    rm -f "${TMP_FILES[@]}" 2>/dev/null || true
-  fi
+  rm -rf "$THE_ADMIN_SETUP_DEV_ENV_AWS_RUN_DIR" 2>/dev/null || true
 }
 
 trap cleanup_tmp_files EXIT
@@ -38,13 +39,12 @@ trap cleanup_tmp_files EXIT
 make_tmp_file() {
   local suffix="$1"
   local tmp_file
-  tmp_file=$(mktemp "${THE_ADMIN_SETUP_DEV_ENV_AWS_TMP_PATH_PREFIX}${suffix}-XXXX.json")
+  tmp_file=$(mktemp "${THE_ADMIN_SETUP_DEV_ENV_AWS_RUN_DIR}/${suffix}-XXXX.json")
   local rc=$?
-  if [ $rc -ne 0 ]; then
+  if [ $rc -ne 0 ] || [ ! -f "$tmp_file" ]; then
     echo "ERROR: FAILED_TO_CREATE_TMP_FILE suffix=$suffix" >&2
-    exit $rc
+    exit ${rc:-1}
   fi
-  TMP_FILES+=("$tmp_file")
   printf '%s' "$tmp_file"
 }
 
