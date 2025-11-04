@@ -67,14 +67,6 @@ fi
 lcl_dot_local_settings_source "$the_setup_env_dev_aws_root_dir"
 #
 # vars
-if [ x"$AWS_PROFILE" = x ] ; then
-  export AWS_PROFILE='sab-u-dev'
-  lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" AWS_PROFILE "$AWS_PROFILE" || exit $?
-fi
-if [ x"$AWS_SDK_LOAD_CONFIG" = x ] ; then
-  export AWS_SDK_LOAD_CONFIG=1
-  lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" AWS_SDK_LOAD_CONFIG "$AWS_SDK_LOAD_CONFIG" || exit $?
-fi
 #
 if [ x"$CF_LOCAL_AWS_PROFILE" = x ] ; then
   the_default_value='sab-u-dev'
@@ -102,6 +94,28 @@ if [ x"$CF_LOCAL_AWS_ARTIFACT_BUCKET" = x ] ; then
   export CF_LOCAL_AWS_ARTIFACT_BUCKET
 fi
 echo "  CF_LOCAL_AWS_ARTIFACT_BUCKET='$CF_LOCAL_AWS_ARTIFACT_BUCKET'"
+#
+# always update AWS_PROFILE in the local.env file from CF_LOCAL_AWS_PROFILE
+the_default_value="`lcl_dot_local_settings_get "$the_setup_env_dev_aws_root_dir" AWS_PROFILE "$CF_LOCAL_AWS_PROFILE" '0'`"
+wants_new_value=0 ; [ x"$the_default_value" = x ] && wants_new_value=1
+if [ $wants_new_value -eq 0 ] ; then
+  if [ x"$the_default_value" != x"$CF_LOCAL_AWS_PROFILE" ] ; then
+    echo "  Warning: AWS_PROFILE ($the_default_value) differs from CF_LOCAL_AWS_PROFILE ($CF_LOCAL_AWS_PROFILE)"
+    read -p "  Update to have them match [y/N]: " the_enter_response
+    [ x"$the_enter_response" = x ] && the_enter_response="n"
+    if echo "$the_enter_response" | grep -ie '^[y]' >/dev/null 2>&1 ; then
+      wants_new_value=1
+    fi
+  fi
+fi
+if [ $wants_new_value -eq 1 ] ; then
+  export AWS_PROFILE="$CF_LOCAL_AWS_PROFILE"
+  lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" AWS_PROFILE "$AWS_PROFILE" || exit $?
+fi
+if [ x"$AWS_SDK_LOAD_CONFIG" = x ] ; then
+  export AWS_SDK_LOAD_CONFIG=1
+  lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" AWS_SDK_LOAD_CONFIG "$AWS_SDK_LOAD_CONFIG" || exit $?
+fi
 #
 echo '  OK'
 echo ''
