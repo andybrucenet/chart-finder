@@ -1,4 +1,4 @@
-# samconfig.toml, ABr
+# samconfig.toml.in, ABr
 # build defaults for AWS serverless integration; must be
 # hydrated by scripts/setup-dev-env.sh
 
@@ -7,7 +7,7 @@ version = 0.1
 ##############################################################
 ## PROD target
 [prod.build.parameters]
-template_file = "infra/aws/serverless.template"
+template_file = ".local/infra/aws/serverless.template"
 build_dir = ".aws-sam/build"
 cached = true
 parallel = true
@@ -26,7 +26,7 @@ profile = "prod-profile"
 ##############################################################
 ## STAGE target
 [stage.build.parameters]
-template_file = "infra/aws/serverless.template"
+template_file = ".local/infra/aws/serverless.template"
 build_dir = ".aws-sam/build"
 cached = true
 parallel = true
@@ -45,7 +45,7 @@ profile = "stage-profile"
 ##############################################################
 ## TEST target
 [test.build.parameters]
-template_file = "infra/aws/serverless.template"
+template_file = ".local/infra/aws/serverless.template"
 build_dir = ".aws-sam/build"
 cached = true
 parallel = true
@@ -64,7 +64,7 @@ profile = "test-profile"
 ##############################################################
 ## DEV target
 [dev.build.parameters]
-template_file = "infra/aws/serverless.template"
+template_file = ".local/infra/aws/serverless.template"
 build_dir = ".aws-sam/build"
 cached = true
 parallel = true

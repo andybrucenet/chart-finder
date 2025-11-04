@@ -162,6 +162,16 @@ echo 'CHECK AWS CONFIG...'
 if [ -s "$the_setup_env_dev_aws_sam_config_dst_path" ] ; then
   echo "  ALREADY_EXISTS: $the_setup_env_dev_aws_sam_config_dst_path"
 else
+  # initial config sync so the guided setup will work
+  echo '  INITIAL SYNC CONFIGS...'
+  the_setup_env_dev_aws_tmp_sync_path="${the_setup_env_dev_aws_tmp_path_prefix}tmp.txt"
+  "$the_setup_env_dev_aws_root_dir/scripts/sync-configs.sh" >"$the_setup_env_dev_aws_tmp_sync_path" 2>&1
+  the_rc=$?
+  [ $the_rc -ne 0 ] && cat "$the_setup_env_dev_aws_tmp_sync_path" | sed -e 's/^\./  infra/'
+  rm -f "$the_setup_env_dev_aws_tmp_sync_path"
+  [ $the_rc -ne 0 ] && exit $the_rc
+  echo ''
+
   echo "  CREATE: $the_setup_env_dev_aws_sam_config_dst_path"
   set -x
   envsubst < "$the_setup_env_dev_aws_sam_config_src_path" > "$the_setup_env_dev_aws_sam_config_wrk_path" || exit $?

@@ -15,7 +15,7 @@ done
 the_aws_sam_build_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 the_aws_sam_build_root_dir="$( realpath "$the_aws_sam_build_script_dir"/.. )"
 
-the_template_path="$the_aws_sam_build_root_dir/infra/aws/serverless.template"
+the_template_path="$the_aws_sam_build_root_dir/.local/infra/aws/serverless.template"
 the_build_dir="$the_aws_sam_build_root_dir/.aws-sam/build"
 
 if ! command -v sam >/dev/null 2>&1 ; then
