@@ -34,7 +34,7 @@ if [ $the_rc -eq 0 ] ; then
     the_rc=$?
     [ $the_rc -ne 0 ] && cat "$the_aws_logout_wrk_path"
   else
-    'LOGGING_OUT'
+    echo 'LOGGING_OUT'
     "$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" ./scripts/aws-run-cmd.sh aws sso logout
     the_rc=$?
   fi
