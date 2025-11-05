@@ -16,20 +16,20 @@ while [ -h "$SOURCE" ]; do
 done
 the_aws_login_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 the_aws_login_root_dir="$( realpath "$the_aws_login_script_dir"/.. )"
+source "$the_aws_login_root_dir"/scripts/lcl-os-checks.sh 'source-only' || exit $?
 
 ##############################################################
 # tmp is problematic on cygwin
-the_aws_login_tmp_dir='/tmp'
+the_aws_login_tmp_dir="`lcl_os_tmp_dir`"
 the_aws_login_tmp_fname_prefix="aws-login-$$-"
 the_aws_login_tmp_path_prefix="$the_aws_login_tmp_dir/$the_aws_login_tmp_fname_prefix"
 
-# logged in?
+# logged in? (note - on error do *not show* problems)
 the_aws_login_wrk_path="${the_aws_login_tmp_path_prefix}info.txt"
 "$the_aws_login_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity >"$the_aws_login_wrk_path" 2>&1
 the_rc=$?
 if [ $the_rc -eq 0 ] ; then
   [ x"$AWS_LOGIN_OPTION_SHOW_LOGIN_INFO" = x1 ] && cat "$the_aws_login_wrk_path"
-  rm -f "$the_aws_login_wrk_path"
   exit 0
 fi
 rm -f "$the_aws_login_wrk_path"

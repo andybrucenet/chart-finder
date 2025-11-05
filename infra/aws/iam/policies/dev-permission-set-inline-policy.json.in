@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowPassingCiCdRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/cf-*-codebuild-exec-role",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "cloudformation.amazonaws.com",
+            "codebuild.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "AllowSamCfnLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DescribeChangeSet",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:GetTemplate",
+        "cloudformation:DeleteChangeSet"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:stack/cf-*/*",
+        "arn:aws:cloudformation:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:stackset/cf-*:*"
+      ]
+    }
+  ]
+}
