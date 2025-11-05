@@ -16,13 +16,26 @@
   - `<SSO_ADMIN_GROUP_NAME>` → `<SSO_ADMIN_PERMISSION_SET>`
   - `<SSO_DEV_GROUP_NAME>` → `<SSO_DEV_PERMISSION_SET>`
 
+## Identity Center Delegated Admin (One-Time)
+- Identity Center APIs (e.g., `sso-admin list-permission-sets`) only operate from the home region (`us-east-2`) and require the calling account to be registered as an Identity Center delegated administrator.
+- During initial project bootstrap, sign in to the **payer/management account** with credentials that can run AWS Organizations commands (root or equivalent) and execute:
+  ```bash
+  aws organizations register-delegated-administrator \
+    --account-id <WORKLOAD_ACCOUNT_ID> \
+    --service-principal sso.amazonaws.com
+  ```
+- Verify the registration: `aws organizations list-delegated-administrators`.
+- Security note: delegating Identity Center grants the workload account authority to manage SSO permission sets. Only perform this for accounts you monitor closely, and review CloudTrail regularly for `sso-admin` activity.
+- Without this delegation, workload-account admins (e.g., `<SSO_ADMIN_PERMISSION_SET>`) receive `AccessDeniedException` when the automation tries to push inline policies to Identity Center.
+
 ## Access Portal Behavior
 - Portal URL: `<SSO_START_URL>`
 - Each browser session is effectively a singleton: once you sign in as a user, that browser profile keeps their SSO cookies. Even deleting cookies just for the domains behind `<SSO_START_URL>` (start portal, `auth.awsapps.com`, and the regional Identity Center endpoint) wasn’t enough; wiping **all** site data/cookies in the browser finally forced a fresh login.
-- Practical workaround: dedicate separate browsers—Firefox for the payer/root account, Safari for `<SSO_ADMIN_USERNAME>`, Chrome for `<SSO_DEV_USERNAME>`—to avoid cookie churn.
+- Practical workaround: dedicate separate browsers—Firefox for the payer/root account, Safari for `<SSO_DEV_USERNAME>`, Chrome for `<SSO_ADMIN_USERNAME>`—so CLI login links land in the account they’re meant for.
 - To force sign-out, hit both:
   - `<SSO_START_URL>/#/logout`
   - `https://console.aws.amazon.com/console/logout!doLogout`
+- One-person shops still need the separation; when the CLI prompts for SSO login, paste the URL into the browser tied to that persona. If the wrong browser holds an active session, the CLI inherits that account’s permission set.
 
 ## CLI Configuration (`<DEV_PROFILE_NAME>`)
 1. `aws configure sso`

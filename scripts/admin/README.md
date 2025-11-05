@@ -4,6 +4,15 @@ These scripts are for admin user to run to apply permissions correctly for a dev
 * Dev users have least-privileges for running commands.
 * The process can reasonably be automated (e.g. dev user places a zip file in a shared folder; zip file is consumed automatically by the admin).
 
+## Prerequisite
+- From the payer/management account (Identity Center home region `us-east-2`), register the workload account (`<WORKLOAD_ACCOUNT_ID>`) as the delegated administrator for Identity Center so the automation can call `sso-admin` APIs:
+  ```
+  aws organizations register-delegated-administrator \
+    --account-id <WORKLOAD_ACCOUNT_ID> \
+    --service-principal sso.amazonaws.com
+  ```
+  Confirm with `aws organizations list-delegated-administrators`. Delegation grants sensitive SSO management rights to the workload account—ensure it’s monitored and reviewed via CloudTrail.
+
 ## Standard Flow
 
 Flow is:
@@ -26,4 +35,3 @@ For abruce macOS dev environment use this:
 ```
 AWS_PROFILE=sab-u-admin ./scripts/admin/admin-setup-dev-env.sh ~/proj/git/src/github.com/andybrucenet/chart-finder/.local
 ```
-
