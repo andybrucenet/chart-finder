@@ -101,6 +101,7 @@ if [ ! -d "$LOCAL_INFRA_AWS_DIR" ]; then
 fi
 POLICY_DOC_PATH="$LOCAL_INFRA_AWS_DIR/iam/policies/codebuild-exec-permissions.json"
 TRUST_DOC_PATH="$LOCAL_INFRA_AWS_DIR/iam/roles/codebuild-exec-trust.json"
+PERMISSION_SET_INLINE_POLICY_PATH="$LOCAL_INFRA_AWS_DIR/iam/policies/dev-permission-set-inline-policy.json"
 
 [ -s "$POLICY_DOC_PATH" ] || { echo "ERROR: MISSING_POLICY_DOC:'$POLICY_DOC_PATH'" >&2; exit 1; }
 [ -s "$TRUST_DOC_PATH" ] || { echo "ERROR: MISSING_TRUST_DOC:'$TRUST_DOC_PATH'" >&2; exit 1; }
@@ -244,9 +245,107 @@ else
 fi
 echo ''
 
+SSO_INSTANCE_ARN=""
+PERMISSION_SET_ARN=""
+PERMISSION_SET_NAME=""
+
+if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
+  echo 'IDENTITY CENTER PERMISSION SET...'
+  SSO_REGION="${ADMIN_SETUP_DEV_ENV_AWS_SSO_REGION:-$CF_LOCAL_AWS_REGION}"
+  echo "  REGION: $SSO_REGION"
+
+  if [ -z "${ADMIN_SETUP_DEV_ENV_AWS_SSO_INSTANCE_ARN:-}" ]; then
+    echo '  DISCOVER INSTANCE ARN...'
+    SSO_INSTANCE_LIST=$(aws sso-admin list-instances --region "$SSO_REGION" --query 'Instances[].InstanceArn' --output text)
+    SSO_INSTANCE_RC=$?
+    if [ $SSO_INSTANCE_RC -ne 0 ]; then
+      echo "ERROR: FAILED_TO_LIST_INSTANCES rc=$SSO_INSTANCE_RC" >&2
+      exit $SSO_INSTANCE_RC
+    fi
+    if [ -z "$SSO_INSTANCE_LIST" ] || [ "$SSO_INSTANCE_LIST" = "None" ]; then
+      echo 'ERROR: NO_SSO_INSTANCE_FOUND set ADMIN_SETUP_DEV_ENV_AWS_SSO_INSTANCE_ARN and retry' >&2
+      exit 1
+    fi
+    read -r -a SSO_INSTANCE_ARRAY <<<"$SSO_INSTANCE_LIST"
+    if [ "${#SSO_INSTANCE_ARRAY[@]}" -ne 1 ]; then
+      echo 'ERROR: MULTIPLE_SSO_INSTANCES set ADMIN_SETUP_DEV_ENV_AWS_SSO_INSTANCE_ARN to disambiguate' >&2
+      exit 1
+    fi
+    SSO_INSTANCE_ARN="${SSO_INSTANCE_ARRAY[0]}"
+  else
+    SSO_INSTANCE_ARN="$ADMIN_SETUP_DEV_ENV_AWS_SSO_INSTANCE_ARN"
+  fi
+  echo "  INSTANCE_ARN: $SSO_INSTANCE_ARN"
+
+  if [ -n "${ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_ARN:-}" ]; then
+    PERMISSION_SET_ARN="$ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_ARN"
+  else
+    TARGET_PERMISSION_SET_NAME="${ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_NAME:-sab-ps-chartfinder-dev}"
+    echo "  FIND PERMISSION SET ($TARGET_PERMISSION_SET_NAME)..."
+    PERMISSION_SET_LIST=$(aws sso-admin list-permission-sets --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --query 'PermissionSets[]' --output text)
+    PERMISSION_SET_RC=$?
+    if [ $PERMISSION_SET_RC -ne 0 ]; then
+      echo "ERROR: FAILED_TO_LIST_PERMISSION_SETS rc=$PERMISSION_SET_RC" >&2
+      exit $PERMISSION_SET_RC
+    fi
+    if [ -z "$PERMISSION_SET_LIST" ] || [ "$PERMISSION_SET_LIST" = "None" ]; then
+      echo 'ERROR: NO_PERMISSION_SETS_FOUND set ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_ARN' >&2
+      exit 1
+    fi
+    read -r -a PERMISSION_SET_ARRAY <<<"$PERMISSION_SET_LIST"
+    for CANDIDATE_PERMISSION_SET_ARN in "${PERMISSION_SET_ARRAY[@]}"; do
+      CANDIDATE_NAME=$(aws sso-admin describe-permission-set --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --permission-set-arn "$CANDIDATE_PERMISSION_SET_ARN" --query 'PermissionSet.Name' --output text)
+      CANDIDATE_RC=$?
+      if [ $CANDIDATE_RC -ne 0 ]; then
+        echo "ERROR: FAILED_TO_DESCRIBE_PERMISSION_SET arn=$CANDIDATE_PERMISSION_SET_ARN rc=$CANDIDATE_RC" >&2
+        exit $CANDIDATE_RC
+      fi
+      if [ "$CANDIDATE_NAME" = "$TARGET_PERMISSION_SET_NAME" ]; then
+        PERMISSION_SET_ARN="$CANDIDATE_PERMISSION_SET_ARN"
+        PERMISSION_SET_NAME="$CANDIDATE_NAME"
+        break
+      fi
+    done
+    if [ -z "$PERMISSION_SET_ARN" ]; then
+      echo "ERROR: PERMISSION_SET_NOT_FOUND name=$TARGET_PERMISSION_SET_NAME" >&2
+      exit 1
+    fi
+  fi
+
+  if [ -z "$PERMISSION_SET_NAME" ]; then
+    PERMISSION_SET_NAME=$(aws sso-admin describe-permission-set --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --permission-set-arn "$PERMISSION_SET_ARN" --query 'PermissionSet.Name' --output text)
+    DESCRIBE_RC=$?
+    if [ $DESCRIBE_RC -ne 0 ]; then
+      echo "ERROR: FAILED_TO_DESCRIBE_PERMISSION_SET arn=$PERMISSION_SET_ARN rc=$DESCRIBE_RC" >&2
+      exit $DESCRIBE_RC
+    fi
+  fi
+
+  echo "  PERMISSION_SET_ARN: $PERMISSION_SET_ARN"
+  echo '  APPLY INLINE POLICY'
+  run_cmd aws sso-admin put-inline-policy-to-permission-set \
+    --region "$SSO_REGION" \
+    --instance-arn "$SSO_INSTANCE_ARN" \
+    --permission-set-arn "$PERMISSION_SET_ARN" \
+    --inline-policy file://"$PERMISSION_SET_INLINE_POLICY_PATH"
+  echo ''
+else
+  echo 'IDENTITY CENTER PERMISSION SET...'
+  echo "  SKIP: MISSING_POLICY_DOC:'$PERMISSION_SET_INLINE_POLICY_PATH'"
+  echo ''
+fi
+
 echo 'SUMMARY'
 echo "  Artifact bucket: s3://$ARTIFACT_BUCKET"
 echo "  IAM policy: $POLICY_ARN"
 echo "  IAM role:   $ROLE_ARN"
+if [ -n "${SSO_INSTANCE_ARN:-}" ] && [ -n "${PERMISSION_SET_ARN:-}" ]; then
+  echo "  SSO instance: $SSO_INSTANCE_ARN"
+  if [ -n "${PERMISSION_SET_NAME:-}" ]; then
+    echo "  Permission set: $PERMISSION_SET_NAME ($PERMISSION_SET_ARN)"
+  else
+    echo "  Permission set: $PERMISSION_SET_ARN"
+  fi
+fi
 
 # cleanup handled by trap
