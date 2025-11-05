@@ -32,6 +32,7 @@ if [ $the_rc -eq 0 ] ; then
   [ x"$AWS_IS_LOGGED_IN_OPTION_SHOW_LOGIN_INFO" = x1 ] && cat "$the_aws_is_logged_in_wrk_path"
   exit 0
 fi
+[ x"$AWS_IS_LOGGED_IN_OPTION_SHOW_LOGIN_INFO" = x1 ] && cat "$the_aws_is_logged_in_wrk_path"
 rm -f "$the_aws_is_logged_in_wrk_path"
 
 # not logged-in
