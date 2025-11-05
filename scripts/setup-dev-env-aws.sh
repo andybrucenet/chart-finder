@@ -189,6 +189,9 @@ else
     || exit $?
   set +x
   /bin/mv "$the_setup_env_dev_aws_sam_config_wrk_path" "$the_setup_env_dev_aws_sam_config_dst_path" || exit $?
+
+  # post-process deployment
+  "$the_setup_env_dev_aws_script_dir/setup-dev-env-aws-post-process.sh" || exit $?
 fi
 echo ''
 

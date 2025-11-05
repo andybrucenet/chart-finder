@@ -70,8 +70,11 @@ cached = true
 parallel = true
 
 [dev.deploy.parameters]
+# ABr: initially we must use template_file_pre for initial bootstrap 'sam deploy --guided'
+# ABr: this will be modified to template_file_post after successful bootstrap
+#template_file_pre = ".local/infra/aws/serverless.template"
+#template_file_post = ".aws-sam/build/template.yaml"
 template_file = ".local/infra/aws/serverless.template"
-#template_file = ".aws-sam/build/template.yaml"
 stack_name = "chart-finder-dev-$CF_LOCAL_DEV_ID"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
