@@ -160,7 +160,20 @@ while IFS= read -r line; do
   the_rc=$?
   [ $the_rc_final -eq 0 ] && the_rc_final=$the_rc
 done < "$the_sync_configs_dirs_path"
+
+# warn about files that require manual hydration
+for ignore_fname in $SYNC_CONFIG_OPTION_FNAMES_TO_IGNORE; do
+  while IFS= read -r src_path; do
+    [ -z "$src_path" ] && continue
+    dst_rel="${src_path#$the_sync_configs_dirs_infra_dir/}"
+    dst_path="$the_sync_configs_local_dir/infra/${dst_rel%.in}"
+    if [ ! -f "$dst_path" ]; then
+      echo "WARN: missing hydrated copy for $dst_path; run ./scripts/setup-dev-env.sh"
+    elif [ "$src_path" -nt "$dst_path" ]; then
+      echo "WARN: template updated for $src_path; rerun ./scripts/setup-dev-env.sh to refresh $dst_path"
+    fi
+  done < <(find "$the_sync_configs_dirs_infra_dir" -name "$ignore_fname" -print)
+done
 #
 # all done
 sync_configs_exit $the_rc_final
-

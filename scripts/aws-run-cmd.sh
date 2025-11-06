@@ -21,6 +21,15 @@ if [ -s "$the_aws_run_cmd_root_dir/.local/local.env" ] ; then
 fi
 #set | grep -e '^AWS_'
 
-# run cmd
-"$@"
+if [ "$1" = "--eval" ]; then
+  shift
+  cmd="$*"
+  if [ -z "$cmd" ]; then
+    echo "aws-run-cmd.sh: missing command for --eval" >&2
+    exit 1
+  fi
+  exec "${SHELL:-/bin/bash}" -lc "$cmd"
+fi
 
+# run cmd
+exec "$@"

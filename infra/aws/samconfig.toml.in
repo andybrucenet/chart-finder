@@ -14,7 +14,7 @@ parallel = true
 
 [prod.deploy.parameters]
 template_file = ".aws-sam/build/template.yaml"
-stack_name = "chart-finder-prod"
+stack_name = "cf-prod"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
@@ -33,7 +33,7 @@ parallel = true
 
 [stage.deploy.parameters]
 template_file = ".aws-sam/build/template.yaml"
-stack_name = "chart-finder-stage"
+stack_name = "cf-stage"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
@@ -52,7 +52,7 @@ parallel = true
 
 [test.deploy.parameters]
 template_file = ".aws-sam/build/template.yaml"
-stack_name = "chart-finder-test"
+stack_name = "cf-test"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
@@ -75,7 +75,7 @@ parallel = true
 #template_file_pre = ".local/infra/aws/serverless.template"
 #template_file_post = ".aws-sam/build/template.yaml"
 template_file = ".local/infra/aws/serverless.template"
-stack_name = "chart-finder-dev-$CF_LOCAL_DEV_ID"
+stack_name = "$CF_LOCAL_ENV_ID"
 resolve_s3 = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
@@ -83,3 +83,4 @@ disable_rollback = false
 parameter_overrides = "OwnerEmail=$CF_LOCAL_USEREMAIL"
 region = "$CF_LOCAL_AWS_REGION"
 profile = "$CF_LOCAL_AWS_PROFILE"
+s3_prefix = "$CF_LOCAL_ENV_ID"

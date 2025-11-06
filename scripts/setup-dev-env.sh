@@ -79,7 +79,7 @@ fi
 echo "  CF_ROOT='$CF_ROOT'"
 #
 if [ x"$CF_LOCAL_DEV_ID" = x ] ; then
-  the_default_value="$(whoami | sed -e 's/^l[\.\-]//')"
+  the_default_value="$(whoami | sed -e 's/^l[\.\-]//')-dev"
   read -p "  Enter value for CF_LOCAL_DEV_ID [$the_default_value]: " CF_LOCAL_DEV_ID
   CF_LOCAL_DEV_ID="${CF_LOCAL_DEV_ID:-$the_default_value}"
   lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_DEV_ID "$CF_LOCAL_DEV_ID" || exit $?
@@ -87,8 +87,17 @@ if [ x"$CF_LOCAL_DEV_ID" = x ] ; then
 fi
 echo "  CF_LOCAL_DEV_ID='$CF_LOCAL_DEV_ID'"
 #
+if [ x"$CF_LOCAL_PRJ_ID" = x ] ; then
+  the_default_value='cf'
+  read -p "  Enter value for CF_LOCAL_PRJ_ID [$the_default_value]: " CF_LOCAL_PRJ_ID
+  CF_LOCAL_PRJ_ID="${CF_LOCAL_PRJ_ID:-$the_default_value}"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_PRJ_ID "$CF_LOCAL_PRJ_ID" || exit $?
+  export CF_LOCAL_PRJ_ID
+fi
+echo "  CF_LOCAL_PRJ_ID='$CF_LOCAL_PRJ_ID'"
+#
 if [ x"$CF_LOCAL_ENV_ID" = x ] ; then
-  the_default_value="cf-$CF_LOCAL_DEV_ID"
+  the_default_value="$CF_LOCAL_PRJ_ID-$CF_LOCAL_DEV_ID"
   read -p "  Enter value for CF_LOCAL_ENV_ID [$the_default_value]: " CF_LOCAL_ENV_ID
   CF_LOCAL_ENV_ID="${CF_LOCAL_ENV_ID:-$the_default_value}"
   lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_ENV_ID "$CF_LOCAL_ENV_ID" || exit $?

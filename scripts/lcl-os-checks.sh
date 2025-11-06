@@ -328,7 +328,7 @@ function lcl_dot_local_settings_update {
 #
 # read .local settings entry with a default value if not exists
 # rules:
-# * does *not* honor local environment value - only settin from local.env
+# * does *not* honor local environment value - only the setting from local.env
 # * if set in local.env - return that as-is
 # * else:
 #   * if auto-update set then update local.env with default_value
