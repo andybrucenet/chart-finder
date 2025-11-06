@@ -23,9 +23,20 @@ if ! command -v sam >/dev/null 2>&1 ; then
   exit 1
 fi
 
-exec "$the_aws_sam_build_root_dir/scripts/aws-run-cmd.sh" sam build \
+# run the build
+echo 'AWS SAM BUILD...'
+"$the_aws_sam_build_root_dir/scripts/aws-run-cmd.sh" sam build \
   --template-file "$the_template_path" \
   --build-dir "$the_build_dir" \
   --cached \
   --parallel \
   "$@"
+echo ''
+
+# run the validate
+echo 'AWS SAM VALIDATE...'
+"$the_aws_sam_build_root_dir/scripts/aws-run-cmd.sh" sam validate \
+  --template-file "$the_build_dir"/template.yaml \
+  --config-env dev \
+  --lint
+

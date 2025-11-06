@@ -35,3 +35,9 @@
 - Admin bootstrap flow: dev hydrates `.local` (including `samconfig.toml`), admin runs `scripts/admin/admin-setup-dev-env.sh` against it to create the artifact bucket and scoped CodeBuild role/policy.
 - `samconfig.toml` and `serverless.template` hydration still need refinement (e.g., `CodeUri` path adjustments) before the process is push-button.
 - Next task: craft the IAM policy that grants `iam:PassRole` (plus CloudFormation/Lambda actions) to the dev permission set and have the admin bootstrap script attach that policy to the correct Identity Center permission set.
+
+## 2025-01-21 Session Notes
+- Documented the mandatory AWS Organizations delegation step so the workload account can call `sso-admin`; added reminders that admins must keep browsers separated per SSO persona.
+- Added a post-process script to rewrite the hydrated `samconfig.toml` so guided setup still works but real deploys consume `.aws-sam/build/template.yaml`; updated the build script to validate after each `sam build`.
+- ` ./scripts/aws-run-cmd.sh sam deploy --config-file .local/infra/aws/samconfig.toml --config-env dev ` failed with `iam:CreateRole` / `iam:TagRole` / `iam:DeleteRolePolicy` access denied while CloudFormation was creating `AspNetCoreFunctionRole` (see stack event messages for the exact ARN `arn:aws:iam::835972387595:role/chart-finder-dev-abruce-AspNetCoreFunctionRole-*`).
+- Follow-up: extend the Identity Center inline policy (and admin bootstrap script) so the dev permission set grants CloudFormation the missing IAM actions (`iam:CreateRole`, `iam:DeleteRole`, `iam:AttachRolePolicy`, `iam:DetachRolePolicy`, `iam:PutRolePolicy`, `iam:TagRole`, `iam:UntagRole`, `iam:DeleteRolePolicy`) scoped to `arn:aws:iam::835972387595:role/cf-*-*`, then rerun the admin bootstrap before retrying the deploy.

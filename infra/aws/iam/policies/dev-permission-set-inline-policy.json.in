@@ -31,6 +31,21 @@
         "arn:aws:cloudformation:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:stack/cf-*/*",
         "arn:aws:cloudformation:$CF_LOCAL_AWS_REGION:$CF_LOCAL_AWS_ACCOUNT_ID:stackset/cf-*:*"
       ]
+    },
+    {
+      "Sid": "AllowSamRoleManagement",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole"
+      ],
+      "Resource": "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/cf-*-*"
     }
   ]
 }
