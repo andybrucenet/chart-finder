@@ -22,7 +22,7 @@ Flow is:
 
 1. Admin unzips `.local` folder to a location such as `/tmp/dev-user` and then runs:
     ```
-    AWS_PROFILE=sab-u-admin ./scripts/admin/admin-setup-dev-env.sh /tmp/dev-user/.local
+    AWS_PROFILE=sab-u-admin-cf-dev ./scripts/admin/admin-setup-dev-env.sh /tmp/dev-user/.local
     ```
 
 1. Admin notifies dev user that permissions are granted.
@@ -33,5 +33,5 @@ Note that on any change / update to permissions in source control this process m
 
 For abruce macOS dev environment use this:
 ```
-AWS_PROFILE=sab-u-admin ./scripts/admin/admin-setup-dev-env.sh ~/proj/git/src/github.com/andybrucenet/chart-finder/.local
+AWS_PROFILE=sab-u-admin-cf-dev ./scripts/admin/admin-setup-dev-env.sh ~/proj/git/src/github.com/andybrucenet/chart-finder/.local
 ```
