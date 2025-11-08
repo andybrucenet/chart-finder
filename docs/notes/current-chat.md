@@ -13,6 +13,8 @@
 - Extend the setup flow to create one-time AWS resources (e.g., per-dev artifact buckets) once variables are known.
 - Ensure `local.env` captures all required config values, including future `CF_BACKEND_PROVIDER` for AWS/Azure switching and inputs consumed by dedicated cloud setup scripts.
 - Finish AWS CI/CD bootstrap: create artifact bucket + IAM attachments so CodeBuild/SAM deploy calls succeed end-to-end.
+- Harden the new `aws-sam-deploy.sh` helper (document modes, pull SAM warnings into a tracking issue, consider migrating to a Makefile once targets settle).
+- Add smoke tests for the deployed Lambda/API Gateway path to confirm the stack stays healthy.
 
 ## 2025-01-18 Session Notes
 - Confirmed AWS remains first-class target, followed by local/offline, then Azure (and possibly Google) adapters.
@@ -41,3 +43,10 @@
 - Added a post-process script to rewrite the hydrated `samconfig.toml` so guided setup still works but real deploys consume `.aws-sam/build/template.yaml`; updated the build script to validate after each `sam build`.
 - ` ./scripts/aws-run-cmd.sh sam deploy --config-file .local/infra/aws/samconfig.toml --config-env dev ` failed with `iam:CreateRole` / `iam:TagRole` / `iam:DeleteRolePolicy` access denied while CloudFormation was creating `AspNetCoreFunctionRole` (see stack event messages for the exact ARN `arn:aws:iam::835972387595:role/chart-finder-dev-abruce-AspNetCoreFunctionRole-*`).
 - Follow-up: extend the Identity Center inline policy (and admin bootstrap script) so the dev permission set grants CloudFormation the missing IAM actions (`iam:CreateRole`, `iam:DeleteRole`, `iam:AttachRolePolicy`, `iam:DetachRolePolicy`, `iam:PutRolePolicy`, `iam:TagRole`, `iam:UntagRole`, `iam:DeleteRolePolicy`) scoped to `arn:aws:iam::835972387595:role/cf-*-*`, then rerun the admin bootstrap before retrying the deploy.
+
+## 2025-11-08 Session Notes
+- IAM inline policy tuned to fence pass-role/read-only actions to `cf-sab-u-dev-*` roles plus the Identity Center role (`/aws-reserved/sso.amazonaws.com/us-east-2/...`), ensuring devs can inspect and deploy without touching other environments.
+- `admin-setup-dev-env-aws.sh` now prunes old policy versions, provisions permission sets, and uses `--no-cli-pager` across AWS calls; SSO provisioning waits for `SUCCEEDED`.
+- New deploy helper `aws-sam-deploy.sh` supports `build`/`clean`/`rebuild`/`status` modes, wrapping stack deletion and SAM deploy logic behind a Make-style interface.
+- Successful `sam deploy` created the `cf-sab-u-dev` stack (Lambda + DynamoDB) with no IAM failures; CLI warning notes Pydantic’s Py3.14 incompatibility (benign, needs tracking).
+- Next test: hit the deployed API/Lambda for a smoke check and capture the endpoint & expected payload in docs.
