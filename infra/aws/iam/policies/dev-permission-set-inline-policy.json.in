@@ -16,6 +16,19 @@
       }
     },
     {
+      "Sid": "AllowPassingLambdaRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/$CF_LOCAL_ENV_ID-*-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "lambda.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "AllowSamCfnLifecycle",
       "Effect": "Allow",
       "Action": [

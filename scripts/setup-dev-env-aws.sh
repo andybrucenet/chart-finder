@@ -97,7 +97,7 @@ echo "  CF_LOCAL_AWS_ARTIFACT_BUCKET='$CF_LOCAL_AWS_ARTIFACT_BUCKET'"
 #
 # always update CF_LOCAL_AWS_SSO_ROLE as it is driven through login - but we need it for hydration
 CF_LOCAL_AWS_SSO_ROLE="`"$the_setup_env_dev_aws_root_dir"/scripts/aws-run-cmd.sh \
-  aws sts get-caller-identity --output json \
+  aws sts get-caller-identity --output json --no-cli-pager \
   | jq -r '.Arn' \
   | awk -F':' '{print $6}' | awk -F'/' '{print $2}' \
   | xargs | dos2unix`"
@@ -141,7 +141,7 @@ echo 'CHECK AWS LOGIN...'
 echo ''
 #
 # get the region
-CF_LOCAL_AWS_ACCOUNT_ID="`"$the_setup_env_dev_aws_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity --output json | jq -r '.Account' | dos2unix`"
+CF_LOCAL_AWS_ACCOUNT_ID="`"$the_setup_env_dev_aws_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity --output json --no-cli-pager | jq -r '.Account' | dos2unix`"
 lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" CF_LOCAL_AWS_ACCOUNT_ID "$CF_LOCAL_AWS_ACCOUNT_ID" || exit $?
 export CF_LOCAL_AWS_ACCOUNT_ID
 echo "CF_LOCAL_AWS_ACCOUNT_ID='$CF_LOCAL_AWS_ACCOUNT_ID'"

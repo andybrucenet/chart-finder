@@ -28,6 +28,7 @@ echo 'AWS SAM BUILD...'
 "$the_aws_sam_build_root_dir/scripts/aws-run-cmd.sh" sam build \
   --template-file "$the_template_path" \
   --build-dir "$the_build_dir" \
+  --build-in-source \
   --cached \
   --parallel \
   "$@"
@@ -39,4 +40,3 @@ echo 'AWS SAM VALIDATE...'
   --template-file "$the_build_dir"/template.yaml \
   --config-env dev \
   --lint
-

@@ -26,16 +26,16 @@ the_aws_logout_tmp_path_prefix="$the_aws_logout_tmp_dir/$the_aws_logout_tmp_fnam
 
 # logged in?
 the_aws_logout_wrk_path="${the_aws_logout_tmp_path_prefix}info.txt"
-"$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity >"$the_aws_logout_wrk_path" 2>&1
+"$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity --no-cli-pager >"$the_aws_logout_wrk_path" 2>&1
 the_rc=$?
 if [ $the_rc -eq 0 ] ; then
   if [ x"$AWS_LOGOUT_OPTION_QUIET" = x1 ] ; then
-    "$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" ./scripts/aws-run-cmd.sh aws sso logout >"$the_aws_logout_wrk_path" 2>&1
+    "$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" ./scripts/aws-run-cmd.sh aws sso logout --no-cli-pager >"$the_aws_logout_wrk_path" 2>&1
     the_rc=$?
     [ $the_rc -ne 0 ] && cat "$the_aws_logout_wrk_path"
   else
     echo 'LOGGING_OUT'
-    "$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" ./scripts/aws-run-cmd.sh aws sso logout
+    "$the_aws_logout_root_dir/scripts/aws-run-cmd.sh" ./scripts/aws-run-cmd.sh aws sso logout --no-cli-pager
     the_rc=$?
   fi
 else

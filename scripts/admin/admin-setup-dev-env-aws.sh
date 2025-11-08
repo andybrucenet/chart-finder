@@ -64,9 +64,17 @@ assert_var_set() {
 }
 
 run_cmd() {
-  echo "+ $*"
-  "$@"
-  local rc=$?
+  local rc
+  if [ "$1" = "aws" ]; then
+    shift
+    echo "+ aws --no-cli-pager $*"
+    aws --no-cli-pager "$@"
+    rc=$?
+  else
+    echo "+ $*"
+    "$@"
+    rc=$?
+  fi
   if [ $rc -ne 0 ]; then
     echo "ERROR: COMMAND_FAILED rc=$rc cmd='$*'" >&2
     exit $rc
@@ -116,7 +124,7 @@ echo ''
 
 echo 'CONFIRM CALLER...'
 run_cmd aws sts get-caller-identity
-CALLER_ACCOUNT=$(aws sts get-caller-identity --query 'Account' --output text)
+CALLER_ACCOUNT=$(aws --no-cli-pager sts get-caller-identity --query 'Account' --output text)
 CALLER_RC=$?
 if [ $CALLER_RC -ne 0 ]; then
   echo "ERROR: FAILED_TO_DETECT_ACCOUNT rc=$CALLER_RC" >&2
@@ -137,7 +145,7 @@ ARTIFACT_BUCKET="$CF_LOCAL_AWS_ARTIFACT_BUCKET"
 ARTIFACT_BUCKET_REGION="$CF_LOCAL_AWS_REGION"
 
 echo "ARTIFACT BUCKET..."
-if aws s3api head-bucket --bucket "$ARTIFACT_BUCKET" >/dev/null 2>&1; then
+if aws --no-cli-pager s3api head-bucket --bucket "$ARTIFACT_BUCKET" >/dev/null 2>&1; then
   echo "  EXISTS: s3://$ARTIFACT_BUCKET"
 else
   echo "  CREATE: s3://$ARTIFACT_BUCKET"
@@ -183,14 +191,14 @@ POLICY_ARN="arn:aws:iam::${CF_LOCAL_AWS_ACCOUNT_ID}:policy/${POLICY_NAME}"
 
 echo "IAM POLICY ($POLICY_NAME)..."
 if aws iam get-policy --policy-arn "$POLICY_ARN" >/dev/null 2>&1; then
-  EXISTING_VERSION_COUNT=$(aws iam list-policy-versions --policy-arn "$POLICY_ARN" --query 'length(Versions)' --output text)
+  EXISTING_VERSION_COUNT=$(aws --no-cli-pager iam list-policy-versions --policy-arn "$POLICY_ARN" --query 'length(Versions)' --output text)
   VERSION_COUNT_RC=$?
   if [ $VERSION_COUNT_RC -ne 0 ]; then
     echo "ERROR: FAILED_TO_LIST_POLICY_VERSIONS rc=$VERSION_COUNT_RC" >&2
     exit $VERSION_COUNT_RC
   fi
   if [ "$EXISTING_VERSION_COUNT" != "None" ] && [ "$EXISTING_VERSION_COUNT" -ge 5 ]; then
-    OLDEST_VERSION_ID=$(aws iam list-policy-versions \
+    OLDEST_VERSION_ID=$(aws --no-cli-pager iam list-policy-versions \
       --policy-arn "$POLICY_ARN" \
       --query 'Versions[?IsDefaultVersion==`false`]|sort_by(@,&CreateDate)[0].VersionId' \
       --output text)
@@ -208,7 +216,7 @@ if aws iam get-policy --policy-arn "$POLICY_ARN" >/dev/null 2>&1; then
   fi
   echo '  UPDATE POLICY VERSION'
   run_cmd aws iam create-policy-version --policy-arn "$POLICY_ARN" --policy-document file://"$POLICY_DOC_PATH" --set-as-default
-  STALE_VERSIONS=$(aws iam list-policy-versions --policy-arn "$POLICY_ARN" --query 'Versions[?IsDefaultVersion==`false`].VersionId' --output text)
+  STALE_VERSIONS=$(aws --no-cli-pager iam list-policy-versions --policy-arn "$POLICY_ARN" --query 'Versions[?IsDefaultVersion==`false`].VersionId' --output text)
   STALE_RC=$?
   if [ $STALE_RC -ne 0 ]; then
     echo "ERROR: FAILED_TO_LIST_POLICY_VERSIONS rc=$STALE_RC" >&2
@@ -251,7 +259,7 @@ else
     --tags Key=Project,Value="$PROJECT_TAG_VALUE" Key=Environment,Value="$ENVIRONMENT_TAG_VALUE" Key=Owner,Value="$OWNER_TAG_VALUE"
 fi
 
-ATTACHED=$(aws iam list-attached-role-policies --role-name "$ROLE_NAME" --query 'AttachedPolicies[?PolicyArn==`'"$POLICY_ARN"'`].PolicyArn' --output text)
+ATTACHED=$(aws --no-cli-pager iam list-attached-role-policies --role-name "$ROLE_NAME" --query 'AttachedPolicies[?PolicyArn==`'"$POLICY_ARN"'`].PolicyArn' --output text)
 ATTACHED_RC=$?
 if [ $ATTACHED_RC -ne 0 ]; then
   echo "ERROR: FAILED_TO_LIST_ATTACHED_POLICIES rc=$ATTACHED_RC" >&2
@@ -279,7 +287,7 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
 
   if [ -z "${ADMIN_SETUP_DEV_ENV_AWS_SSO_INSTANCE_ARN:-}" ]; then
     echo '  DISCOVER INSTANCE ARN...'
-    SSO_INSTANCE_LIST=$(aws sso-admin list-instances --region "$SSO_REGION" --query 'Instances[].InstanceArn' --output text)
+    SSO_INSTANCE_LIST=$(aws --no-cli-pager sso-admin list-instances --region "$SSO_REGION" --query 'Instances[].InstanceArn' --output text)
     SSO_INSTANCE_RC=$?
     if [ $SSO_INSTANCE_RC -ne 0 ]; then
       echo "ERROR: FAILED_TO_LIST_INSTANCES rc=$SSO_INSTANCE_RC" >&2
@@ -305,7 +313,7 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
   else
     TARGET_PERMISSION_SET_NAME="${ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_NAME:-sab-ps-chartfinder-dev}"
     echo "  FIND PERMISSION SET ($TARGET_PERMISSION_SET_NAME)..."
-    PERMISSION_SET_LIST=$(aws sso-admin list-permission-sets --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --query 'PermissionSets[]' --output text)
+    PERMISSION_SET_LIST=$(aws --no-cli-pager sso-admin list-permission-sets --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --query 'PermissionSets[]' --output text)
     PERMISSION_SET_RC=$?
     if [ $PERMISSION_SET_RC -ne 0 ]; then
       echo "ERROR: FAILED_TO_LIST_PERMISSION_SETS rc=$PERMISSION_SET_RC" >&2
@@ -317,7 +325,7 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
     fi
     read -r -a PERMISSION_SET_ARRAY <<<"$PERMISSION_SET_LIST"
     for CANDIDATE_PERMISSION_SET_ARN in "${PERMISSION_SET_ARRAY[@]}"; do
-      CANDIDATE_NAME=$(aws sso-admin describe-permission-set --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --permission-set-arn "$CANDIDATE_PERMISSION_SET_ARN" --query 'PermissionSet.Name' --output text)
+      CANDIDATE_NAME=$(aws --no-cli-pager sso-admin describe-permission-set --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --permission-set-arn "$CANDIDATE_PERMISSION_SET_ARN" --query 'PermissionSet.Name' --output text)
       CANDIDATE_RC=$?
       if [ $CANDIDATE_RC -ne 0 ]; then
         echo "ERROR: FAILED_TO_DESCRIBE_PERMISSION_SET arn=$CANDIDATE_PERMISSION_SET_ARN rc=$CANDIDATE_RC" >&2
@@ -336,7 +344,7 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
   fi
 
   if [ -z "$PERMISSION_SET_NAME" ]; then
-    PERMISSION_SET_NAME=$(aws sso-admin describe-permission-set --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --permission-set-arn "$PERMISSION_SET_ARN" --query 'PermissionSet.Name' --output text)
+    PERMISSION_SET_NAME=$(aws --no-cli-pager sso-admin describe-permission-set --region "$SSO_REGION" --instance-arn "$SSO_INSTANCE_ARN" --permission-set-arn "$PERMISSION_SET_ARN" --query 'PermissionSet.Name' --output text)
     DESCRIBE_RC=$?
     if [ $DESCRIBE_RC -ne 0 ]; then
       echo "ERROR: FAILED_TO_DESCRIBE_PERMISSION_SET arn=$PERMISSION_SET_ARN rc=$DESCRIBE_RC" >&2
@@ -372,7 +380,7 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
 
   echo '  WAIT FOR PROVISIONING...'
   while true; do
-    PROVISION_STATUS=$(aws sso-admin describe-permission-set-provisioning-status \
+    PROVISION_STATUS=$(aws --no-cli-pager sso-admin describe-permission-set-provisioning-status \
       --region "$SSO_REGION" \
       --instance-arn "$SSO_INSTANCE_ARN" \
       --provision-permission-set-request-id "$PERMISSION_SET_REQUEST_ID" \
@@ -389,7 +397,7 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
         break
         ;;
       FAILED)
-        FAILURE_REASON=$(aws sso-admin describe-permission-set-provisioning-status \
+        FAILURE_REASON=$(aws --no-cli-pager sso-admin describe-permission-set-provisioning-status \
           --region "$SSO_REGION" \
           --instance-arn "$SSO_INSTANCE_ARN" \
           --provision-permission-set-request-id "$PERMISSION_SET_REQUEST_ID" \
