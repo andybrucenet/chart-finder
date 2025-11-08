@@ -95,6 +95,16 @@ if [ x"$CF_LOCAL_AWS_ARTIFACT_BUCKET" = x ] ; then
 fi
 echo "  CF_LOCAL_AWS_ARTIFACT_BUCKET='$CF_LOCAL_AWS_ARTIFACT_BUCKET'"
 #
+# always update CF_LOCAL_AWS_SSO_ROLE as it is driven through login - but we need it for hydration
+CF_LOCAL_AWS_SSO_ROLE="`"$the_setup_env_dev_aws_root_dir"/scripts/aws-run-cmd.sh \
+  aws sts get-caller-identity --output json \
+  | jq -r '.Arn' \
+  | awk -F':' '{print $6}' | awk -F'/' '{print $2}' \
+  | xargs | dos2unix`"
+lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" CF_LOCAL_AWS_SSO_ROLE "$CF_LOCAL_AWS_SSO_ROLE" || exit $?
+export CF_LOCAL_AWS_SSO_ROLE
+echo "  CF_LOCAL_AWS_SSO_ROLE='$CF_LOCAL_AWS_SSO_ROLE'"
+#
 # always check AWS_PROFILE in the local.env file for a match to CF_LOCAL_AWS_PROFILE
 the_actual_value="`lcl_dot_local_settings_get "$the_setup_env_dev_aws_root_dir" AWS_PROFILE '' '0'`"
 wants_new_value=0 ; [ x"$the_actual_value" = x ] && wants_new_value=1
