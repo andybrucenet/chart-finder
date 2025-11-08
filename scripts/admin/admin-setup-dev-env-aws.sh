@@ -328,6 +328,59 @@ if [ -s "$PERMISSION_SET_INLINE_POLICY_PATH" ]; then
     --instance-arn "$SSO_INSTANCE_ARN" \
     --permission-set-arn "$PERMISSION_SET_ARN" \
     --inline-policy file://"$PERMISSION_SET_INLINE_POLICY_PATH"
+
+  echo '  PROVISION PERMISSION SET'
+  PROVISION_CMD=(aws sso-admin provision-permission-set
+    --region "$SSO_REGION"
+    --instance-arn "$SSO_INSTANCE_ARN"
+    --permission-set-arn "$PERMISSION_SET_ARN"
+    --target-type AWS_ACCOUNT
+    --target-id "$CF_LOCAL_AWS_ACCOUNT_ID"
+    --query PermissionSetProvisioningStatus.RequestId
+    --output text)
+  echo "+ ${PROVISION_CMD[*]}"
+  PERMISSION_SET_REQUEST_ID="$("${PROVISION_CMD[@]}")"
+  PROVISION_RC=$?
+  if [ $PROVISION_RC -ne 0 ] || [ -z "$PERMISSION_SET_REQUEST_ID" ]; then
+    echo "ERROR: PERMISSION_SET_PROVISION_FAILED rc=$PROVISION_RC request_id='${PERMISSION_SET_REQUEST_ID:-}'" >&2
+    exit ${PROVISION_RC:-1}
+  fi
+  echo "    REQUEST_ID: $PERMISSION_SET_REQUEST_ID"
+
+  echo '  WAIT FOR PROVISIONING...'
+  while true; do
+    PROVISION_STATUS=$(aws sso-admin describe-permission-set-provisioning-status \
+      --region "$SSO_REGION" \
+      --instance-arn "$SSO_INSTANCE_ARN" \
+      --provision-permission-set-request-id "$PERMISSION_SET_REQUEST_ID" \
+      --query PermissionSetProvisioningStatus.Status \
+      --output text)
+    DESCRIBE_RC=$?
+    if [ $DESCRIBE_RC -ne 0 ]; then
+      echo "ERROR: FAILED_TO_DESCRIBE_PROVISION_STATUS rc=$DESCRIBE_RC" >&2
+      exit $DESCRIBE_RC
+    fi
+    case "$PROVISION_STATUS" in
+      SUCCEEDED)
+        echo '    STATUS: SUCCEEDED'
+        break
+        ;;
+      FAILED)
+        FAILURE_REASON=$(aws sso-admin describe-permission-set-provisioning-status \
+          --region "$SSO_REGION" \
+          --instance-arn "$SSO_INSTANCE_ARN" \
+          --provision-permission-set-request-id "$PERMISSION_SET_REQUEST_ID" \
+          --query PermissionSetProvisioningStatus.FailureReason \
+          --output text)
+        echo "ERROR: PERMISSION_SET_PROVISION_FAILED reason=${FAILURE_REASON:-UNKNOWN}" >&2
+        exit 1
+        ;;
+      *)
+        echo "    STATUS: $PROVISION_STATUS (waiting...)"
+        sleep 5
+        ;;
+    esac
+  done
   echo ''
 else
   echo 'IDENTITY CENTER PERMISSION SET...'
