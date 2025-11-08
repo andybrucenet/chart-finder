@@ -64,7 +64,9 @@
       ],
       "Resource": [
         "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/$CF_LOCAL_ENV_ID-*",
-        "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/$CF_LOCAL_AWS_SSO_ROLE"
+        "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/$CF_LOCAL_AWS_SSO_ROLE",
+        "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/aws-reserved/sso.amazonaws.com/$CF_LOCAL_AWS_SSO_ROLE",
+        "arn:aws:iam::$CF_LOCAL_AWS_ACCOUNT_ID:role/aws-reserved/sso.amazonaws.com/$CF_LOCAL_AWS_REGION/$CF_LOCAL_AWS_SSO_ROLE"
       ]
     }
   ]

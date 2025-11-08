@@ -183,6 +183,29 @@ POLICY_ARN="arn:aws:iam::${CF_LOCAL_AWS_ACCOUNT_ID}:policy/${POLICY_NAME}"
 
 echo "IAM POLICY ($POLICY_NAME)..."
 if aws iam get-policy --policy-arn "$POLICY_ARN" >/dev/null 2>&1; then
+  EXISTING_VERSION_COUNT=$(aws iam list-policy-versions --policy-arn "$POLICY_ARN" --query 'length(Versions)' --output text)
+  VERSION_COUNT_RC=$?
+  if [ $VERSION_COUNT_RC -ne 0 ]; then
+    echo "ERROR: FAILED_TO_LIST_POLICY_VERSIONS rc=$VERSION_COUNT_RC" >&2
+    exit $VERSION_COUNT_RC
+  fi
+  if [ "$EXISTING_VERSION_COUNT" != "None" ] && [ "$EXISTING_VERSION_COUNT" -ge 5 ]; then
+    OLDEST_VERSION_ID=$(aws iam list-policy-versions \
+      --policy-arn "$POLICY_ARN" \
+      --query 'Versions[?IsDefaultVersion==`false`]|sort_by(@,&CreateDate)[0].VersionId' \
+      --output text)
+    OLDEST_RC=$?
+    if [ $OLDEST_RC -ne 0 ]; then
+      echo "ERROR: FAILED_TO_SELECT_OLDEST_POLICY_VERSION rc=$OLDEST_RC" >&2
+      exit $OLDEST_RC
+    fi
+    if [ -z "$OLDEST_VERSION_ID" ] || [ "$OLDEST_VERSION_ID" = "None" ]; then
+      echo "ERROR: NO_NON_DEFAULT_POLICY_VERSION_AVAILABLE_FOR_DELETE" >&2
+      exit 1
+    fi
+    echo "  DELETE POLICY VERSION (pre-update) ${POLICY_ARN}:$OLDEST_VERSION_ID"
+    run_cmd aws iam delete-policy-version --policy-arn "$POLICY_ARN" --version-id "$OLDEST_VERSION_ID"
+  fi
   echo '  UPDATE POLICY VERSION'
   run_cmd aws iam create-policy-version --policy-arn "$POLICY_ARN" --policy-document file://"$POLICY_DOC_PATH" --set-as-default
   STALE_VERSIONS=$(aws iam list-policy-versions --policy-arn "$POLICY_ARN" --query 'Versions[?IsDefaultVersion==`false`].VersionId' --output text)

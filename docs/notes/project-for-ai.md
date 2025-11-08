@@ -10,6 +10,7 @@
 - Prioritize CI/CD enablement (SAM build/deploy, CodeBuild pipeline, IAM, artifact buckets) before expanding application features.
 
 ## Working Agreements
+- AWS CLI and build commands do not work from AI - only the user can run them.
 - User executes all build, deploy, dotnet, and AWS CLI commands; the AI never runs them.
 - Do not modify or generate code without explicit user direction.
 - Treat `.local/` as the source of truth for hydrated configuration; consult those files when validating deploy settings.
