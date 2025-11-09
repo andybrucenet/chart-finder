@@ -7,8 +7,8 @@
 
 ## Daily Flow
 - `./scripts/setup-dev-env-aws.sh` (or `./scripts/sync-configs.sh`) to refresh hydrated config.
-- `./scripts/aws-sam-build.sh` whenever application code or template changes require a rebuild.
-- `./scripts/aws-run-cmd.sh sam deploy --config-file .local/infra/aws/samconfig.toml --config-env dev` for deploys.
+- `./scripts/aws-sam-preflight.sh` whenever application code or template changes require a rebuild.
+- `./scripts/aws-sam-deploy.sh build` for deploys (uses `.local/infra/aws/samconfig.toml` and the current billing env).
 - Invoke the deployed API Gateway endpoint (e.g., `/calculator/v1/add/{x}/{y}`) to confirm success.
 
 ## IAM & Access

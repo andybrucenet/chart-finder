@@ -19,5 +19,5 @@
 ## Quick Daily Kickoff
 1. Rehydrate configs if needed: `./scripts/setup-dev-env-aws.sh` or `./scripts/sync-configs.sh`.
 2. Verify SAM handler (`ChartFinder.Api`) is in both `infra/aws/serverless.template` and `.local/infra/aws/serverless.template`.
-3. Build and deploy manually: `./scripts/aws-sam-build.sh`, then `sam deploy --config-env dev`.
+3. Build and deploy manually: `./scripts/aws-sam-preflight.sh`, then `./scripts/aws-sam-deploy.sh build`.
 4. Hit `/calculator/v1/add/{x}/{y}` on the deployed API Gateway URL for a smoke test.

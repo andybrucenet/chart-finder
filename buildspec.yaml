@@ -19,7 +19,7 @@ phases:
     commands:
       - set -euo pipefail
       - echo "=== Building SAM package ==="
-      - ./scripts/aws-sam-build.sh
+      - ./scripts/aws-sam-preflight.sh
   post_build:
     commands:
       - echo "=== Build completed at $(date -u +"%Y-%m-%dT%H:%M:%SZ") ==="

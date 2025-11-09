@@ -66,8 +66,9 @@ Resources:
             Method: ANY
 
 Outputs:
-    AspNetCoreFunctionArn:
-      Description: ARN of the deployed ChartFinder Lambda.
-    ApiInvokeUrl:
-      Description: Invoke URL for the Calculator API (Prod stage).
-      Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/$CF_LOCAL_ENV_ID/
+  AspNetCoreFunctionArn:
+    Description: ARN of the deployed ChartFinder Lambda.
+    Value: !GetAtt AspNetCoreFunction.Arn
+  ApiInvokeUrl:
+    Description: Invoke URL for the Calculator API (Prod stage).
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/$CF_LOCAL_ENV_ID/
