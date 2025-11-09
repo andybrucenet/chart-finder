@@ -294,7 +294,7 @@ function lcl_dot_local_settings_update {
     # modify (simple)
     l_tmp_path="`lcl_os_tmp_dir`/lcl-os-checks-dot-settings-update-$$"
     cat "$l_path" \
-      | sed "s/^\(.* export $i_var_name=\).*/\1'$i_var_new_value'/" \
+      | sed "s|^\(.* export $i_var_name=\).*|\1'$i_var_new_value'|" \
       >"$l_tmp_path" 2>&1
   else
     # insert (more complex; not using sed as it is different on different platforms)

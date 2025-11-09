@@ -24,19 +24,27 @@ if ! command -v sam >/dev/null 2>&1 ; then
 fi
 
 # run the build
-echo 'AWS SAM PREFLIGHT BUILD (one-time guided setup)...'
+echo 'AWS SAM PREFLIGHT BUILD (updates all SAM files locally prior to deploy)...'
+set -x
 "$the_aws_sam_preflight_root_dir/scripts/aws-run-cmd.sh" sam build \
   --template-file "$the_template_path" \
   --build-dir "$the_build_dir" \
   --build-in-source \
   --cached \
   --parallel \
-  "$@"
+  "$@" || exit $?
+set +x
 echo ''
 
 # run the validate
-echo 'AWS SAM PREFLIGHT VALIDATE (verifies guided setup worked)...'
+echo 'AWS SAM PREFLIGHT VALIDATE (verifies PREFLIGHT BUILD worked)...'
+set -x
 "$the_aws_sam_preflight_root_dir/scripts/aws-run-cmd.sh" sam validate \
   --template-file "$the_build_dir"/template.yaml \
   --config-env "$CF_LOCAL_BILLING_ENV" \
-  --lint
+  --lint || exit $?
+set +x
+echo ''
+
+echo 'SAM PREFLIGHT SUCCESSFUL - You may now deploy the SAM stack.'
+

@@ -65,7 +65,7 @@ echo ''
 echo 'COMMON USER SETTINGS...'
 if [ x"$SETUP_DEV_ENV_OPTION_RESET_USER_SETTINGS" = x1 ] ; then
   lcl_dot_local_settings_reset "$the_setup_dev_env_root_dir" || exit $?
-  unset CF_HOME CF_LOCAL_PRJ_ID CF_LOCAL_DEV_ID CF_LOCAL_BILLING_ENV CF_LOCAL_ENV_ID CF_LOCAL_USEREMAIL
+  unset CF_HOME CF_LOCAL_PRJ_ID CF_LOCAL_DOMAIN CF_LOCAL_TLS_CERT_PATH CF_LOCAL_TLS_CHAIN_PATH CF_LOCAL_TLS_KEY_PATH CF_LOCAL_DEV_ID CF_LOCAL_BILLING_ENV CF_LOCAL_ENV_ID CF_LOCAL_USEREMAIL
 fi
 lcl_dot_local_settings_source "$the_setup_dev_env_root_dir"
 #
@@ -81,6 +81,22 @@ echo "  CF_HOME='$CF_HOME'"
 lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_PRJ_ID 'cf' || exit $?
 export CF_LOCAL_PRJ_ID
 echo "  CF_LOCAL_PRJ_ID='$CF_LOCAL_PRJ_ID' (abbreviation for 'chart-finder')"
+#
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_DOMAIN 'chart-finder.app' || exit $?
+export CF_LOCAL_DOMAIN
+echo "  CF_LOCAL_DOMAIN='$CF_LOCAL_DOMAIN'"
+#
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CERT_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/cert.pem" || exit $?
+export CF_LOCAL_TLS_CERT_PATH
+echo "  CF_LOCAL_TLS_CERT_PATH='$CF_LOCAL_TLS_CERT_PATH'"
+#
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CHAIN_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/chain.pem" || exit $?
+export CF_LOCAL_TLS_CHAIN_PATH
+echo "  CF_LOCAL_TLS_CHAIN_PATH='$CF_LOCAL_TLS_CHAIN_PATH'"
+#
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_KEY_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/privkey.pem" || exit $?
+export CF_LOCAL_TLS_KEY_PATH
+echo "  CF_LOCAL_TLS_KEY_PATH='$CF_LOCAL_TLS_KEY_PATH'"
 #
 if [ x"$CF_LOCAL_DEV_ID" = x ] ; then
   the_default_value="$(whoami | sed -e 's/^l[\.\-]//')-dev"

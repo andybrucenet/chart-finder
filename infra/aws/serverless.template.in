@@ -65,10 +65,53 @@ Resources:
             Path: /{proxy+}
             Method: ANY
 
+# doc-6: Custom domain for environment-scoped API endpoint.
+  ApiCustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: $CF_LOCAL_DEV_ID-api.$CF_LOCAL_DOMAIN
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      RegionalCertificateArn: $CF_LOCAL_TLS_CERT_ARN
+      SecurityPolicy: TLS_1_2
+      Tags:
+        - Key: Project
+          Value: ChartFinder
+        - Key: Environment
+          Value: $CF_LOCAL_BILLING_ENV
+        - Key: Owner
+          Value: !Ref OwnerEmail
+
+# doc-7: Map the custom domain root to the SAM-managed API stage.
+  ApiCustomDomainMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    DependsOn: AspNetCoreFunction
+    Properties:
+      DomainName: !Ref ApiCustomDomain
+      RestApiId: !Ref ServerlessRestApi
+      Stage: Prod
+
 Outputs:
   AspNetCoreFunctionArn:
-    Description: ARN of the deployed ChartFinder Lambda.
+    Description: ARN of the deployed Lambda function.
     Value: !GetAtt AspNetCoreFunction.Arn
   ApiInvokeUrl:
-    Description: Invoke URL for the Calculator API (Prod stage).
-    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/$CF_LOCAL_ENV_ID/
+    Description: Base invoke URL for the Calculator API.
+    Value: https://$CF_LOCAL_DEV_ID-api.$CF_LOCAL_DOMAIN/calculator/v1/
+  ApiGatewayInvokeUrl:
+    Description: Default API Gateway invoke URL (no custom domain).
+    Value:
+      Fn::Join:
+        - ''
+        - - 'https://'
+          - !Ref ServerlessRestApi
+          - '.execute-api.'
+          - !Ref 'AWS::Region'
+          - '.amazonaws.com/Prod/calculator/v1/'
+  ApiCustomDomainTarget:
+    Description: Regional API Gateway domain name for DNS mapping.
+    Value: !GetAtt ApiCustomDomain.RegionalDomainName
+  ApiCustomDomainHostedZoneId:
+    Description: Hosted zone ID for the regional custom domain.
+    Value: !GetAtt ApiCustomDomain.RegionalHostedZoneId
