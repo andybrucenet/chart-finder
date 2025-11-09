@@ -1,7 +1,7 @@
 #!/bin/bash
 # setup-dev-env-aws.sh, ABr
 #
-# Initial dev setup for chart-finder project - AWS backend.
+# Initial env setup (driven from CF_LOCAL_BILLING_ENV) for chart-finder project - AWS backend.
 
 ##############################################################
 # OPTIONS
@@ -69,7 +69,7 @@ lcl_dot_local_settings_source "$the_setup_env_dev_aws_root_dir"
 # vars
 #
 if [ x"$CF_LOCAL_AWS_PROFILE" = x ] ; then
-  the_default_value="$CF_LOCAL_DEV_ID-$CF_LOCAL_PRJ_ID-dev"
+  the_default_value="$CF_LOCAL_DEV_ID-$CF_LOCAL_PRJ_ID-$CF_LOCAL_BILLING_ENV"
   read -p "  Enter value for CF_LOCAL_AWS_PROFILE [$the_default_value]: " CF_LOCAL_AWS_PROFILE
   CF_LOCAL_AWS_PROFILE="${CF_LOCAL_AWS_PROFILE:-$the_default_value}"
   lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" CF_LOCAL_AWS_PROFILE "$CF_LOCAL_AWS_PROFILE" || exit $?
@@ -194,7 +194,7 @@ else
   "$the_setup_env_dev_aws_root_dir"/scripts/aws-run-cmd.sh sam deploy \
     --guided \
     --config-file "$the_setup_env_dev_aws_sam_config_wrk_path" \
-    --config-env dev \
+    --config-env "$CF_LOCAL_BILLING_ENV" \
     --no-execute-changeset \
     || exit $?
   set +x

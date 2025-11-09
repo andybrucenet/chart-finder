@@ -65,18 +65,22 @@ echo ''
 echo 'COMMON USER SETTINGS...'
 if [ x"$SETUP_DEV_ENV_OPTION_RESET_USER_SETTINGS" = x1 ] ; then
   lcl_dot_local_settings_reset "$the_setup_dev_env_root_dir" || exit $?
-  unset CF_LOCAL_DEV_ID CF_LOCAL_USEREMAIL CF_LOCAL_ENV_ID
+  unset CF_HOME CF_LOCAL_PRJ_ID CF_LOCAL_DEV_ID CF_LOCAL_BILLING_ENV CF_LOCAL_ENV_ID CF_LOCAL_USEREMAIL
 fi
 lcl_dot_local_settings_source "$the_setup_dev_env_root_dir"
 #
-if [ x"$CF_ROOT" = x ] ; then
+if [ x"$CF_HOME" = x ] ; then
   the_default_value="$the_setup_dev_env_root_dir"
-  read -p "  Enter value for CF_ROOT [$the_default_value]: " CF_ROOT
-  CF_ROOT="${CF_ROOT:-$the_default_value}"
-  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_ROOT "$CF_ROOT" || exit $?
-  export CF_ROOT
+  read -p "  Enter value for CF_HOME [$the_default_value]: " CF_HOME
+  CF_HOME="${CF_HOME:-$the_default_value}"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_HOME "$CF_HOME" || exit $?
+  export CF_HOME
 fi
-echo "  CF_ROOT='$CF_ROOT'"
+echo "  CF_HOME='$CF_HOME'"
+#
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_PRJ_ID 'cf' || exit $?
+export CF_LOCAL_PRJ_ID
+echo "  CF_LOCAL_PRJ_ID='$CF_LOCAL_PRJ_ID' (abbreviation for 'chart-finder')"
 #
 if [ x"$CF_LOCAL_DEV_ID" = x ] ; then
   the_default_value="$(whoami | sed -e 's/^l[\.\-]//')-dev"
@@ -87,14 +91,14 @@ if [ x"$CF_LOCAL_DEV_ID" = x ] ; then
 fi
 echo "  CF_LOCAL_DEV_ID='$CF_LOCAL_DEV_ID'"
 #
-if [ x"$CF_LOCAL_PRJ_ID" = x ] ; then
-  the_default_value='cf'
-  read -p "  Enter value for CF_LOCAL_PRJ_ID [$the_default_value]: " CF_LOCAL_PRJ_ID
-  CF_LOCAL_PRJ_ID="${CF_LOCAL_PRJ_ID:-$the_default_value}"
-  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_PRJ_ID "$CF_LOCAL_PRJ_ID" || exit $?
-  export CF_LOCAL_PRJ_ID
+if [ x"$CF_LOCAL_BILLING_ENV" = x ] ; then
+  the_default_value='dev'
+  read -p "  Enter value for CF_LOCAL_BILLING_ENV [$the_default_value]: " CF_LOCAL_BILLING_ENV
+  CF_LOCAL_BILLING_ENV="${CF_LOCAL_BILLING_ENV:-$the_default_value}"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_BILLING_ENV "$CF_LOCAL_BILLING_ENV" || exit $?
+  export CF_LOCAL_BILLING_ENV
 fi
-echo "  CF_LOCAL_PRJ_ID='$CF_LOCAL_PRJ_ID'"
+echo "  CF_LOCAL_BILLING_ENV='$CF_LOCAL_BILLING_ENV'"
 #
 if [ x"$CF_LOCAL_ENV_ID" = x ] ; then
   the_default_value="$CF_LOCAL_PRJ_ID-$CF_LOCAL_DEV_ID"
@@ -119,7 +123,6 @@ echo ''
 ##############################################################
 # AWS settings
 "$the_setup_dev_env_root_dir"/scripts/setup-dev-env-aws.sh || exit $?
-
 # all good
 true
  

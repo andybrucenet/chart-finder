@@ -12,7 +12,8 @@ while [ -h "$SOURCE" ]; do
 done
 the_aws_sam_stack_state_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 the_aws_sam_stack_state_root_dir="$( realpath "$the_aws_sam_stack_state_script_dir"/.. )"
-source "$the_aws_sam_stack_state_root_dir"/.local/local.env 'source-only' || exit $?
+source "$the_aws_sam_stack_state_root_dir"/scripts/lcl-os-checks.sh 'source-only' || exit $?
+lcl_dot_local_settings_source "$the_aws_sam_stack_state_root_dir" || exit $?
 
 exec "$the_aws_sam_stack_state_root_dir/scripts/aws-run-cmd.sh" \
   aws cloudformation list-stacks --no-cli-pager |

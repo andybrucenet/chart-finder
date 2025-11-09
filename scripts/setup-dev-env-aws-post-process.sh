@@ -70,7 +70,7 @@ if [ ! -s "$the_setup_env_dev_aws_post_process_sam_config_dst_path" ] ; then
 fi
 #
 # extract value
-the_setup_env_dev_aws_post_process_sam_config_dst_section_name='dev.deploy.parameters'
+the_setup_env_dev_aws_post_process_sam_config_dst_section_name="$CF_LOCAL_BILLING_ENV.deploy.parameters"
 the_setup_env_dev_aws_post_process_sam_config_dst_var_name='template_file'
 the_setup_env_dev_aws_post_process_sam_config_post_var_name='template_file_post'
 the_setup_env_dev_aws_post_process_sam_config_post_var_value="`\
@@ -122,7 +122,7 @@ fi
 the_rc=0
 if [ $the_rc -eq 0 ] ; then
   cat "$the_setup_env_dev_aws_post_process_sam_config_dst_path" \
-    | sed -n '/^\[dev\.deploy\.parameters\]/q; p' \
+    | sed -n '/^\['"$CF_LOCAL_BILLING_ENV"'\.deploy\.parameters\]/q; p' \
     > "$the_setup_env_dev_aws_post_process_sam_config_wrk_path"
   the_rc_local=$? ; [ $the_rc -eq 0 ] && the_rc=$the_rc_local
 fi

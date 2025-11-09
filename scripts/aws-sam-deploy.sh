@@ -2,11 +2,11 @@
 # aws-sam-deploy.sh ABr
 #
 # Deploy the SAM stack for the current environment. Cleans up failed stacks and
-# then invokes sam deploy. Defaults to config-env "dev" but accepts an override
-# (AWS_SAM_DEPLOY_OPTION_CONFIG_ENV or first CLI argument).
+# then invokes sam deploy. Defaults to config-env "$CF_LOCAL_BILLING_ENV" but accepts an override
+# (AWS_SAM_DEPLOY_OPTION_CONFIG_ENV or second CLI argument).
 
-AWS_SAM_DEPLOY_OPTION_CONFIG_ENV="${AWS_SAM_DEPLOY_OPTION_CONFIG_ENV:-dev}"
 AWS_SAM_DEPLOY_OPTION_MODE="${AWS_SAM_DEPLOY_OPTION_MODE:-build}"
+AWS_SAM_DEPLOY_OPTION_CONFIG_ENV="${AWS_SAM_DEPLOY_OPTION_CONFIG_ENV:-}"
 
 the_aws_sam_deploy_mode="${1:-$AWS_SAM_DEPLOY_OPTION_MODE}"
 the_aws_sam_deploy_config_env="${2:-$AWS_SAM_DEPLOY_OPTION_CONFIG_ENV}"
@@ -20,11 +20,11 @@ while [ -h "$the_aws_sam_deploy_source" ]; do
 done
 the_aws_sam_deploy_script_dir="$( cd -P "$( dirname "$the_aws_sam_deploy_source" )" >/dev/null 2>&1 && pwd )"
 the_aws_sam_deploy_root_dir="$( realpath "$the_aws_sam_deploy_script_dir"/.. )"
+source "$the_aws_sam_deploy_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
+lcl_dot_local_settings_source "$the_aws_sam_deploy_root_dir" || exit $?
 
-if ! source "$the_aws_sam_deploy_root_dir"/.local/local.env 'source-only'; then
-  echo "ERROR: failed to source .local/local.env" >&2
-  exit 1
-fi
+# get the local.env config env if not overridden or set on command line
+the_aws_sam_deploy_config_env="${the_aws_sam_deploy_config_env:-$CF_LOCAL_BILLING_ENV}"
 
 the_aws_sam_deploy_stack_info="$("$the_aws_sam_deploy_root_dir/scripts/aws-sam-stack-state.sh")"
 the_aws_sam_deploy_rc=$?

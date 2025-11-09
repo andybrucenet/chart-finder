@@ -22,20 +22,17 @@ while [ -h "$SOURCE" ]; do
 done
 the_sync_configs_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 the_sync_configs_root_dir="$( realpath "$the_sync_configs_script_dir"/.. )"
-the_sync_configs_local_dir="$the_sync_configs_root_dir/.local"
+source "$the_sync_configs_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
+lcl_dot_local_settings_source "$the_sync_configs_root_dir" || exit $?
+the_sync_configs_local_dir="$the_sync_configs_root_dir/$g_DOT_LOCAL_DIR_NAME"
 
 ##############################################################
 # temp and user settings
 #
 # tmp is problematic on cygwin
-the_sync_configs_tmp_dir='/tmp'
+the_sync_configs_tmp_dir="`lcl_os_tmp_dir`"
 the_sync_configs_tmp_fname_prefix="sync-configs-$$-"
 the_sync_configs_tmp_path_prefix="$the_sync_configs_tmp_dir/$the_sync_configs_tmp_fname_prefix"
-#
-# get user settings
-if [ -s "$the_sync_configs_local_dir/local.env" ] ; then
-  source "$the_sync_configs_local_dir/local.env" || exit $?
-fi
 
 ##############################################################
 # functions

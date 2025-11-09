@@ -14,11 +14,8 @@ while [ -h "$SOURCE" ]; do
 done
 the_aws_run_cmd_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 the_aws_run_cmd_root_dir="$( realpath "$the_aws_run_cmd_script_dir"/.. )"
-
-# source environment
-if [ -s "$the_aws_run_cmd_root_dir/.local/local.env" ] ; then
-  source "$the_aws_run_cmd_root_dir/.local/local.env" 'source-only' || exit $?
-fi
+source "$the_aws_run_cmd_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
+lcl_dot_local_settings_source "$the_aws_run_cmd_root_dir" || exit $?
 #set | grep -e '^AWS_'
 
 if [ "$1" = "--eval" ]; then
