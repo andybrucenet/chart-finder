@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Chart Finder",
+    "slug": "chart-finder-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "jsEngine": "hermes",
+    "platforms": ["ios", "android"],
+    "splash": {
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": ["**/*"]
+  }
+}

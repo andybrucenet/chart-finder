@@ -31,6 +31,13 @@
 .melos_tool/
 build/
 #
+# React Native / Expo
+node_modules/
+.expo/
+.expo-shared/
+npm-debug.log*
+yarn-error.log*
+#
 # Android build artifacts
 android/.gradle/
 android/app/*.keystore
