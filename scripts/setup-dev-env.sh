@@ -83,13 +83,17 @@ lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_PRJ_ID 'cf'
 export CF_LOCAL_PRJ_ID
 echo "  CF_LOCAL_PRJ_ID='$CF_LOCAL_PRJ_ID' (abbreviation for 'chart-finder')"
 #
-lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_DOMAIN 'chart-finder.app' || exit $?
-export CF_LOCAL_DOMAIN
-echo "  CF_LOCAL_DOMAIN='$CF_LOCAL_DOMAIN'"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_DOMAIN 'chart-finder.app' || exit $?
+  export CF_LOCAL_DOMAIN
+  echo "  CF_LOCAL_DOMAIN='$CF_LOCAL_DOMAIN'"
 #
-lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CERT_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/cert.pem" || exit $?
-export CF_LOCAL_TLS_CERT_PATH
-echo "  CF_LOCAL_TLS_CERT_PATH='$CF_LOCAL_TLS_CERT_PATH'"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_CLOUD_PROVIDER 'aws' || exit $?
+  export CF_LOCAL_CLOUD_PROVIDER
+  echo "  CF_LOCAL_CLOUD_PROVIDER='$CF_LOCAL_CLOUD_PROVIDER'"
+#
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CERT_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/cert.pem" || exit $?
+  export CF_LOCAL_TLS_CERT_PATH
+  echo "  CF_LOCAL_TLS_CERT_PATH='$CF_LOCAL_TLS_CERT_PATH'"
 #
 lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CHAIN_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/chain.pem" || exit $?
 export CF_LOCAL_TLS_CHAIN_PATH

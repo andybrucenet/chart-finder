@@ -6,6 +6,7 @@ These settings are hydrated by `./scripts/setup-dev-env.sh`, which writes `.loca
 - `CF_HOME` – absolute path to the local repository so multiple clones can coexist.
 - `CF_LOCAL_PRJ_ID` – short project slug (policy value `cf`) prefixed to shared resource names.
 - `CF_LOCAL_DOMAIN` – public domain for endpoints (policy value `chart-finder.app`).
+- `CF_LOCAL_CLOUD_PROVIDER` – active cloud provider for the workspace (`aws` today; extend as new providers come online).
 - `CF_LOCAL_TLS_CERT_PATH` – absolute path to the wildcard certificate (`cert.pem`).
 - `CF_LOCAL_TLS_CHAIN_PATH` – absolute path to the wildcard certificate chain (`chain.pem`).
 - `CF_LOCAL_TLS_KEY_PATH` – absolute path to the wildcard private key (`privkey.pem`).

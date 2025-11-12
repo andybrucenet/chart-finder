@@ -8,6 +8,8 @@ Musician-facing service: play a tune, get the name, find the best charts.
 - `docs/cookbooks/backend/aws.md` – daily backend and deploy workflow.
 - `docs/notes/environment-variables.md` – environment variable reference.
 - `docs/notes/versioning.md` – release numbering scheme and update workflow.
+- `docs/api/` – checked-in OpenAPI specs generated via `make backend-swagger`.
+- `Makefile` – run `make help` for common build/setup targets.
 
 ## Codebase Map
 - `infra/` – infrastructure definitions and hydration scripts.

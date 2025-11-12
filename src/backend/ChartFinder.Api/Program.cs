@@ -1,5 +1,6 @@
 using ChartFinder.Api.Configuration;
 using ChartFinder.Common.Versioning;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,16 @@ config
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Chart Finder API",
+        Version = "v1",
+        Description = "Musician-facing API for discovering and purchasing charts."
+    });
+});
 builder.Services.AddOptions<DynamoOptions>()
     .Bind(builder.Configuration.GetSection(DynamoOptions.SectionName))
     .ValidateDataAnnotations()
@@ -37,6 +48,15 @@ var app = builder.Build();
 
 
 app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Chart Finder API v1");
+        options.RoutePrefix = "swagger";
+    });
+}
 app.UseAuthorization();
 app.MapControllers();
 

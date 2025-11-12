@@ -25,6 +25,12 @@
 .vscode/
 .idea/
 #
+# hidden files/directories (dotfiles) unless explicitly committed
+.*
+!/.gitignore
+!/.gitattributes
+!/src/backend/.config/dotnet-tools.json
+#
 # Flutter / Dart tooling
 .dart_tool/
 .packages
