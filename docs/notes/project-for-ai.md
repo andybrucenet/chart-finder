@@ -14,6 +14,7 @@
 - User executes all build, deploy, dotnet, and AWS CLI commands; the AI never runs them.
 - Do not modify or generate code without explicit user direction.
 - Treat `.local/` as the source of truth for hydrated configuration; consult those files when validating deploy settings.
+- When generating new code - always add XML documentation (or equivalent) for public methods.
 - Keep onboarding notes in `docs/notes/` and use existing scripts (`setup-dev-env.sh`, `sync-configs.sh`) for repo hydration.
 
 ## Quick Daily Kickoff

@@ -7,6 +7,7 @@ Musician-facing service: play a tune, get the name, find the best charts.
 - `docs/notes/current-chat.md` – session trail and next actions.
 - `docs/cookbooks/backend/aws.md` – daily backend and deploy workflow.
 - `docs/notes/environment-variables.md` – environment variable reference.
+- `docs/notes/versioning.md` – release numbering scheme and update workflow.
 
 ## Codebase Map
 - `infra/` – infrastructure definitions and hydration scripts.

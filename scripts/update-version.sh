@@ -1,0 +1,211 @@
+#!/bin/bash
+# update-version.sh
+#
+# Usage: ./scripts/update-version.sh backend
+# Updates version metadata for the specified project area.
+
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/.." && pwd)"
+
+print_usage() {
+  cat <<'USAGE'
+Usage: ./scripts/update-version.sh <target>
+
+Targets:
+  backend   Update backend (.NET) version metadata (Directory.Build.props).
+USAGE
+}
+
+get_prop() {
+  local file="$1"
+  local prop="$2"
+  sed -n "s|.*<${prop}[^>]*>\\(.*\\)</${prop}>.*|\\1|p" "$file" | head -n1
+}
+
+update_props() {
+  local file="$1"
+  local version="$2"
+  local branch="$3"
+  local comment="$4"
+  local build_number="$5"
+  local informational="$6"
+
+  NEW_ChartFinderVersion="$version" \
+  NEW_ChartFinderBuildBranch="$branch" \
+  NEW_ChartFinderBuildComment="$comment" \
+  NEW_ChartFinderBuildNumber="$build_number" \
+  NEW_ChartFinderInformationalVersion="$informational" \
+  python3 - "$file" <<'PY'
+import os
+import re
+import sys
+
+path = sys.argv[1]
+data = open(path, encoding="utf-8").read()
+
+def replace(tag: str, value: str) -> None:
+    global data
+    pattern = rf"(<{tag}[^>]*>)(.*?)(</{tag}>)"
+    data, count = re.subn(pattern, lambda m: f"{m.group(1)}{value}{m.group(3)}", data, count=1, flags=re.S)
+    if count != 1:
+        raise SystemExit(f"Failed to update {tag} in {path}")
+
+replace("ChartFinderVersion", os.environ["NEW_ChartFinderVersion"])
+replace("ChartFinderBackendBuildBranch", os.environ["NEW_ChartFinderBuildBranch"])
+replace("ChartFinderBackendBuildComment", os.environ["NEW_ChartFinderBuildComment"])
+replace("ChartFinderBackendBuildNumber", os.environ["NEW_ChartFinderBuildNumber"])
+replace("ChartFinderBackendInformationalVersion", os.environ["NEW_ChartFinderInformationalVersion"])
+
+with open(path, "w", encoding="utf-8") as handle:
+    handle.write(data)
+PY
+}
+
+detect_branch() {
+  local branch
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+    if [[ "$branch" == "HEAD" || -z "$branch" ]]; then
+      branch="$(git rev-parse --short HEAD 2>/dev/null || echo "")"
+    fi
+  else
+    branch=""
+  fi
+  echo "$branch"
+}
+
+update_backend() {
+  local props_file="$repo_root/Directory.Build.props"
+
+  if [[ ! -f "$props_file" ]]; then
+    echo "ERROR: Cannot find $props_file" >&2
+    exit 1
+  fi
+
+  local current_version current_branch current_comment current_build_number
+  current_version="$(get_prop "$props_file" "ChartFinderVersion")"
+  current_branch="$(get_prop "$props_file" "ChartFinderBackendBuildBranch")"
+  current_comment="$(get_prop "$props_file" "ChartFinderBackendBuildComment")"
+  current_build_number="$(get_prop "$props_file" "ChartFinderBackendBuildNumber")"
+
+  printf "Current backend version       : %s\n" "$current_version"
+  printf "Current backend build branch  : %s\n" "$current_branch"
+  printf "Current backend build comment : %s\n" "$current_comment"
+  printf "Current backend build number  : %s\n\n" "$current_build_number"
+
+  local new_version
+  if [[ -n "${CHARTFINDER_BACKEND_VERSION:-}" ]]; then
+    new_version="$CHARTFINDER_BACKEND_VERSION"
+    echo "Using CHARTFINDER_BACKEND_VERSION=$new_version"
+  else
+    local default_year default_month default_month_release default_global_build
+    default_year="$(date -u +"%Y")"
+    default_month="$(date -u +"%m")"
+    default_month_release="10"
+    default_global_build="10000"
+    if [[ -n "$current_version" ]]; then
+      IFS='.' read -r _ _ cv_month_release cv_global_build <<<"$current_version"
+      if [[ -n "$cv_month_release" && "$cv_month_release" -ge 10 ]]; then
+        default_month_release="$cv_month_release"
+      fi
+      if [[ -n "$cv_global_build" && "$cv_global_build" -ge 10000 ]]; then
+        default_global_build="$cv_global_build"
+      fi
+    fi
+
+    read -r -p "Year [${default_year}]: " new_year
+    new_year="${new_year:-$default_year}"
+    read -r -p "Month [${default_month}]: " new_month
+    new_month="${new_month:-$default_month}"
+    read -r -p "Month release index (>=10) [${default_month_release}]: " new_month_release
+    new_month_release="${new_month_release:-$default_month_release}"
+    read -r -p "Global build number (>=10000) [${default_global_build}]: " new_global_build
+    new_global_build="${new_global_build:-$default_global_build}"
+
+    if [[ "$new_year" =~ ^[0-9]+$ ]]; then
+      printf -v new_year "%04d" "$new_year"
+    fi
+    if [[ "$new_month" =~ ^[0-9]+$ ]]; then
+      printf -v new_month "%02d" "$new_month"
+    fi
+    new_version="${new_year}.${new_month}.${new_month_release}.${new_global_build}"
+  fi
+
+  local new_branch
+  if [[ -n "${CHARTFINDER_BACKEND_BRANCH:-}" ]]; then
+    new_branch="$CHARTFINDER_BACKEND_BRANCH"
+    echo "Using CHARTFINDER_BACKEND_BRANCH=$new_branch"
+  else
+    new_branch="$(detect_branch)"
+    if [[ -z "$new_branch" ]]; then
+      new_branch="$current_branch"
+    fi
+    echo "Detected branch: ${new_branch}"
+  fi
+
+  local new_comment="$current_comment"
+  if [[ -n "${CHARTFINDER_BACKEND_COMMENT:-}" ]]; then
+    new_comment="$CHARTFINDER_BACKEND_COMMENT"
+    echo "Using CHARTFINDER_BACKEND_COMMENT=$new_comment"
+  else
+    read -r -p "Build comment [${current_comment}]: " new_comment_input
+    if [[ -n "$new_comment_input" ]]; then
+      new_comment="$new_comment_input"
+    fi
+  fi
+
+  local default_build_number prompt_build_number
+  default_build_number="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  prompt_build_number="$default_build_number"
+
+  local new_build_number
+  if [[ -n "${CHARTFINDER_BACKEND_BUILD_NUMBER:-}" ]]; then
+    new_build_number="$CHARTFINDER_BACKEND_BUILD_NUMBER"
+    echo "Using CHARTFINDER_BACKEND_BUILD_NUMBER=$new_build_number"
+  else
+    read -r -p "Build number (UTC timestamp) [${prompt_build_number}]: " new_build_number_input
+    if [[ -z "$new_build_number_input" ]]; then
+      new_build_number="$default_build_number"
+    else
+      new_build_number="$new_build_number_input"
+    fi
+  fi
+
+  local informational="$new_version"
+  if [[ -n "$new_branch" ]]; then
+    informational="${informational}+${new_branch}"
+    if [[ -n "$new_comment" ]]; then
+      informational="${informational}.${new_comment}"
+    fi
+  fi
+
+  update_props "$props_file" "$new_version" "$new_branch" "$new_comment" "$new_build_number" "$informational"
+
+  echo ""
+  echo "Updated backend version metadata in Directory.Build.props"
+}
+
+main() {
+  if [[ $# -lt 1 ]]; then
+    print_usage
+    exit 1
+  fi
+
+  case "$1" in
+    backend)
+      update_backend
+      ;;
+    help|-h|--help)
+      print_usage
+      ;;
+    *)
+      echo "Unsupported target: $1" >&2
+      print_usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

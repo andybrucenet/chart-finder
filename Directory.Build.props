@@ -3,4 +3,27 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>SoftwareAB</Company>
+    <Product>Chart Finder</Product>
+    <Authors>SoftwareAB</Authors>
+
+    <ChartFinderVersion Condition="'$(ChartFinderVersion)' == ''">2025.11.10.10000</ChartFinderVersion>
+    <ChartFinderBackendBuildBranch Condition="'$(ChartFinderBackendBuildBranch)' == ''">main</ChartFinderBackendBuildBranch>
+    <ChartFinderBackendBuildComment Condition="'$(ChartFinderBackendBuildComment)' == ''">Initial compile with versioning</ChartFinderBackendBuildComment>
+    <ChartFinderBackendBuildNumber Condition="'$(ChartFinderBackendBuildNumber)' == ''">2025-11-12T12:26:13Z</ChartFinderBackendBuildNumber>
+    <ChartFinderBackendInformationalVersion Condition="'$(ChartFinderBackendInformationalVersion)' == ''">2025.11.10.10000+main.Initial compile with versioning</ChartFinderBackendInformationalVersion>
+
+    <Version>$(ChartFinderVersion)</Version>
+    <AssemblyVersion>$(ChartFinderVersion)</AssemblyVersion>
+    <FileVersion>$(ChartFinderVersion)</FileVersion>
+    <InformationalVersion>$(ChartFinderBackendInformationalVersion)</InformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="BackendBuildBranch" Value="$(ChartFinderBackendBuildBranch)" />
+    <AssemblyMetadata Include="BackendBuildComment" Value="$(ChartFinderBackendBuildComment)" />
+    <AssemblyMetadata Include="BackendBuildNumber" Value="$(ChartFinderBackendBuildNumber)" />
+  </ItemGroup>
 </Project>

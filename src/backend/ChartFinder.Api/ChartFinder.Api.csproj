@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
+    <Description>ASP.NET Core Lambda entry point for Chart Finder.</Description>
     <!-- This property makes the build directory similar to a publish directory and helps the AWS .NET Lambda Mock Test Tool find project dependencies. -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <!-- Generate ready to run images during publishing to improvement cold starts. -->
@@ -20,5 +21,8 @@
     <Content Include="local.appsettings.$(EnvironmentName).json" Condition="Exists('local.appsettings.$(EnvironmentName).json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\ChartFinder.Common\ChartFinder.Common.csproj" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Core domain entities and repository abstractions for Chart Finder.</Description>
   </PropertyGroup>
 
 </Project>
