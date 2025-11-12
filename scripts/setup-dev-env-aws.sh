@@ -42,6 +42,15 @@ the_setup_env_dev_aws_local_env_fname="$g_DOT_LOCAL_SETTINGS_FNAME"
 the_setup_env_dev_aws_local_env_path="$the_setup_env_dev_aws_local_dir/$the_setup_env_dev_aws_local_env_fname"
 
 ##############################################################
+# required tools (aws-specific)
+the_setup_dev_env_aws_tools_ok=1
+the_setup_dev_env_aws_tools='aws sam'
+for i in $the_setup_dev_env_aws_tools ; do
+	! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL (AWS) $i" && the_setup_dev_env_aws_tools_ok=0
+done
+[ $the_setup_dev_env_aws_tools_ok -ne 1 ] && exit 1
+
+##############################################################
 # tmp is problematic on cygwin
 the_setup_env_dev_aws_tmp_dir="`lcl_os_tmp_dir`"
 the_setup_env_dev_aws_tmp_fname_prefix='setup-dev-env-aws-'

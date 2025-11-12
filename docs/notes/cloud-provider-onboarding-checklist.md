@@ -10,7 +10,7 @@ Use this list whenever we add a new cloud backend (Azure, Google, etc.). Adapt o
 2. **Environment Naming & Config**
    - Pick environment prefix/suffix convention (parallel to `CF_LOCAL_ENV_ID`).
    - Define required env vars and add prompts to `setup-dev-env.sh` + provider-specific setup script.
-   - Use the environment variable reference in the repo `README.md` as the single source of truth; new providers should extend that list rather than duplicating descriptions elsewhere.
+   - Use `docs/notes/environment-variables.md` as the single source of truth; new providers should extend that list rather than duplicating descriptions elsewhere.
    - Capture region/location defaults and limits.
 
 3. **Permissions & IAM**

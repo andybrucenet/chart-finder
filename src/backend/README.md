@@ -1,5 +1,13 @@
 # src/backend
 
-- Purpose: Server-side code including API, domain, and infrastructure adapters.
-- Projects: `ChartFinder.Api`, `ChartFinder.Domain`, `ChartFinder.Infrastructure.Aws`, `ChartFinder.Infrastructure.FileSystem`.
-- Workflow: Restore/build/test via `ChartFinder.sln`; ensure new adapters ship with matching tests under `tests/backend`. Consult `docs/cookbooks/backend/aws.md` for provider-specific routines.
+Server-side projects covering the API, core domain, and infrastructure adapters.
+
+## Projects
+- `ChartFinder.Api` – ASP.NET Core Lambda entry point.
+- `ChartFinder.Domain` – shared entities and repository abstractions.
+- `ChartFinder.Infrastructure.Aws` – AWS implementations.
+- `ChartFinder.Infrastructure.FileSystem` – local/offline adapters.
+
+## Docs
+- Build and deploy routines: `docs/cookbooks/backend/aws.md`.
+- Tests mirror these projects under `tests/backend/`.

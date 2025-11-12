@@ -41,11 +41,12 @@ the_setup_dev_env_local_infra_dir="$the_setup_dev_env_local_dir/$the_setup_dev_e
 the_setup_dev_env_local_env_fname="$g_DOT_LOCAL_SETTINGS_FNAME"
 the_setup_dev_env_local_env_path="$the_setup_dev_env_local_dir/$the_setup_dev_env_local_env_fname"
 
-# required tools
+##############################################################
+# required tools (global)
 the_setup_dev_env_tools_ok=1
 the_setup_dev_env_tools='which aws envsubst rsync sam jq'
 for i in $the_setup_dev_env_tools ; do
-  ! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL $i" && the_setup_dev_env_tools_ok=0
+	! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL (GLOBAL) $i" && the_setup_dev_env_tools_ok=0
 done
 [ $the_setup_dev_env_tools_ok -ne 1 ] && exit 1
 

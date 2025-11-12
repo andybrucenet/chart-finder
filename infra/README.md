@@ -1,5 +1,8 @@
 # infra
 
-- Purpose: Infrastructure-as-code entry point for all deployment targets.
-- Contents: SAM templates, pipeline scripts, and future cloud automation.
-- Guidance: Document tooling requirements here when adding new deployment paths; day-to-day workflows live in `docs/cookbooks/backend/`.
+Infrastructure-as-code entry point for every deployment target.
+
+## Docs
+- `TOOLS.md` – shared infrastructure tooling.
+- `aws/README.md` – provider-specific entry point (with links to build/runbooks).
+- `docs/cookbooks/backend/aws.md` – daily backend + deploy workflow.
