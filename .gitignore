@@ -29,7 +29,7 @@
 .*
 !/.gitignore
 !/.gitattributes
-!/src/backend/.config/dotnet-tools.json
+!/backend/.config/dotnet-tools.json
 #
 # Flutter / Dart tooling
 .dart_tool/

@@ -97,8 +97,8 @@ Outputs:
     Description: ARN of the deployed Lambda function.
     Value: !GetAtt AspNetCoreFunction.Arn
   ApiInvokeUrl:
-    Description: Base invoke URL for the Calculator API.
-    Value: https://$CF_LOCAL_DEV_ID-api.$CF_LOCAL_DOMAIN/calculator/v1/
+    Description: Base invoke URL for chart-finder APIs
+    Value: https://$CF_LOCAL_DEV_ID-api.$CF_LOCAL_DOMAIN/
   ApiGatewayInvokeUrl:
     Description: Default API Gateway invoke URL (no custom domain).
     Value:
@@ -108,7 +108,7 @@ Outputs:
           - !Ref ServerlessRestApi
           - '.execute-api.'
           - !Ref 'AWS::Region'
-          - '.amazonaws.com/Prod/calculator/v1/'
+          - '.amazonaws.com/Prod/'
   ApiCustomDomainTarget:
     Description: Regional API Gateway domain name for DNS mapping.
     Value: !GetAtt ApiCustomDomain.RegionalDomainName

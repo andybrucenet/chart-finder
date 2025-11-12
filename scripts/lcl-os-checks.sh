@@ -6,19 +6,19 @@
 # globals
 #
 # OS identification
-g_IS_LINUX=0
-g_IS_MAC=0
-g_IS_CYGWIN=0
-g_IS_MINGW=0
-g_UNAME=''
-g_VALID_OS=0
-g_UNAME_MACHINE=''
-g_PATH_SEP=':'
+export g_IS_LINUX=0
+export g_IS_MAC=0
+export g_IS_CYGWIN=0
+export g_IS_MINGW=0
+export g_UNAME=''
+export g_VALID_OS=0
+export g_UNAME_MACHINE=''
+export g_PATH_SEP=':'
 #
-# .local valures
-g_DOT_LOCAL_DIR_NAME='.local'
-g_DOT_LOCAL_SETTINGS_FNAME='local.env'
-g_DOT_LOCAL_SETTINGS_TAG_LINE='## TAG: DO_NOT_EDIT_BELOW_HERE'
+# .local values
+export g_DOT_LOCAL_DIR_NAME='.local'
+export g_DOT_LOCAL_SETTINGS_FNAME='local.env'
+export g_DOT_LOCAL_SETTINGS_TAG_LINE='## TAG: DO_NOT_EDIT_BELOW_HERE'
 
 ######################################################################
 # functions

@@ -94,6 +94,9 @@ aws_sam_deploy_ensure_tls_certificate() {
   echo "  ACM certificate ARN: $CF_LOCAL_TLS_CERT_ARN"
 }
 
+# run in top-level folder
+cd "$the_aws_sam_deploy_root_dir" || exit $?
+
 # get the local.env config env if not overridden or set on command line
 the_aws_sam_deploy_config_env="${the_aws_sam_deploy_config_env:-$CF_LOCAL_BILLING_ENV}"
 
@@ -110,6 +113,16 @@ the_aws_sam_deploy_mode="$(printf '%s' "$the_aws_sam_deploy_mode" | tr '[:upper:
 
 if [ "$the_aws_sam_deploy_mode" = "status" ]; then
   printf '%s\n' "$the_aws_sam_deploy_stack_info"
+  exit 0
+fi
+
+if [ "$the_aws_sam_deploy_mode" = "uri" ]; then
+  # get the URL
+  "$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" aws cloudformation describe-stacks \
+    --stack-name "$CF_LOCAL_ENV_ID" \
+    --query "Stacks[0].Outputs" \
+    --no-cli-pager \
+    | jq -r '.[] | select(.OutputKey=="ApiInvokeUrl").OutputValue'
   exit 0
 fi
 
@@ -151,10 +164,12 @@ if [ "$the_aws_sam_deploy_mode" = "build" ] || [ "$the_aws_sam_deploy_mode" = "r
 fi
 
 echo "Running SAM deploy (config-env: $the_aws_sam_deploy_config_env)..."
+the_aws_sam_deploy_root_dir="$( realpath "$the_aws_sam_deploy_script_dir"/.. )"
 "$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" sam deploy \
-  --config-file .local/infra/aws/samconfig.toml \
+  --config-file "$the_aws_sam_deploy_root_dir/$g_DOT_LOCAL_DIR_NAME/infra/aws/samconfig.toml" \
   --config-env "$the_aws_sam_deploy_config_env"
 the_aws_sam_deploy_deploy_rc=$?
+set +x
 
 if [ $the_aws_sam_deploy_deploy_rc -ne 0 ]; then
   echo "ERROR: sam deploy failed rc=$the_aws_sam_deploy_deploy_rc" >&2

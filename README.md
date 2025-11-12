@@ -13,6 +13,7 @@ Musician-facing service: play a tune, get the name, find the best charts.
 
 ## Codebase Map
 - `infra/` – infrastructure definitions and hydration scripts.
+- `backend/` – build automation and tooling for backend projects (source lives in `src/backend/`).
 - `src/backend/` – API, domain, and infrastructure adapters.
 - `src/frontend/` – client applications (mobile prototype lives here).
 - `tests/` – backend test projects mirroring `src/backend`.

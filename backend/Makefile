@@ -1,4 +1,4 @@
-ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 SLN ?= $(ROOT)/ChartFinder.sln
 DOTNET ?= dotnet
 
@@ -11,8 +11,6 @@ SWAGGER_OUTPUT ?= $(ROOT)/docs/api/backend.$(SWAGGER_DOC_NAME).json
 SWAGGER_DLL ?= $(ROOT)/src/backend/ChartFinder.Api/bin/$(BUILD_CONFIGURATION)/net8.0/ChartFinder.Api.dll
 SWAGGER_BIN_DIR := $(dir $(SWAGGER_DLL))
 SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
-
-.PHONY: all build test clean rebuild deploy
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -53,8 +51,8 @@ deploy:
 
 $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	@mkdir -p $(dir $(SWAGGER_OUTPUT))
-	@echo "[backend] dotnet tool restore --tool-manifest $(ROOT)/src/backend/.config/dotnet-tools.json"
-	@dotnet tool restore --tool-manifest "$(ROOT)/src/backend/.config/dotnet-tools.json"
+	@echo "[backend] dotnet tool restore --tool-manifest $(ROOT)/backend/.config/dotnet-tools.json"
+	@dotnet tool restore --tool-manifest "$(ROOT)/backend/.config/dotnet-tools.json"
 	@$(MAKE) build BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
 	$(call log,BACKEND: swagger)
 	@echo "[backend] cd $(SWAGGER_BIN_DIR) && DOTNET_ROLL_FORWARD=Major dotnet swagger tofile --output $(SWAGGER_OUTPUT) $(SWAGGER_DLL) $(SWAGGER_DOC_NAME)"
