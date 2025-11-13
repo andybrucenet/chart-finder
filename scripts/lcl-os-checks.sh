@@ -149,6 +149,20 @@ function lcl_os_print_var {
   eval echo "\$$1"
 }
 #
+# git branch
+function lcl_git_branch() {
+  local branch
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null | dos2unix || echo "")"
+    if [[ "$branch" == "HEAD" || -z "$branch" ]]; then
+      branch="$(git rev-parse --short HEAD 2>/dev/null | dos2unix || echo "")"
+    fi
+  else
+    branch=""
+  fi
+  echo "$branch"
+}
+#
 # full directory path to '.local'
 function lcl_dot_local_dir {
   local i_root_path="$1" ; shift

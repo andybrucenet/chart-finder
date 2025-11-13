@@ -20,6 +20,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 disable_rollback = false
 parameter_overrides = "OwnerEmail=dbmail1771+prod@gmail.com"
+tags = "Project=ChartFinder Environment=prod OwnerEmail=dbmail1771+prod@gmail.com"
 region = "us-east-2"
 profile = "prod-profile"
 
@@ -39,6 +40,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 disable_rollback = false
 parameter_overrides = "OwnerEmail=dbmail1771+stage@gmail.com"
+tags = "Project=ChartFinder Environment=stage OwnerEmail=dbmail1771+stage@gmail.com"
 region = "us-east-2"
 profile = "stage-profile"
 
@@ -58,6 +60,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 disable_rollback = false
 parameter_overrides = "OwnerEmail=dbmail1771+test@gmail.com"
+tags = "Project=ChartFinder Environment=test OwnerEmail=dbmail1771+test@gmail.com"
 region = "us-east-2"
 profile = "test-profile"
 
@@ -81,6 +84,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 disable_rollback = false
 parameter_overrides = "OwnerEmail=$CF_LOCAL_USEREMAIL"
+tags = "Project=ChartFinder Environment=dev OwnerEmail=$CF_LOCAL_USEREMAIL"
 region = "$CF_LOCAL_AWS_REGION"
 profile = "$CF_LOCAL_AWS_PROFILE"
 s3_prefix = "$CF_LOCAL_ENV_ID"

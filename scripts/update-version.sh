@@ -4,10 +4,22 @@
 # Usage: ./scripts/update-version.sh backend
 # Updates version metadata for the specified project area.
 
-set -euo pipefail
+# locate script source directory
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+the_update_version_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+the_update_version_root_dir="$( realpath "$the_update_version_script_dir"/.. )"
+source "$the_update_version_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
+lcl_dot_local_settings_source "$the_update_version_root_dir" || exit $?
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd "$script_dir/.." && pwd)"
+# now the variables
+set -euo pipefail
+script_dir="$the_update_version_script_dir"
+repo_root="$the_update_version_root_dir"
 
 print_usage() {
   cat <<'USAGE'
