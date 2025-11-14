@@ -26,7 +26,8 @@ print_usage() {
 Usage: ./scripts/update-version.sh <target>
 
 Targets:
-  backend   Update backend (.NET) version metadata (Directory.Build.props).
+  backend       Interactive backend (.NET) version update.
+  backend-batch Non-interactive backend update (env vars must be provided).
 USAGE
 }
 
@@ -208,6 +209,23 @@ main() {
   case "$1" in
     backend)
       update_backend
+      ;;
+    backend-batch)
+      : "${CHARTFINDER_BACKEND_BUILD_NUMBER:?CHARTFINDER_BACKEND_BUILD_NUMBER required}"
+      python3 - "$repo_root/Directory.Build.props" "$CHARTFINDER_BACKEND_BUILD_NUMBER" <<'PY'
+import sys
+from xml.etree import ElementTree as ET
+
+path, build_number = sys.argv[1], sys.argv[2]
+tree = ET.parse(path)
+root = tree.getroot()
+elem = root.find('.//ChartFinderBackendBuildNumber')
+if elem is None:
+    raise SystemExit(f"ChartFinderBackendBuildNumber missing in {path}")
+elem.text = build_number
+tree.write(path, encoding='utf-8', xml_declaration=False)
+PY
+      echo "Updated ChartFinderBackendBuildNumber in Directory.Build.props (batch mode)"
       ;;
     help|-h|--help)
       print_usage

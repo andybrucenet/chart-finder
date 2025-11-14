@@ -137,7 +137,7 @@ if [ x"$1" != x ] ; then
     the_cf_env_vars_just_export=0
   fi
 fi
-if [ $the_cf_env_vars_just_export -eq 0 ] ; then
+if [ $the_cf_env_vars_just_export -eq 1 ] ; then
   # no error
   true
 else
