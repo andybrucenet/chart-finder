@@ -46,7 +46,7 @@ the_setup_env_dev_aws_local_env_path="$the_setup_env_dev_aws_local_dir/$the_setu
 the_setup_dev_env_aws_tools_ok=1
 the_setup_dev_env_aws_tools='aws sam'
 for i in $the_setup_dev_env_aws_tools ; do
-	! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL (AWS) $i" && the_setup_dev_env_aws_tools_ok=0
+  ! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL (AWS) $i" && the_setup_dev_env_aws_tools_ok=0
 done
 [ $the_setup_dev_env_aws_tools_ok -ne 1 ] && exit 1
 
@@ -261,7 +261,7 @@ else
   echo '  INITIAL SYNC CONFIGS...'
   the_setup_env_dev_aws_tmp_sync_path="${the_setup_env_dev_aws_tmp_path_prefix}tmp.txt"
   "$the_setup_env_dev_aws_root_dir/scripts/sync-configs.sh" >"$the_setup_env_dev_aws_tmp_sync_path" 2>&1
-  the_rc=$?
+  the_rc=$? ; [ $the_rc -eq 99 ] && the_rc=0
   [ $the_rc -ne 0 ] && cat "$the_setup_env_dev_aws_tmp_sync_path" | sed -e 's/^\./  infra/'
   rm -f "$the_setup_env_dev_aws_tmp_sync_path"
   [ $the_rc -ne 0 ] && exit $the_rc
@@ -269,7 +269,7 @@ else
 
   echo "  CREATE: $the_setup_env_dev_aws_sam_config_dst_path"
   set -x
-  envsubst < "$the_setup_env_dev_aws_sam_config_src_path" > "$the_setup_env_dev_aws_sam_config_wrk_path" || exit $?
+  DOLLAR='$' envsubst < "$the_setup_env_dev_aws_sam_config_src_path" > "$the_setup_env_dev_aws_sam_config_wrk_path" || exit $?
   set +x
   echo ''
 

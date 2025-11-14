@@ -6,19 +6,22 @@
 # globals
 #
 # OS identification
-export g_IS_LINUX=0
-export g_IS_MAC=0
-export g_IS_CYGWIN=0
-export g_IS_MINGW=0
-export g_UNAME=''
-export g_VALID_OS=0
-export g_UNAME_MACHINE=''
-export g_PATH_SEP=':'
+[ x"$g_IS_LINUX" = x ] && export g_IS_LINUX=0
+[ x"$g_IS_MAC" = x ] && export g_IS_MAC=0
+[ x"$g_IS_CYGWIN" = x ] && export g_IS_CYGWIN=0
+[ x"$g_IS_MINGW" = x ] && export g_IS_MINGW=0
+[ x"$g_UNAME" = x ] && export g_UNAME=''
+[ x"$g_VALID_OS" = x ] && export g_VALID_OS=0
+[ x"$g_UNAME_MACHINE" = x ] && export g_UNAME_MACHINE=''
+[ x"$g_PATH_SEP" = x ] && export g_PATH_SEP=':'
 #
 # .local values
 export g_DOT_LOCAL_DIR_NAME='.local'
 export g_DOT_LOCAL_SETTINGS_FNAME='local.env'
 export g_DOT_LOCAL_SETTINGS_TAG_LINE='## TAG: DO_NOT_EDIT_BELOW_HERE'
+#
+# version values to check
+export g_VERSION_ENV_VARS_TO_CHECK='CF_BACKEND_VERSION_FULL CF_BACKEND_BUILD_NUMBER'
 
 ######################################################################
 # functions
@@ -529,11 +532,269 @@ function lcl_dot_local_settings_self_test {
     echo "lcl_dot_local_settings_self_test: OK"
   )
 }
+#
+# versioning - return directory to local cached version folder
+# usage: [cf-home]
+function lcl_version_dir {
+  local i_cf_home="$1" ; shift
+  local l_local_dir="`lcl_dot_local_dir "$i_cf_home"`"
+  local l_local_version_dir="$l_local_dir/version"
+  echo "$l_local_version_dir"
+}
+#
+# versioning - require that directory to local cached version folder exists
+# usage: [cf-home]
+function lcl_version_dir_require {
+  local i_cf_home="$1" ; shift
+
+  # get version and auto-create dir
+  local l_local_version_dir="`lcl_version_dir "$i_cf_home"`"
+  [ -d "$l_local_version_dir" ] && return 0
+  mkdir -p "$l_local_version_dir" && return 0
+
+  # show error and exit
+  echo "MISSING: '$l_local_version_dir'"
+  exit 2
+}
+#
+# versioning - given [cf-home] and [filepath] return name of local versioned cache file
+function lcl_version_file_fname {
+  local i_cf_home="$1" ; shift
+  local i_filepath="$1" ; shift
+
+  # get sha256 from filepath to avoid duplicates on same fname in different folders
+  # that require version caching
+  local l_fname="`echo "$i_filepath" | shasum -a 256 | cut -d' ' -f1 | dos2unix`"
+  echo "$l_fname"
+}
+#
+# versioning - given [cf-home] and [filepath] return path to local versioned cache file
+function lcl_version_file_path {
+  local i_cf_home="$1" ; shift
+  local i_filepath="$1" ; shift
+
+  # extract just fname from input filepath
+  local l_fname="`lcl_version_file_fname "$i_cf_home" "$i_filepath"`"
+
+  # get full path to cached file
+  local l_local_version_dir="`lcl_version_dir "$i_cf_home"`"
+  local l_local_version_fpath="$l_local_version_dir/$l_fname"
+  echo "$l_local_version_fpath"
+}
+#
+# versioning - given an input global env var, return a localized name
+# usage: [cf-home] [filepath] [env-var]
+function lcl_version_var_name {
+  local i_cf_home="$1" ; shift
+  local i_filepath="$1" ; shift
+  local i_envvar="$1" ; shift
+
+  # extract just fname from input filepath
+  local l_fname="`lcl_version_file_fname "$i_cf_home" "$i_filepath"`"
+
+  # normalize and lcase
+  local l_fname_normalized="`echo "$l_fname" | sed -e 's/[^A-Za-z0-9_]/_/g' | tr '[A-Z]' '[a-z]'`"
+
+  # return 
+  echo "lcl_version_var_$l_fname_normalized_$i_envvar"
+}
+#
+# versioning - given an input global env var, return its value.
+# usage: [cf-home] [filepath] [env-var]
+#
+# note: this method does *not* source any files; it checks only current env
+function lcl_version_var_value {
+  local i_cf_home="$1" ; shift
+  local i_filepath="$1" ; shift
+  local i_envvar="$1" ; shift
+
+  # get var name
+  local l_var_name="`lcl_version_var_name "$i_cf_home" "$i_filepath" "$i_envvar"`"
+
+  # return indirect value
+  echo "${!l_var_name}"
+}
+#
+# versioning - detect if a file is changed based on version number / global-release
+# usage: [cf-home] [filepath]
+function lcl_version_is_file_changed {
+  local i_cf_home="$1" ; shift
+  local i_filepath="$1" ; shift
+
+  # setup
+  lcl_version_dir_require "$i_cf_home"
+  local l_local_version_fpath="`lcl_version_file_path "$i_cf_home" "$i_filepath"`"
+
+  # if not exists - file is changed
+  [ ! -s "$l_local_version_fpath" ] && return 0
+
+  # note: we do *not* check date/time - just what the cached version info is
+
+  # source in the *current* backend variables to get version
+  source "$i_cf_home"/scripts/cf-env-vars.sh 'source-only' || exit $?
+
+  # get the cached file version variables
+  source "$l_local_version_fpath" || exit $?
+
+  # iterate over env vars to check
+  local l_envvar=''
+  local l_cur_value=''
+  local l_cached_value=''
+  for i in $g_VERSION_ENV_VARS_TO_CHECK ; do
+    #set -x
+    l_envvar="$i"
+    l_cur_value="${!l_envvar}"
+    l_cached_value="`lcl_version_var_value "$i_cf_home" "$i_filepath" "$l_envvar"`"
+    [ x"$l_cached_value" != x"$l_cur_value" ] && return 0
+    set +x
+  done
+
+  # unchanged
+  return 1
+}
+#
+# versioning - update cache file with all cached information
+# usage: [cf-home] [filepath]
+function lcl_version_update {
+  local i_cf_home="$1" ; shift
+  local i_filepath="$1" ; shift
+
+  # setup
+  lcl_version_dir_require "$i_cf_home"
+  local l_local_version_fpath="`lcl_version_file_path "$i_cf_home" "$i_filepath"`"
+
+  # source in the *current* backend variables to get version
+  #set -x
+  source "$i_cf_home"/scripts/cf-env-vars.sh 'source-only' || exit $?
+  set +x
+
+  # iterate over all variables, updating the target
+  echo "#!/bin/bash" > "$l_local_version_fpath" || exit $?
+  echo "# Version Cache: $i_filepath" >> "$l_local_version_fpath" || exit $?
+  echo "# Last Generated: `date`" >> "$l_local_version_fpath" || exit $?
+  echo '' >> "$l_local_version_fpath" || exit $?
+
+  # we may want to cache everything but for now we just cache 
+  # FULL / BUILD_NUMBER for backend
+  local l_envvar=''
+  local l_envvar_name=''
+  local l_envvar_value=''
+  for i in $g_VERSION_ENV_VARS_TO_CHECK ; do
+    l_envvar="$i"
+    l_envvar_name="`lcl_version_var_name "$i_cf_home" "$i_filepath" "$l_envvar"`"
+    l_envvar_value="${!l_envvar}"
+    echo "export $l_envvar_name='$l_envvar_value'" >> "$l_local_version_fpath" || exit $?
+  done
+
+  # make executable
+  chmod +x "$l_local_version_fpath" || exit $?
+  return 0
+}
+#
+# versioning - self test helper to validate version cache behavior
+# usage: [cf-home]
+function lcl_version_self_test {
+  (
+    local l_cf_home="${1:-`lcl_os_pwd`}"
+    local l_targets
+    l_targets=("$l_cf_home/infra/README.md" "$l_cf_home/infra/aws/README.md")
+    local l_cache_paths=()
+    local l_backup_paths=()
+    local l_had_original=()
+    local l_backup_root="`lcl_os_tmp_dir`/lcl-version-self-test-$$"
+
+    fail() {
+      echo "$*" >&2
+      exit 1
+    }
+
+    rm -fR "$l_backup_root"
+    mkdir -p "$l_backup_root" || fail "unable to create backup dir '$l_backup_root'"
+
+    cleanup() {
+      local l_idx=''
+      #set -x
+      for l_idx in "${!l_cache_paths[@]}"; do
+        rm -f "${l_cache_paths[$l_idx]}"
+        if [ x"${l_had_original[$l_idx]}" = x1 ] && [ -s "${l_backup_paths[$l_idx]}" ] ; then
+          /bin/cp "${l_backup_paths[$l_idx]}" "${l_cache_paths[$l_idx]}"
+        fi
+      done
+      rm -fR "$l_backup_root"
+      set +x
+    }
+    trap cleanup EXIT
+
+    lcl_version_dir_require "$l_cf_home"
+
+    local l_idx=''
+    for l_idx in "${!l_targets[@]}"; do
+      local l_file="${l_targets[$l_idx]}"
+      [ -f "$l_file" ] || fail "missing target '$l_file'"
+      local l_cache_path="`lcl_version_file_path "$l_cf_home" "$l_file"`"
+      l_cache_paths[$l_idx]="$l_cache_path"
+      if [ -e "$l_cache_path" ] ; then
+        local l_backup_path="$l_backup_root/backup-$l_idx"
+        /bin/cp "$l_cache_path" "$l_backup_path" || fail "unable to backup '$l_cache_path'"
+        l_backup_paths[$l_idx]="$l_backup_path"
+        l_had_original[$l_idx]=1
+      else
+        l_backup_paths[$l_idx]=''
+        l_had_original[$l_idx]=0
+      fi
+    done
+
+    if [ "${l_cache_paths[0]}" = "${l_cache_paths[1]}" ] ; then
+      fail "cache paths collided for README targets"
+    fi
+
+    export CF_BACKEND_VERSION_FULL='9.9.9.0'
+    export CF_BACKEND_BUILD_NUMBER='20250101000000'
+    echo "lcl_version_self_test: priming caches"
+    for l_idx in "${!l_targets[@]}"; do
+      echo "  ${l_targets[$l_idx]}"
+      lcl_version_update "$l_cf_home" "${l_targets[$l_idx]}" || fail "initial update failed"
+    done
+
+    echo "lcl_version_self_test: validating unchanged state"
+    for l_idx in "${!l_targets[@]}"; do
+      echo "  ${l_targets[$l_idx]}"
+      if lcl_version_is_file_changed "$l_cf_home" "${l_targets[$l_idx]}"; then
+        fail "    unexpected change flagged for ${l_targets[$l_idx]}"
+      fi
+    done
+
+    export CF_BACKEND_BUILD_NUMBER='20250102000000'
+    echo "lcl_version_self_test: validating changed state"
+    for l_idx in "${!l_targets[@]}"; do
+      echo "  ${l_targets[$l_idx]}"
+      if ! lcl_version_is_file_changed "$l_cf_home" "${l_targets[$l_idx]}"; then
+        fail "    change not detected for ${l_targets[$l_idx]}"
+      fi
+    done
+
+    echo "lcl_version_self_test: refreshing caches post-change"
+    for l_idx in "${!l_targets[@]}"; do
+      echo "  ${l_targets[$l_idx]}"
+      lcl_version_update "$l_cf_home" "${l_targets[$l_idx]}" || fail "    refresh update failed"
+    done
+
+    echo "lcl_version_self_test: verifying clean state"
+    for l_idx in "${!l_targets[@]}"; do
+      echo "  ${l_targets[$l_idx]}"
+      if lcl_version_is_file_changed "$l_cf_home" "${l_targets[$l_idx]}"; then
+        fail "    unexpected change after refresh for ${l_targets[$l_idx]}"
+      fi
+    done
+
+    echo "lcl_version_self_test: OK"
+  )
+}
 
 ######################################################################
 # PEP
 #
-# id the os
+# id the os (once per run)
 if [ x"$g_UNAME" = x ] ; then
   g_UNAME="`uname -s`"
   g_VALID_OS=1
@@ -548,3 +809,4 @@ fi
 
 # indicate no error
 true
+

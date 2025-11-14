@@ -95,20 +95,28 @@ function cf_env_vars_msbuild_props_auto_cache {
   local l_CF_BACKEND_VERSION_GLOBAL_RELEASE="`echo "$l_CF_BACKEND_VERSION_FULL" | awk -F'.' '{print $4}'`"
   cat >"$the_cf_env_vars_msbuild_props_cached" <<EOF
 #!/bin/bash
+# auto-cached $the_cf_env_vars_msbuild_props_name
+#
+# hold auto-synchronized env vars extracted from msbuild properties for backend.
+# note: all variables can be overridden from command line
+#
 # globals
-export CF_GLOBAL_COMPANY="`cf_env_vars_msbuild_prop_read Company | dos2unix`"
-export CF_GLOBAL_PRODUCT="`cf_env_vars_msbuild_prop_read Product | dos2unix`"
-
+[ x"\$CF_GLOBAL_COMPANY" = x ] && export CF_GLOBAL_COMPANY="`cf_env_vars_msbuild_prop_read Company | dos2unix`"
+[ x"\$CF_GLOBAL_PRODUCT" = x ] && export CF_GLOBAL_PRODUCT="`cf_env_vars_msbuild_prop_read Product | dos2unix`"
+#
 # backend version
-export CF_BACKEND_VERSION_FULL="$l_CF_BACKEND_VERSION_FULL"
-export CF_BACKEND_VERSION_MAJOR="$l_CF_BACKEND_VERSION_MAJOR"
-export CF_BACKEND_VERSION_MINOR="$l_CF_BACKEND_VERSION_MINOR"
-export CF_BACKEND_VERSION_RELEASE="$l_CF_BACKEND_VERSION_RELEASE"
-export CF_BACKEND_VERSION_GLOBAL_RELEASE="$l_CF_BACKEND_VERSION_GLOBAL_RELEASE"
-export CF_BACKEND_VERSION_FULL_NUMERIC="$l_CF_BACKEND_VERSION_MAJOR$l_CF_BACKEND_VERSION_MINOR$l_CF_BACKEND_VERSION_RELEASE$l_CF_BACKEND_VERSION_GLOBAL_RELEASE"
-export CF_BACKEND_VERSION_SHORT="$l_CF_BACKEND_VERSION_MAJOR.$l_CF_BACKEND_VERSION_MINOR.$l_CF_BACKEND_VERSION_RELEASE"
-export CF_BACKEND_VERSION_SHORT_NUMERIC="$l_CF_BACKEND_VERSION_MAJOR$l_CF_BACKEND_VERSION_MINOR$l_CF_BACKEND_VERSION_RELEASE"
-export CF_BACKEND_BUILD_NUMBER="`cf_env_vars_msbuild_prop_read ChartFinderBackendBuildNumber | dos2unix`"
+[ x"\$CF_BACKEND_VERSION_FULL" = x ] && export CF_BACKEND_VERSION_FULL="$l_CF_BACKEND_VERSION_FULL"
+[ x"\$CF_BACKEND_VERSION_MAJOR" = x ] && export CF_BACKEND_VERSION_MAJOR="$l_CF_BACKEND_VERSION_MAJOR"
+[ x"\$CF_BACKEND_VERSION_MINOR" = x ] && export CF_BACKEND_VERSION_MINOR="$l_CF_BACKEND_VERSION_MINOR"
+[ x"\$CF_BACKEND_VERSION_RELEASE" = x ] && export CF_BACKEND_VERSION_RELEASE="$l_CF_BACKEND_VERSION_RELEASE"
+[ x"\$CF_BACKEND_VERSION_GLOBAL_RELEASE" = x ] && export CF_BACKEND_VERSION_GLOBAL_RELEASE="$l_CF_BACKEND_VERSION_GLOBAL_RELEASE"
+[ x"\$CF_BACKEND_VERSION_FULL_NUMERIC" = x ] && export CF_BACKEND_VERSION_FULL_NUMERIC="$l_CF_BACKEND_VERSION_MAJOR$l_CF_BACKEND_VERSION_MINOR$l_CF_BACKEND_VERSION_RELEASE$l_CF_BACKEND_VERSION_GLOBAL_RELEASE"
+[ x"\$CF_BACKEND_VERSION_SHORT" = x ] && export CF_BACKEND_VERSION_SHORT="$l_CF_BACKEND_VERSION_MAJOR.$l_CF_BACKEND_VERSION_MINOR.$l_CF_BACKEND_VERSION_RELEASE"
+[ x"\$CF_BACKEND_VERSION_SHORT_NUMERIC" = x ] && export CF_BACKEND_VERSION_SHORT_NUMERIC="$l_CF_BACKEND_VERSION_MAJOR$l_CF_BACKEND_VERSION_MINOR$l_CF_BACKEND_VERSION_RELEASE"
+[ x"\$CF_BACKEND_BUILD_NUMBER" = x ] && export CF_BACKEND_BUILD_NUMBER="`cf_env_vars_msbuild_prop_read ChartFinderBackendBuildNumber | dos2unix`"
+#
+# indicate no error
+true
 EOF
   chmod +x "$the_cf_env_vars_msbuild_props_cached" || return $?
   return 0
@@ -120,16 +128,20 @@ cf_env_vars_msbuild_props_auto_cache || exit $?
 source "$the_cf_env_vars_msbuild_props_cached" || exit $?
 
 # git branch is *always* dynamic (and we may need to separate from "last compiled git branch")
-export CF_GLOBAL_BRANCH="`lcl_git_branch`"
+[ x"\$CF_GLOBAL_BRANCH" = x ] && export CF_GLOBAL_BRANCH="`lcl_git_branch`"
 
 # show any variables?
 the_cf_env_vars_just_export=1
 if [ x"$1" != x ] ; then
-  if [ x"$1" = x'source-only' ] ; then
+  if [ x"$1" != x'source-only' ] ; then
     the_cf_env_vars_just_export=0
   fi
 fi
-if [ $the_cf_env_vars_just_export -ne 0 ] ; then
+if [ $the_cf_env_vars_just_export -eq 0 ] ; then
+  # no error
+  true
+else
+  # echo all desired vars
   for the_cf_env_vars_i in "$@" ; do
     echo "${!the_cf_env_vars_i}"
   done

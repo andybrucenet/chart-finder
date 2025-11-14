@@ -38,6 +38,10 @@ Resources:
           Value: $CF_LOCAL_BILLING_ENV
         - Key: Owner
           Value: !Ref OwnerEmail
+        - Key: ReleaseVersion
+          Value: $CF_BACKEND_VERSION_SHORT
+        - Key: BuildNumber
+          Value: $CF_BACKEND_BUILD_NUMBER
 
 # doc-5: ASP.NET Core Lambda function that exposes the ChartFinder API.
   AspNetCoreFunction:
@@ -58,6 +62,8 @@ Resources:
         Project: ChartFinder
         Environment: $CF_LOCAL_BILLING_ENV
         Owner: !Ref OwnerEmail
+        ReleaseVersion: $CF_BACKEND_VERSION_SHORT
+        BuildNumber: $CF_BACKEND_BUILD_NUMBER
       Events:
         ApiProxy:
           Type: Api
@@ -82,6 +88,10 @@ Resources:
           Value: $CF_LOCAL_BILLING_ENV
         - Key: Owner
           Value: !Ref OwnerEmail
+        - Key: ReleaseVersion
+          Value: $CF_BACKEND_VERSION_SHORT
+        - Key: BuildNumber
+          Value: $CF_BACKEND_BUILD_NUMBER
 
 # doc-7: Map the custom domain root to the SAM-managed API stage.
   ApiCustomDomainMapping:

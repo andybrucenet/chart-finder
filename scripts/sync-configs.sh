@@ -24,7 +24,10 @@ the_sync_configs_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 &
 the_sync_configs_root_dir="$( realpath "$the_sync_configs_script_dir"/.. )"
 source "$the_sync_configs_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
 lcl_dot_local_settings_source "$the_sync_configs_root_dir" || exit $?
+#
+# we also need all standard env vars including version information for proper config hydration
 the_sync_configs_local_dir="$the_sync_configs_root_dir/$g_DOT_LOCAL_DIR_NAME"
+source "$the_sync_configs_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
 
 ##############################################################
 # temp and user settings
@@ -79,8 +82,17 @@ sync_configs_process_dir() {
   local l_tmp_path_error="${i_tmp_path_prefix}error.txt"
   local l_src_path=''
   local l_dst_path=''
+  local l_dst_path_exists=0
+  local l_tmp_path="${i_tmp_path_prefix}tmp.txt"
   local l_src_requires_hydration=0
   local l_ignore_fname=0
+
+  # normalize i_dir_to_process
+  i_dir_to_process="`echo "$i_dir_to_process" | sed -e 's/^\.\///'`"
+  if echo "$i_dir_to_process" | grep -e '^\.' >/dev/null 2>&1 ; then
+    # ignore . (dot) directory
+    return 0
+  fi
 
   /bin/echo -n "$i_dir_to_process: "
 
@@ -113,13 +125,50 @@ sync_configs_process_dir() {
       l_src_requires_hydration=1
     fi
     if [ $l_src_requires_hydration -eq 0 ] ; then
+      if [ -L "$l_dst_path" ]; then
+        current_target="$(readlink "$l_dst_path")"
+        if [ "$current_target" = "$l_src_path" ]; then
+          # already pointing at the right file; leave timestamps alone
+          continue
+        fi
+      fi
+
       # simple link
-      ln -fs "$l_src_path" "$l_dst_path" >>"$l_tmp_path_error" 2>&1
+      ln -sfn "$l_src_path" "$l_dst_path" >>"$l_tmp_path_error" 2>&1
       l_rc_cmd=$?
     else
-      # hydrate
-      envsubst <"$l_src_path" >"$l_dst_path" 2>>"$l_tmp_path_error"
+      # detect if destination was a softlink - if so, delete it
+      [ -L "$l_dst_path" ] && rm -f "$l_dst_path"
+
+      # hydrate to tmp (always)
+      DOLLAR='$' envsubst <"$l_src_path" >"$l_tmp_path" 2>>"$l_tmp_path_error"
       l_rc_cmd=$?
+
+      # compare hydrated to dst
+      if [ $l_rc_cmd -eq 0 ] ; then
+        l_dst_path_exists=0
+        [ -s "$l_dst_path" ] && l_dst_path_exists=1
+        if [ $l_dst_path_exists -eq 0 ] ; then
+          # create the dest file from the source file to preserve attrs / perms
+          /bin/cp "$l_src_path" "$l_dst_path" 2>>"$l_tmp_path_error"
+          l_rc_cmd=$?
+        fi
+
+        # now update the guaranteed-existing file only if contents change
+        if ! cmp -s "$l_tmp_path" "$l_dst_path" ; then
+          # reset existing dst (saves perms / attrs)
+          truncate -s 0 "$l_dst_path" 2>>"$l_tmp_path_error"
+          l_rc_cmd=$?
+          if [ $l_rc_cmd -eq 0 ] ; then
+            # and replace contents
+            cat "$l_tmp_path" >> "$l_dst_path" 2>>"$l_tmp_path_error"
+            l_rc_cmd=$?
+          fi
+        fi
+      fi
+
+      # always done with tmp file here
+      rm -f "$l_tmp_path"
     fi
     [ $l_rc -eq 0 ] && l_rc=$l_rc_cmd
   done
@@ -149,7 +198,7 @@ cd "$the_sync_configs_dirs_infra_dir"
 find . -type d >"$the_sync_configs_dirs_path"
 #
 # process each dir
-the_sync_configs_local_dir="$the_sync_configs_root_dir/.local"
+the_sync_configs_local_dir="$the_sync_configs_root_dir/$g_DOT_LOCAL_DIR_NAME"
 the_rc=0
 the_rc_final=0
 while IFS= read -r line; do
@@ -164,11 +213,15 @@ for ignore_fname in $SYNC_CONFIG_OPTION_FNAMES_TO_IGNORE; do
     [ -z "$src_path" ] && continue
     dst_rel="${src_path#$the_sync_configs_dirs_infra_dir/}"
     dst_path="$the_sync_configs_local_dir/infra/${dst_rel%.in}"
+    the_rc=0
     if [ ! -f "$dst_path" ]; then
       echo "WARN: missing hydrated copy for $dst_path; run ./scripts/setup-dev-env.sh"
+      the_rc=99
     elif [ "$src_path" -nt "$dst_path" ]; then
       echo "WARN: template updated for $src_path; rerun ./scripts/setup-dev-env.sh to refresh $dst_path"
+      the_rc=1
     fi
+    [ $the_rc_final -eq 0 ] && the_rc_final=$the_rc
   done < <(find "$the_sync_configs_dirs_infra_dir" -name "$ignore_fname" -print)
 done
 #

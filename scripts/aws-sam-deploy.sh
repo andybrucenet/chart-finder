@@ -22,6 +22,9 @@ the_aws_sam_deploy_script_dir="$( cd -P "$( dirname "$the_aws_sam_deploy_source"
 the_aws_sam_deploy_root_dir="$( realpath "$the_aws_sam_deploy_script_dir"/.. )"
 source "$the_aws_sam_deploy_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
 lcl_dot_local_settings_source "$the_aws_sam_deploy_root_dir" || exit $?
+#
+# also source in all the local build version settings - we need them for 'sam deploy'
+source "$the_aws_sam_deploy_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
 
 aws_sam_deploy_ensure_tls_certificate() {
   local cert_path="${CF_LOCAL_TLS_CERT_PATH:-}"
@@ -33,7 +36,48 @@ aws_sam_deploy_ensure_tls_certificate() {
     return 0
   fi
 
-  local state_dir="$the_aws_sam_deploy_root_dir/.local/state"
+  # ensure certificate is not expiring within 14 days
+  local cert_not_after_output=''
+  cert_not_after_output="$(python3 - "$cert_path" <<'PY'
+import sys
+from datetime import datetime, timezone
+import ssl
+from pathlib import Path
+
+cert_path = Path(sys.argv[1])
+if not cert_path.is_file():
+    sys.exit("CERT_MISSING")
+try:
+    cert_info = ssl._ssl._test_decode_cert(str(cert_path))
+except Exception as exc:
+    sys.exit(f"CERT_PARSE_ERROR: {exc}")
+not_after_raw = cert_info.get("notAfter")
+if not not_after_raw:
+    sys.exit("CERT_NO_NOT_AFTER")
+dt = datetime.strptime(not_after_raw, "%b %d %H:%M:%S %Y %Z")
+dt = dt.replace(tzinfo=timezone.utc)
+print(int(dt.timestamp()))
+print(dt.isoformat())
+PY
+)"
+  local python_rc=$?
+  local cert_not_after_epoch=''
+  local cert_not_after_iso=''
+  if [ $python_rc -ne 0 ] || [ -z "$cert_not_after_output" ]; then
+    echo "ERROR: unable to determine TLS certificate expiration for '$cert_path'." >&2
+    return 1
+  fi
+  cert_not_after_epoch="$(printf '%s\n' "$cert_not_after_output" | sed -n '1p')"
+  cert_not_after_iso="$(printf '%s\n' "$cert_not_after_output" | sed -n '2p')"
+  local now_epoch="$(date -u +%s)"
+  local fourteen_days=$((14 * 24 * 60 * 60))
+  local seconds_until_expiry=$((cert_not_after_epoch - now_epoch))
+  if [ $seconds_until_expiry -le $fourteen_days ]; then
+    echo "ERROR: TLS certificate '$cert_path' expires soon ($cert_not_after_iso); renew before deploying." >&2
+    return 1
+  fi
+
+  local state_dir="$the_aws_sam_deploy_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
   local state_file="$state_dir/tls-cert.state"
   mkdir -p "$state_dir"
 
@@ -164,11 +208,18 @@ if [ "$the_aws_sam_deploy_mode" = "build" ] || [ "$the_aws_sam_deploy_mode" = "r
 fi
 
 echo "Running SAM deploy (config-env: $the_aws_sam_deploy_config_env)..."
+#
+# hydrate again
+the_aws_sam_deploy_tmp_prefix="`lcl_os_tmp_dir`/aws-sam-deploy-$$-"
+the_aws_sam_deploy_tmp_samconfig_toml="${the_aws_sam_deploy_tmp_prefix}samconfig.toml"
 the_aws_sam_deploy_root_dir="$( realpath "$the_aws_sam_deploy_script_dir"/.. )"
+DOLLAR='$' envsubst < "$the_aws_sam_deploy_root_dir/$g_DOT_LOCAL_DIR_NAME/infra/aws/samconfig.toml" >"$the_aws_sam_deploy_tmp_samconfig_toml" || exit $?
+set -x
 "$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" sam deploy \
-  --config-file "$the_aws_sam_deploy_root_dir/$g_DOT_LOCAL_DIR_NAME/infra/aws/samconfig.toml" \
+  --config-file "$the_aws_sam_deploy_tmp_samconfig_toml" \
   --config-env "$the_aws_sam_deploy_config_env"
 the_aws_sam_deploy_deploy_rc=$?
+rm -f "$the_aws_sam_deploy_tmp_samconfig_toml"
 set +x
 
 if [ $the_aws_sam_deploy_deploy_rc -ne 0 ]; then

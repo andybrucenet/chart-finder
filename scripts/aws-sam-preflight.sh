@@ -23,8 +23,25 @@ if ! command -v sam >/dev/null 2>&1 ; then
   exit 1
 fi
 
-# run the build
+# ensure SAM commands run from repo root so build artifacts stay under <repo>/.aws-sam
+the_prev_dir="$(pwd)"
+cd "$the_aws_sam_preflight_root_dir" >/dev/null 2>&1 || {
+  echo "ERROR: unable to change directory to '$the_aws_sam_preflight_root_dir'" >&2
+  exit 1
+}
+trap 'cd "$the_prev_dir" >/dev/null 2>&1' EXIT
+
 echo 'AWS SAM PREFLIGHT BUILD (updates all SAM files locally prior to deploy)...'
+echo ''
+
+# update configs
+echo 'SYNC CONFIGS...'
+"$the_aws_sam_preflight_root_dir/scripts/sync-configs.sh" || exit $?
+echo ''
+
+
+# run the build
+echo 'AWS SAM BUILD...'
 set -x
 "$the_aws_sam_preflight_root_dir/scripts/aws-run-cmd.sh" sam build \
   --template-file "$the_template_path" \
@@ -37,7 +54,7 @@ set +x
 echo ''
 
 # run the validate
-echo 'AWS SAM PREFLIGHT VALIDATE (verifies PREFLIGHT BUILD worked)...'
+echo 'AWS SAM VALIDATE...'
 set -x
 "$the_aws_sam_preflight_root_dir/scripts/aws-run-cmd.sh" sam validate \
   --template-file "$the_build_dir"/template.yaml \
@@ -46,5 +63,4 @@ set -x
 set +x
 echo ''
 
-echo 'SAM PREFLIGHT SUCCESSFUL - You may now deploy the SAM stack.'
-
+echo 'AWS SAM PREFLIGHT SUCCESSFUL - You may now deploy the SAM stack.'
