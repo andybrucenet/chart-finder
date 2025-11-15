@@ -98,12 +98,14 @@ PY
 
 write_frontend_metadata() {
   mkdir -p "$(dirname "$frontend_version_file")"
+  local tmp_file
+  tmp_file="$(mktemp "${frontend_version_file}.XXXXXX")"
   NEW_FRONTEND_VERSION="$1" \
   NEW_FRONTEND_BRANCH="$2" \
   NEW_FRONTEND_COMMENT="$3" \
   NEW_FRONTEND_BUILD_NUMBER="$4" \
   NEW_FRONTEND_INFORMATIONAL="$5" \
-  python3 - "$frontend_version_file" <<'PY'
+  python3 - "$tmp_file" <<'PY'
 import json
 import os
 import sys
@@ -119,6 +121,12 @@ with open(path, "w", encoding="utf-8") as handle:
     json.dump(data, handle, indent=2)
     handle.write("\n")
 PY
+
+  if [[ ! -f "$frontend_version_file" ]] || ! cmp -s "$tmp_file" "$frontend_version_file"; then
+    mv "$tmp_file" "$frontend_version_file"
+  else
+    rm "$tmp_file"
+  fi
 }
 
 detect_branch() {
