@@ -1,27 +1,34 @@
+# Makefile, ABr
+#
+# chart-finder: Backend Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 SLN ?= $(ROOT)/ChartFinder.sln
 DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug
 
-.PHONY: all build test clean rebuild deploy swagger swagger-clean
+.PHONY: all build-number build test clean rebuild deploy swagger swagger-clean
 
 SWAGGER_DOC_NAME ?= v1
 SWAGGER_OUTPUT ?= $(ROOT)/docs/api/backend.$(SWAGGER_DOC_NAME).json
 SWAGGER_DLL ?= $(ROOT)/src/backend/ChartFinder.Api/bin/$(BUILD_CONFIGURATION)/net8.0/ChartFinder.Api.dll
-SWAGGER_BIN_DIR := $(dir $(SWAGGER_DLL))
 SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
 
 log = @printf '\n***** %s\n' "$(1)"
 
-all: build test
+all: swagger
 
-build:
+build: build-number
 	$(call log,BACKEND: build)
 	@echo "[backend] dotnet restore $(SLN)"
 	@$(DOTNET) restore "$(SLN)"
 	@echo "[backend] dotnet build $(SLN) -c $(BUILD_CONFIGURATION)"
 	@$(DOTNET) build "$(SLN)" -c $(BUILD_CONFIGURATION)
+
+build-number:
+	$(call log,BACKEND: build-number)
+	@echo "[backend] $(ROOT)/scripts/backend-src-sig.sh"
+	@"$(ROOT)/scripts/backend-src-sig.sh"
 
 test:
 	$(call log,BACKEND: test)
@@ -51,12 +58,19 @@ deploy:
 
 $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	@mkdir -p $(dir $(SWAGGER_OUTPUT))
-	@echo "[backend] dotnet tool restore --tool-manifest $(ROOT)/backend/.config/dotnet-tools.json"
-	@dotnet tool restore --tool-manifest "$(ROOT)/backend/.config/dotnet-tools.json"
+	@echo "[backend] dotnet tool restore (nswag)"
+	@cd "$(ROOT)/backend" && $(DOTNET) tool restore
 	@$(MAKE) build BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
 	$(call log,BACKEND: swagger)
-	@echo "[backend] cd $(SWAGGER_BIN_DIR) && DOTNET_ROLL_FORWARD=Major dotnet swagger tofile --output $(SWAGGER_OUTPUT) $(SWAGGER_DLL) $(SWAGGER_DOC_NAME)"
-	@cd "$(SWAGGER_BIN_DIR)" && DOTNET_ROLL_FORWARD=Major dotnet swagger tofile --output "$(SWAGGER_OUTPUT)" "$(SWAGGER_DLL)" $(SWAGGER_DOC_NAME)
+	@tmpfile="$$(mktemp "$(dir $(SWAGGER_OUTPUT))/backend.$(SWAGGER_DOC_NAME).XXXXXX.json")" && \
+	echo "[backend] DOTNET_ROLL_FORWARD=Major ASPNETCORE_ENVIRONMENT=Development dotnet tool run nswag -- aspnetcore2openapi /project:$(ROOT)/src/backend/ChartFinder.Api/ChartFinder.Api.csproj /configuration:$(BUILD_CONFIGURATION) /documentName:$(SWAGGER_DOC_NAME) /AspNetCoreEnvironment:Development /output:$$tmpfile" && \
+	cd "$(ROOT)/backend" && DOTNET_ROLL_FORWARD=Major ASPNETCORE_ENVIRONMENT=Development $(DOTNET) tool run nswag -- aspnetcore2openapi /project:"$(ROOT)/src/backend/ChartFinder.Api/ChartFinder.Api.csproj" /configuration:"$(BUILD_CONFIGURATION)" /documentName:"$(SWAGGER_DOC_NAME)" /AspNetCoreEnvironment:Development /output:"$$tmpfile" && \
+	if [ ! -f "$(SWAGGER_OUTPUT)" ] || ! cmp -s "$$tmpfile" "$(SWAGGER_OUTPUT)"; then \
+		mv "$$tmpfile" "$(SWAGGER_OUTPUT)"; \
+	else \
+		rm "$$tmpfile"; \
+		echo "[backend] OpenAPI spec unchanged"; \
+	fi
 
 swagger: $(SWAGGER_OUTPUT)
 

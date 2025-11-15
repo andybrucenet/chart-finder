@@ -1,3 +1,6 @@
+# Makefile, ABr
+#
+# chart-finder: Top-level Makefile
 FRONTEND_DIR ?= src/frontend/chart-finder-mobile
 NPM ?= npm
 
@@ -10,16 +13,17 @@ help:
 	@printf "%s\n" \
 		"Available targets:" \
 		"  setup-dev-env     Hydrate local environment via scripts/setup-dev-env.sh" \
-		"  backend-build     Restore and build the backend solution (delegates to backend/Makefile)" \
 		"  backend-all       Build + test backend projects" \
+		"  backend-build     Restore and build the backend solution (delegates to backend/Makefile)" \
 		"  backend-test      Run backend tests" \
 		"  backend-clean     Clean backend build artifacts" \
 		"  backend-rebuild   Clean then build backend projects" \
 		"  backend-deploy    SAM preflight + deploy (delegates to backend/Makefile)" \
 		"  backend-swagger   Build and export OpenAPI spec (delegates to backend/Makefile)" \
+		"  infra-all         Perform all standard infra build instructions" \
 		"  infra-build       Run SAM preflight (delegates to infra/Makefile)" \
 		"  infra-stage       Alias for infra-build" \
-		"  infra-publish     Deploy SAM stack (delegates to infra/Makefile)" \
+		"  infra-publish     Deploy (publish) SAM stack (delegates to infra/Makefile)" \
 		"  infra-status      Status of SAM stack (delegates to infra/Makefile)" \
 		"  infra-uri         Current URI endpoint of SAM stack (delegates to infra/Makefile)" \
 		"  infra-smoke       Hit deployed utils endpoint to verify deployment" \
@@ -51,7 +55,7 @@ backend-deploy:
 backend-swagger:
 	@$(MAKE) -C backend swagger
 
-infra:
+infra-all:
 	@$(MAKE) -C infra build
 
 infra-build:

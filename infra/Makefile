@@ -1,10 +1,15 @@
+# Makefile, ABr
+#
+# chart-finder: Infra Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 SCRIPTS_DIR := $(ROOT)/scripts
 STACK_STATE_SCRIPT := $(SCRIPTS_DIR)/aws-sam-stack-state.sh
 
-.PHONY: configs build stage publish status uri smoke clean
+.PHONY: all configs build stage publish status uri smoke clean
 
 log = @printf '\n***** %s\n' "$(1)"
+
+all: build
 
 configs:
 	$(call log,INFRA: configs)

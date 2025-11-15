@@ -1,6 +1,7 @@
 using ChartFinder.Api.Configuration;
 using ChartFinder.Common.Versioning;
-using Microsoft.OpenApi.Models;
+using NSwag.AspNetCore;
+using NSwag.Generation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,14 +25,11 @@ config
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApiDocument(settings =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Chart Finder API",
-        Version = "v1",
-        Description = "Musician-facing API for discovering and purchasing charts."
-    });
+    settings.Title = "Chart Finder API";
+    settings.Version = "v1";
+    settings.Description = "Musician-facing API for discovering and purchasing charts.";
 });
 builder.Services.AddOptions<DynamoOptions>()
     .Bind(builder.Configuration.GetSection(DynamoOptions.SectionName))
@@ -47,14 +45,16 @@ builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 var app = builder.Build();
 
 
+// hi
 app.UseHttpsRedirection();
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    app.UseOpenApi(options => options.Path = "/swagger/v1/swagger.json");
+    app.UseSwaggerUi(settings =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Chart Finder API v1");
-        options.RoutePrefix = "swagger";
+        settings.Path = "/swagger";
+        settings.DocumentPath = "/swagger/v1/swagger.json";
+        settings.DocumentTitle = "Chart Finder API v1";
     });
 }
 app.UseAuthorization();
