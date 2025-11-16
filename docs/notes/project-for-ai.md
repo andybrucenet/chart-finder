@@ -13,6 +13,9 @@
 - AWS CLI and build commands do not work from AI - only the user can run them.
 - User executes all build, deploy, dotnet, and AWS CLI commands; the AI never runs them.
 - Do not modify or generate code without explicit user direction.
+- When documenting or adding shell script environment options, use the `SCRIPTNAME_OPTION_<NAME>` style (e.g., `FRONTEND_NPM_INSTALL_OPTION_FORCE_INSTALL`) so each option clearly maps to its script.
+- Shell scripts must avoid generic variable names: prefix inputs with `i_`, locals with `l_`, and globals with `the_<script>_<name>` to reduce clashes when scripts source each other; reserve ALL_CAPS for external tool/env options only.
+- New scripts must be source-friendly: implement a `<script>_main` entrypoint, guard execution with a trailing `source-only` check, and avoid global `set -euo pipefail`; always handle errors explicitly so sourcing the script has no side effects.
 - Treat `.local/` as the source of truth for hydrated configuration; consult those files when validating deploy settings.
 - When generating new code - always add XML documentation (or equivalent) for public methods.
 - Keep onboarding notes in `docs/notes/` and use existing scripts (`setup-dev-env.sh`, `sync-configs.sh`) for repo hydration.

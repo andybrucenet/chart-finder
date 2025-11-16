@@ -21,6 +21,7 @@ set -euo pipefail
 script_dir="$the_update_version_script_dir"
 repo_root="$the_update_version_root_dir"
 frontend_version_file="$repo_root/frontend/version.json"
+frontend_version_artifacts_script="$repo_root/scripts/frontend-version-artifacts.sh"
 
 print_usage() {
   cat <<'USAGE'
@@ -94,6 +95,17 @@ with open(path, encoding="utf-8") as handle:
     data = json.load(handle)
 print(data.get(key, ""))
 PY
+}
+
+run_frontend_version_artifacts() {
+  if [[ ! -x "$frontend_version_artifacts_script" ]]; then
+    echo "ERROR: missing executable $frontend_version_artifacts_script" >&2
+    return 1
+  fi
+  if ! "$frontend_version_artifacts_script" run; then
+    echo "ERROR: frontend-version-artifacts script failed" >&2
+    return 1
+  fi
 }
 
 write_frontend_metadata() {
@@ -352,6 +364,7 @@ update_frontend() {
   fi
 
   write_frontend_metadata "$new_version" "${new_branch:-}" "${new_comment:-}" "$new_build_number" "$informational"
+  run_frontend_version_artifacts || exit $?
 
   echo ""
   echo "Updated frontend version metadata in $frontend_version_file"
@@ -400,8 +413,9 @@ PY
           informational="${informational}.${current_comment}"
         fi
       fi
-      write_frontend_metadata "${current_version:-}" "${current_branch:-}" "${current_comment:-}" "$CHARTFINDER_FRONTEND_BUILD_NUMBER" "$informational"
-      echo "Updated frontend build number in $frontend_version_file (batch mode)"
+    write_frontend_metadata "${current_version:-}" "${current_branch:-}" "${current_comment:-}" "$CHARTFINDER_FRONTEND_BUILD_NUMBER" "$informational"
+    run_frontend_version_artifacts || exit $?
+    echo "Updated frontend build number in $frontend_version_file (batch mode)"
       ;;
     help|-h|--help)
       print_usage

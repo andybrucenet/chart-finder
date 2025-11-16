@@ -186,6 +186,9 @@ function cf_env_vars_frontend_version_auto_cache {
 [ x"\$CF_FRONTEND_VERSION_SHORT" = x ] && export CF_FRONTEND_VERSION_SHORT="$l_CF_FRONTEND_VERSION_MAJOR.$l_CF_FRONTEND_VERSION_MINOR.$l_CF_FRONTEND_VERSION_RELEASE"
 [ x"\$CF_FRONTEND_VERSION_SHORT_NUMERIC" = x ] && export CF_FRONTEND_VERSION_SHORT_NUMERIC="$l_CF_FRONTEND_VERSION_MAJOR$l_CF_FRONTEND_VERSION_MINOR$l_CF_FRONTEND_VERSION_RELEASE"
 [ x"\$CF_FRONTEND_BUILD_NUMBER" = x ] && export CF_FRONTEND_BUILD_NUMBER="`cf_env_vars_frontend_version_prop_read buildNumber | dos2unix`"
+[ x"\$CF_FRONTEND_BUILD_COMMENT" = x ] && export CF_FRONTEND_BUILD_COMMENT="`cf_env_vars_frontend_version_prop_read comment | dos2unix`"
+[ x"\$CF_FRONTEND_BUILD_BRANCH" = x ] && export CF_FRONTEND_BUILD_BRANCH="`cf_env_vars_frontend_version_prop_read branch | dos2unix`"
+[ x"\$CF_FRONTEND_INFORMATIONAL_VERSION" = x ] && export CF_FRONTEND_INFORMATIONAL_VERSION="`cf_env_vars_frontend_version_prop_read informationalVersion | dos2unix`"
 #
 # indicate no error
 true
@@ -223,4 +226,3 @@ else
     echo "${!the_cf_env_vars_i}"
   done
 fi
-

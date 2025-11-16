@@ -1,10 +1,10 @@
 # Makefile, ABr
 #
 # chart-finder: Top-level Makefile
-FRONTEND_DIR ?= src/frontend/chart-finder-mobile
-NPM ?= npm
 
-.PHONY: help setup-dev-env backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger frontend frontend-clean \
+.PHONY: help setup-dev-env backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger \
+	frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
+	frontend-ios frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-version \
 	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean
 
 log = @printf '\n***** %s\n' "$(1)"
@@ -27,8 +27,23 @@ help:
 		"  infra-status      Status of SAM stack (delegates to infra/Makefile)" \
 		"  infra-uri         Current URI endpoint of SAM stack (delegates to infra/Makefile)" \
 		"  infra-smoke       Hit deployed utils endpoint to verify deployment" \
-		"  frontend          Install frontend dependencies (Expo project)" \
-		"  frontend-clean    Remove frontend node_modules cache"
+		"  frontend          Install frontend dependencies (delegates to frontend/Makefile)" \
+		"  frontend-ci       Run npm ci for reproducible installs" \
+		"  frontend-build    Invoke frontend build script (if defined)" \
+		"  frontend-test     Run frontend test script (if defined)" \
+		"  frontend-lint     Run frontend lint script (if defined)" \
+		"  frontend-typecheck  Run frontend typecheck script (if defined)" \
+		"  frontend-start    Start Expo dev server (multi-platform)" \
+		"  frontend-start-ios  Start Expo dev server targeting iOS simulator" \
+		"  frontend-start-android  Start Expo dev server targeting Android emulator" \
+		"  frontend-start-macos  Start Expo dev server targeting desktop/web preview" \
+		"  frontend-android  Run the Expo Android workflow" \
+		"  frontend-ios      Run the Expo iOS workflow" \
+		"  frontend-doctor   Run Expo doctor" \
+		"  frontend-format   Run the formatter (if defined)" \
+		"  frontend-reinstall  Clean caches then install dependencies" \
+		"  frontend-clean    Remove frontend caches" \
+		"  frontend-version  Update the frontend version metadata"
 
 setup-dev-env:
 	$(call log,SETUP: dev-env)
@@ -79,12 +94,53 @@ infra-smoke:
 infra-clean:
 	@$(MAKE) -C infra clean
 
-frontend:
-	$(call log,FRONTEND: install)
-	@echo "$(NPM) install --prefix $(FRONTEND_DIR)"
-	@$(NPM) install --prefix $(FRONTEND_DIR)
+frontend frontend-install:
+	@$(MAKE) -C frontend install
+
+frontend-ci:
+	@$(MAKE) -C frontend ci
+
+frontend-build:
+	@$(MAKE) -C frontend build
+
+frontend-test:
+	@$(MAKE) -C frontend test
+
+frontend-lint:
+	@$(MAKE) -C frontend lint
+
+frontend-typecheck:
+	@$(MAKE) -C frontend typecheck
+
+frontend-start:
+	@$(MAKE) -C frontend start
+
+frontend-start-ios:
+	@$(MAKE) -C frontend start-ios
+
+frontend-start-android:
+	@$(MAKE) -C frontend start-android
+
+frontend-start-macos:
+	@$(MAKE) -C frontend start-macos
+
+frontend-android:
+	@$(MAKE) -C frontend android
+
+frontend-ios:
+	@$(MAKE) -C frontend ios
+
+frontend-doctor:
+	@$(MAKE) -C frontend doctor
+
+frontend-format:
+	@$(MAKE) -C frontend format
+
+frontend-reinstall:
+	@$(MAKE) -C frontend reinstall
 
 frontend-clean:
-	$(call log,FRONTEND: clean)
-	@echo "rm -rf $(FRONTEND_DIR)/node_modules"
-	@rm -rf $(FRONTEND_DIR)/node_modules
+	@$(MAKE) -C frontend clean
+
+frontend-version:
+	@$(MAKE) -C frontend version
