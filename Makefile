@@ -2,7 +2,7 @@
 #
 # chart-finder: Top-level Makefile
 
-.PHONY: help setup-dev-env backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger \
+.PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger \
 	frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
 	frontend-ios frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-version \
 	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean
@@ -13,6 +13,10 @@ help:
 	@printf "%s\n" \
 		"Available targets:" \
 		"  setup-dev-env     Hydrate local environment via scripts/setup-dev-env.sh" \
+		"  stack-refresh     Rebuild backend and refresh infra targets" \
+		"  stack-refresh-batch Same as stack-refresh but auto-confirms SAM deploy" \
+		"  tls-status       Show the current TLS certificate status" \
+		"  tls-renew        Run scripts/tls-renew.sh to renew/import the wildcard cert" \
 		"  backend-all       Build + test backend projects" \
 		"  backend-build     Restore and build the backend solution (delegates to backend/Makefile)" \
 		"  backend-test      Run backend tests" \
@@ -49,6 +53,23 @@ setup-dev-env:
 	$(call log,SETUP: dev-env)
 	@./scripts/setup-dev-env.sh
 
+stack-refresh:
+	$(call log,STACK: refresh)
+	@$(MAKE) backend-build
+	@$(MAKE) infra-build
+	@$(MAKE) infra-publish
+
+stack-refresh-batch:
+	$(call log,STACK: refresh batch)
+	@CF_STACK_DEPLOYMENT_MODE=batch $(MAKE) stack-refresh
+
+tls-status:
+	$(call log,TLS: status)
+	@$(ROOT)/scripts/tls-status.sh show
+
+tls-renew:
+	$(call log,TLS: renew)
+	@$(ROOT)/scripts/tls-renew.sh run
 backend backend-all:
 	@$(MAKE) -C backend all
 

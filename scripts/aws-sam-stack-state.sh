@@ -15,11 +15,11 @@ the_aws_sam_stack_state_root_dir="$( realpath "$the_aws_sam_stack_state_script_d
 source "$the_aws_sam_stack_state_root_dir"/scripts/lcl-os-checks.sh 'source-only' || exit $?
 lcl_dot_local_settings_source "$the_aws_sam_stack_state_root_dir" || exit $?
 
-exec "$the_aws_sam_stack_state_root_dir/scripts/aws-run-cmd.sh" \
-  aws cloudformation list-stacks --no-cli-pager |
-    jq '.StackSummaries
-        | map(select(.StackName == "'"$CF_LOCAL_ENV_ID"'"))
-        | sort_by((.LastUpdatedTime // .CreationTime))
-        | reverse
-        | .[0]'
+the_aws_sam_stack_state_args=(
+  aws cloudformation describe-stacks
+  --stack-name "$CF_LOCAL_ENV_ID"
+  --no-cli-pager
+)
 
+exec "$the_aws_sam_stack_state_root_dir/scripts/aws-run-cmd.sh" "${the_aws_sam_stack_state_args[@]}" |
+  jq '.Stacks[0]'

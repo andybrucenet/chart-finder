@@ -11,8 +11,8 @@
 
     <ChartFinderVersion Condition="'$(ChartFinderVersion)' == ''">2025.11.10.10000</ChartFinderVersion>
     <ChartFinderBackendBuildBranch Condition="'$(ChartFinderBackendBuildBranch)' == ''">main</ChartFinderBackendBuildBranch>
-    <ChartFinderBackendBuildComment Condition="'$(ChartFinderBackendBuildComment)' == ''">Initial compile with versioning</ChartFinderBackendBuildComment>
-    <ChartFinderBackendBuildNumber Condition="'$(ChartFinderBackendBuildNumber)' == ''">2025-11-15T12:29:54Z</ChartFinderBackendBuildNumber>
+    <ChartFinderBackendBuildComment Condition="'$(ChartFinderBackendBuildComment)' == ''">Updated to test changes</ChartFinderBackendBuildComment>
+    <ChartFinderBackendBuildNumber Condition="'$(ChartFinderBackendBuildNumber)' == ''">2025-11-16T12:58:04Z</ChartFinderBackendBuildNumber>
     <ChartFinderBackendInformationalVersion Condition="'$(ChartFinderBackendInformationalVersion)' == ''">2025.11.10.10000+main.Initial compile with versioning</ChartFinderBackendInformationalVersion>
 
     <Version>$(ChartFinderVersion)</Version>

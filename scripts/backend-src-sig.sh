@@ -23,7 +23,7 @@ state_dir="$the_backend_src_sig_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
 [ ! -d "$state_dir" ] && echo "MISSING_DIR: $state_dir" && exit 2
 
 # get the signature
-sig_cur=$(find "$the_backend_src_sig_root_dir/src/backend" \
+sig_cur=$(find "$the_backend_src_sig_root_dir/src/backend" "$the_backend_src_sig_root_dir/src/common" \
   -type f \( -name '*.cs' -o -name '*appsettings*.json' \) \
   ! -path '*/bin/*' ! -path '*/obj/*' \
   -exec ls -la {} \; | sort | shasum -a 256 | awk '{print $1}')
@@ -48,4 +48,3 @@ CHARTFINDER_BACKEND_BUILD_NUMBER="$default_build_number" "$the_backend_src_sig_r
 echo '  UPDATE: SIGNATURE...'
 echo "$sig_cur" >"$sig_file" || exit $?
 echo '  OK'
-

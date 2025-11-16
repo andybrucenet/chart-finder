@@ -72,9 +72,24 @@ PY
   local now_epoch="$(date -u +%s)"
   local fourteen_days=$((14 * 24 * 60 * 60))
   local seconds_until_expiry=$((cert_not_after_epoch - now_epoch))
-  if [ $seconds_until_expiry -le $fourteen_days ]; then
-    echo "ERROR: TLS certificate '$cert_path' expires soon ($cert_not_after_iso); renew before deploying." >&2
+  local two_days=$((2 * 24 * 60 * 60))
+  local three_days=$((3 * 24 * 60 * 60))
+  local seven_days=$((7 * 24 * 60 * 60))
+  local fourteen_days=$((14 * 24 * 60 * 60))
+
+  if [ $seconds_until_expiry -le $two_days ]; then
+    echo "ERROR: TLS certificate '$cert_path' expires in less than 48 hours ($cert_not_after_iso); renew before deploying." >&2
     return 1
+  elif [ $seconds_until_expiry -le $seven_days ]; then
+    echo "WARNING: TLS certificate '$cert_path' expires within 7 days ($cert_not_after_iso)." >&2
+    read -r -p "Proceed with deploy? [y/N]: " l_confirm
+    if [[ ! "$l_confirm" =~ ^[Yy]$ ]]; then
+      echo "Deploy aborted due to pending TLS certificate expiration." >&2
+      return 1
+    fi
+  elif [ $seconds_until_expiry -le $fourteen_days ]; then
+    echo "WARNING: TLS certificate '$cert_path' expires within 14 days ($cert_not_after_iso)." >&2
+    echo "Please schedule a renewal soon."
   fi
 
   local state_dir="$the_aws_sam_deploy_root_dir/$g_DOT_LOCAL_DIR_NAME/state"

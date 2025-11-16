@@ -4,6 +4,11 @@
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 SCRIPTS_DIR := $(ROOT)/scripts
 STACK_STATE_SCRIPT := $(SCRIPTS_DIR)/aws-sam-stack-state.sh
+STACK_DEPLOYMENT_MODE ?= $(CF_STACK_DEPLOYMENT_MODE)
+SAM_DEPLOY_ENV :=
+ifeq ($(STACK_DEPLOYMENT_MODE),batch)
+SAM_DEPLOY_ENV := AWS_SAM_DEPLOY_OPTION_NO_CONFIRM=1
+endif
 
 .PHONY: all configs build stage publish status uri smoke clean
 
@@ -27,8 +32,9 @@ publish:
 		echo "ERROR: infra publish currently supports only aws (set CF_LOCAL_CLOUD_PROVIDER=aws)"; \
 		exit 1; \
 	fi
-	@echo "[infra] $(SCRIPTS_DIR)/aws-sam-deploy.sh build"
-	@"$(SCRIPTS_DIR)"/aws-sam-deploy.sh build
+	@echo "[infra] $(SCRIPTS_DIR)/aws-sam-deploy.sh build (mode: $(STACK_DEPLOYMENT_MODE))"
+	@$(SAM_DEPLOY_ENV) "$(SCRIPTS_DIR)"/aws-sam-deploy.sh build
+	@$(MAKE) smoke
 
 status:
 	$(call log,INFRA: status)
@@ -55,7 +61,7 @@ smoke:
 		exit 1; \
 	fi
 	@echo "[infra] $(STACK_STATE_SCRIPT)"
-	@response="$$(\"$(STACK_STATE_SCRIPT)\")"; \
+	@response="$$( $(STACK_STATE_SCRIPT) )"; \
 		endpoint="$$(printf '%s\n' "$$response" | jq -r '.Outputs[] | select(.OutputKey=="ApiInvokeUrl").OutputValue')"; \
 		if [ -z "$$endpoint" ] || [ "$$endpoint" = "null" ]; then \
 			echo "ERROR: Unable to locate ApiInvokeUrl in stack outputs"; \
