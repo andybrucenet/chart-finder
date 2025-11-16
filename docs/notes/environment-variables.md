@@ -14,11 +14,13 @@ These settings are hydrated by `./scripts/setup-dev-env.sh`, which writes `.loca
 - `CF_LOCAL_BILLING_ENV` – billing/tag value (default `dev`) for environment scoping.
 - `CF_LOCAL_ENV_ID` – composite `${CF_LOCAL_PRJ_ID}-${CF_LOCAL_DEV_ID}` identifier reused across stacks.
 - `CF_LOCAL_USEREMAIL` – reachable contact injected into tags and notifications.
+- `CF_LOCAL_BASE_URI` – provider-agnostic API base URI exposed to tooling and the frontend (derived from the active cloud provider’s base URI, e.g., AWS).
 
 ## AWS-Specific Settings
 - `CF_LOCAL_AWS_PROFILE` – default CLI profile (`${CF_LOCAL_DEV_ID}-${CF_LOCAL_PRJ_ID}-${CF_LOCAL_BILLING_ENV}`).
 - `CF_LOCAL_AWS_REGION` – primary AWS region for the workspace.
 - `CF_LOCAL_AWS_ARTIFACT_BUCKET` – S3 bucket for hydrated templates and build artifacts (`${CF_LOCAL_ENV_ID}-s3-artifacts` by default).
 - `CF_LOCAL_AWS_SSO_ROLE` – resolved Identity Center role name backing the current session.
+- `CF_LOCAL_AWS_BASE_URI` – canonical API Gateway/custom-domain base URI for the AWS environment (fed into `CF_LOCAL_BASE_URI` for the frontend and scripts).
 
 Treat this file as the canonical reference when new providers or scripts require additional environment variables.

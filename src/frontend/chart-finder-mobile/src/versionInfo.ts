@@ -9,8 +9,9 @@ export const VersionInfo = {
   versionFullNumeric: `2025111010000`,
   versionShort: `2025.11.10`,
   versionShortNumeric: `20251110`,
-  buildNumber: `2025-11-16T12:32:06Z`,
+  buildNumber: `2025-11-16T13:51:57Z`,
   buildComment: `Initial compile with versioning`,
   branch: `main`,
   informationalVersion: `2025.11.10.10000+main.Initial compile with versioning`,
+  apiBaseUrl: `https://sab-u-dev-api.chart-finder.app/`,
 } as const;

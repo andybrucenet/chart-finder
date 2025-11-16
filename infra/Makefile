@@ -45,6 +45,7 @@ status:
 	@echo "[infra] $(SCRIPTS_DIR)/aws-sam-deploy.sh status"
 	@"$(SCRIPTS_DIR)"/aws-sam-deploy.sh status
 
+
 uri:
 	$(call log,INFRA: uri)
 	@if [ "$${CF_LOCAL_CLOUD_PROVIDER:-aws}" != "aws" ]; then \
@@ -61,8 +62,8 @@ smoke:
 		exit 1; \
 	fi
 	@echo "[infra] $(STACK_STATE_SCRIPT)"
-	@response="$$( $(STACK_STATE_SCRIPT) )"; \
-		endpoint="$$(printf '%s\n' "$$response" | jq -r '.Outputs[] | select(.OutputKey=="ApiInvokeUrl").OutputValue')"; \
+	@output="$$( $(STACK_STATE_SCRIPT) )"; \
+		endpoint="$$(printf '%s\n' "$$output" | jq -r '.Outputs[] | select(.OutputKey=="ApiInvokeUrl").OutputValue')"; \
 		if [ -z "$$endpoint" ] || [ "$$endpoint" = "null" ]; then \
 			echo "ERROR: Unable to locate ApiInvokeUrl in stack outputs"; \
 			exit 1; \
@@ -75,7 +76,12 @@ smoke:
 		fi; \
 		url="$$base"utils/v1/version; \
 		echo "[infra] curl --fail --silent --show-error $$url"; \
-		curl --fail --silent --show-error "$$url" | jq '.'
+		curl --fail --silent --show-error "$$url" | jq '.'; \
+		current_uri="$${CF_LOCAL_AWS_BASE_URI:-}"; \
+		if [ "$$base" != "$$current_uri" ]; then \
+			echo "[infra] Updating CF_LOCAL_AWS_BASE_URI to $$base"; \
+			bash -lc "source $(ROOT)/scripts/lcl-os-checks.sh source-only && lcl_dot_local_settings_update $(ROOT) CF_LOCAL_AWS_BASE_URI '$$base'"; \
+		fi
 
 clean:
 	$(call log,INFRA: clean)

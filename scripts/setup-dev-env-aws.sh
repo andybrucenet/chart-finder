@@ -65,7 +65,7 @@ echo ''
 # get user settings
 echo 'AWS USER SETTINGS...'
 if [ x"$SETUP_DEV_ENV_AWS_OPTION_RESET_USER_SETTINGS" = x1 ] ; then
-  the_setup_env_dev_aws_var_names='AWS_PROFILE AWS_SDK_LOAD_CONFIG CF_LOCAL_AWS_PROFILE CF_LOCAL_AWS_REGION CF_LOCAL_AWS_ARTIFACT_BUCKET'
+  the_setup_env_dev_aws_var_names='AWS_PROFILE AWS_SDK_LOAD_CONFIG CF_LOCAL_AWS_PROFILE CF_LOCAL_AWS_REGION CF_LOCAL_AWS_ARTIFACT_BUCKET CF_LOCAL_AWS_BASE_URI'
   for i in $the_setup_env_dev_aws_var_names ; do
     lcl_dot_local_settings_delete "$the_setup_env_dev_aws_root_dir" $i || exit $?
     unset $i
@@ -103,6 +103,15 @@ if [ x"$CF_LOCAL_AWS_ARTIFACT_BUCKET" = x ] ; then
   export CF_LOCAL_AWS_ARTIFACT_BUCKET
 fi
 echo "  CF_LOCAL_AWS_ARTIFACT_BUCKET='$CF_LOCAL_AWS_ARTIFACT_BUCKET'"
+
+if [ x"$CF_LOCAL_AWS_BASE_URI" = x ] ; then
+  the_default_value="https://$CF_LOCAL_ENV_ID-api.$CF_LOCAL_DOMAIN"
+  read -p "  Enter value for CF_LOCAL_AWS_BASE_URI [$the_default_value]: " CF_LOCAL_AWS_BASE_URI
+  CF_LOCAL_AWS_BASE_URI="${CF_LOCAL_AWS_BASE_URI:-$the_default_value}"
+  lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" CF_LOCAL_AWS_BASE_URI "$CF_LOCAL_AWS_BASE_URI" || exit $?
+  export CF_LOCAL_AWS_BASE_URI
+fi
+echo "  CF_LOCAL_AWS_BASE_URI='$CF_LOCAL_AWS_BASE_URI'"
 #
 # ensure TLS certificate ARN (used by custom domains) exists
 setup_dev_env_aws_ensure_tls_certificate() {

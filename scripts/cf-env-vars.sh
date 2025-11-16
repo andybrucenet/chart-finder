@@ -207,6 +207,17 @@ source "$the_cf_env_vars_msbuild_props_cached" || exit $?
 cf_env_vars_frontend_version_auto_cache || exit $?
 source "$the_cf_env_vars_frontend_version_dst_path" || exit $?
 
+# derive provider-specific base URI
+if [ x"$CF_LOCAL_BASE_URI" = x ]; then
+  case "${CF_LOCAL_CLOUD_PROVIDER:-}" in
+    aws)
+      if [ -n "${CF_LOCAL_AWS_BASE_URI:-}" ]; then
+        export CF_LOCAL_BASE_URI="$CF_LOCAL_AWS_BASE_URI"
+      fi
+      ;;
+  esac
+fi
+
 # git branch is *always* dynamic (and we may need to separate from "last compiled git branch")
 [ x"\$CF_GLOBAL_BRANCH" = x ] && export CF_GLOBAL_BRANCH="`lcl_git_branch`"
 

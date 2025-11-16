@@ -1,4 +1,6 @@
-const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+import { VersionInfo } from '../versionInfo';
+
+const API_BASE = VersionInfo.apiBaseUrl ?? '';
 
 export async function addAsync(x: number, y: number): Promise<number> {
   if (!API_BASE) {
@@ -6,6 +8,7 @@ export async function addAsync(x: number, y: number): Promise<number> {
   }
 
   const url = `${API_BASE.replace(/\/+$/, '')}/calculator/v1/add/${x}/${y}`;
+  console.log('Calling calc: ', url);
   const response = await fetch(url, { method: 'GET' });
 
   if (!response.ok) {

@@ -51,12 +51,15 @@ frontend_version_artifacts_verify_prereqs() {
 frontend_version_artifacts_generate_ts() {
   local l_tmp_file
   l_tmp_file="$(mktemp "${the_frontend_version_artifacts_ts_file}.XXXXXX")" || return 1
-  if ! python3 - "$the_frontend_version_artifacts_version_file" "$l_tmp_file" <<'PY'
+  if ! FRONTEND_VERSION_ARTIFACTS_BASE_URI="${CF_LOCAL_BASE_URI:-}" \
+    python3 - "$the_frontend_version_artifacts_version_file" "$l_tmp_file" <<'PY'
 import json
+import os
 import sys
 
 version_path, output_path = sys.argv[1], sys.argv[2]
 data = json.load(open(version_path, encoding="utf-8"))
+base_uri = os.environ.get("FRONTEND_VERSION_ARTIFACTS_BASE_URI", "")
 
 version = data.get("version", "") or ""
 parts = version.split(".")
@@ -108,6 +111,7 @@ export const VersionInfo = {{
   buildComment: `{buildComment}`,
   branch: `{branch}`,
   informationalVersion: `{informationalVersion}`,
+  apiBaseUrl: `{apiBaseUrl}`,
 }} as const;
 """.format(
     version=fmt_value(version),
@@ -122,6 +126,7 @@ export const VersionInfo = {{
     buildComment=fmt_value(data.get("comment", "")),
     branch=fmt_value(data.get("branch", "")),
     informationalVersion=fmt_value(data.get("informationalVersion", "")),
+    apiBaseUrl=fmt_value(base_uri),
 )
 
 with open(output_path, "w", encoding="utf-8") as handle:
