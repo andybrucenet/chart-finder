@@ -55,7 +55,7 @@ setup-dev-env:
 
 stack-refresh:
 	$(call log,STACK: refresh)
-	@$(MAKE) backend-build
+	@$(MAKE) backend-build backend-swagger
 	@$(MAKE) infra-build
 	@$(MAKE) infra-publish
 

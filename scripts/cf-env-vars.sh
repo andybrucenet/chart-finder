@@ -197,16 +197,22 @@ EOF
   return 0
 }
 
-# handle msbuild cache
+##############################################################
+# PROGRAM ENTRY POINT
+#
+# default base URI to use when generating code interfaces
+export CF_DEFAULT_BASE_URI="${CF_PROD_BASE_URI:-https://api.chart-finder.app/}"
+#
+# handle msbuild (backend) cache
 [ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_msbuild_props_dst_path"
 cf_env_vars_msbuild_props_auto_cache || exit $?
 source "$the_cf_env_vars_msbuild_props_cached" || exit $?
-
-# handle msbuild cache
+#
+# handle frontend cache
 [ x"$CF_ENV_VARS_OPTION_REBUILD_FRONTEND" = x1 ] && rm -f "$the_cf_env_vars_frontend_version_dst_path"
 cf_env_vars_frontend_version_auto_cache || exit $?
 source "$the_cf_env_vars_frontend_version_dst_path" || exit $?
-
+#
 # derive provider-specific base URI
 if [ x"$CF_LOCAL_BASE_URI" = x ]; then
   case "${CF_LOCAL_CLOUD_PROVIDER:-}" in
@@ -217,10 +223,10 @@ if [ x"$CF_LOCAL_BASE_URI" = x ]; then
       ;;
   esac
 fi
-
+#
 # git branch is *always* dynamic (and we may need to separate from "last compiled git branch")
 [ x"\$CF_GLOBAL_BRANCH" = x ] && export CF_GLOBAL_BRANCH="`lcl_git_branch`"
-
+#
 # show any variables?
 the_cf_env_vars_just_export=1
 if [ x"$1" != x ] ; then

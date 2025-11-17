@@ -1,1 +1,1 @@
-From docs/notes - reload project-for-ai.md (overview and *project rules for you*) and current-chat.md (chat session). Very important rule: do *not generate or modify code on disk* unless specifically asked!
+From docs/notes - reload project-for-ai.md (overview and *project rules for you*) and current-chat.md (chat session). Very important rule: do *not generate or modify code on disk* unless specifically asked! Now - please remind me what I last indicated is the next task?
