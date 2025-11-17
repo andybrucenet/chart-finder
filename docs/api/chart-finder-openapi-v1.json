@@ -7,32 +7,16 @@
     "version": "v1"
   },
   "paths": {
-    "/": {
-      "get": {
-        "operationId": "Get",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/utils/v1/version": {
       "get": {
         "tags": [
           "Utils"
         ],
+        "summary": "Retrieve version details for the running Chart Finder backend.",
         "operationId": "Utils_GetVersion",
         "responses": {
           "200": {
-            "description": "",
+            "description": "Structured version metadata.",
             "content": {
               "application/octet-stream": {
                 "schema": {

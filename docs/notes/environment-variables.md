@@ -15,6 +15,7 @@ These settings are hydrated by `./scripts/setup-dev-env.sh`, which writes `.loca
 - `CF_LOCAL_ENV_ID` – composite `${CF_LOCAL_PRJ_ID}-${CF_LOCAL_DEV_ID}` identifier reused across stacks.
 - `CF_LOCAL_USEREMAIL` – reachable contact injected into tags and notifications.
 - `CF_LOCAL_BASE_URI` – provider-agnostic API base URI exposed to tooling and the frontend (derived from the active cloud provider’s base URI, e.g., AWS).
+- `CF_DEFAULT_BASE_URI` – production API base URI baked into generated SDKs; dev/stage builds override this with their environment-specific base URIs.
 
 ## AWS-Specific Settings
 - `CF_LOCAL_AWS_PROFILE` – default CLI profile (`${CF_LOCAL_DEV_ID}-${CF_LOCAL_PRJ_ID}-${CF_LOCAL_BILLING_ENV}`).

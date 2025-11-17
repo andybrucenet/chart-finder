@@ -10,7 +10,7 @@ ifeq ($(STACK_DEPLOYMENT_MODE),batch)
 SAM_DEPLOY_ENV := AWS_SAM_DEPLOY_OPTION_NO_CONFIRM=1
 endif
 
-.PHONY: all configs build stage publish status uri smoke clean
+.PHONY: all configs build stage publish status uri smoke clean veryclean
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -86,3 +86,7 @@ smoke:
 clean:
 	$(call log,INFRA: clean)
 	@echo "[infra] No dedicated infra clean step defined."
+
+veryclean: clean
+	$(call log,INFRA: veryclean)
+	@echo "[infra] No extra cleanup defined (extend this target as needed)."

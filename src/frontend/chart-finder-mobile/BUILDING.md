@@ -1,5 +1,9 @@
 # Building
 
+Note: typically you will *not* build from here. Instead, move to the `frontend` folder directly under the project root and there is a `Makefile` with all the expected lifecycle targets. Review that folder for more information.
+
+For historical purposes we document some basic install / build steps here.
+
 1. Install dependencies:
    ```bash
    cd src/frontend/chart-finder-mobile

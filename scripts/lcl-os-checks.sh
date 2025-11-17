@@ -22,6 +22,7 @@ export g_DOT_LOCAL_SETTINGS_TAG_LINE='## TAG: DO_NOT_EDIT_BELOW_HERE'
 #
 # version values to check
 export g_VERSION_ENV_VARS_TO_CHECK='CF_BACKEND_VERSION_FULL CF_BACKEND_BUILD_NUMBER'
+export g_VERSION_NORMALIZE_DEFAULT_BUILD='0'
 
 ######################################################################
 # functions
@@ -691,6 +692,46 @@ function lcl_version_update {
   return 0
 }
 #
+# normalize version for package managers (SemVer-compatible)
+#
+# npm accepts SemVer with optional prerelease tags. We normalize the backend
+# version (expected format A.B.C) into `A.B.C-build.<build>` so each generated
+# package remains unique per build.
+function lcl_version_normalize_npm {
+  local i_short="${1:-}"
+  local i_build_raw="${2:-$g_VERSION_NORMALIZE_DEFAULT_BUILD}"
+
+  if [ x"$i_short" = x ]; then
+    echo "lcl_version_normalize_npm: missing short version" >&2
+    return 1
+  fi
+
+  local i_build="$(echo "$i_build_raw" | tr -cd '0-9')"
+  if [ x"$i_build" = x ]; then
+    i_build="$g_VERSION_NORMALIZE_DEFAULT_BUILD"
+  fi
+
+  echo "${i_short}-build.$i_build"
+}
+#
+# NuGet also supports SemVer 2.0.0, so we reuse the `-build.<build>` pattern.
+function lcl_version_normalize_nuget {
+  local i_short="${1:-}"
+  local i_build_raw="${2:-$g_VERSION_NORMALIZE_DEFAULT_BUILD}"
+
+  if [ x"$i_short" = x ]; then
+    echo "lcl_version_normalize_nuget: missing short version" >&2
+    return 1
+  fi
+
+  local i_build="$(echo "$i_build_raw" | tr -cd '0-9')"
+  if [ x"$i_build" = x ]; then
+    i_build="$g_VERSION_NORMALIZE_DEFAULT_BUILD"
+  fi
+
+  echo "${i_short}-build.$i_build"
+}
+#
 # versioning - self test helper to validate version cache behavior
 # usage: [cf-home]
 function lcl_version_self_test {
@@ -809,4 +850,3 @@ fi
 
 # indicate no error
 true
-

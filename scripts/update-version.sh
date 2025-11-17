@@ -117,6 +117,8 @@ write_frontend_metadata() {
   NEW_FRONTEND_COMMENT="$3" \
   NEW_FRONTEND_BUILD_NUMBER="$4" \
   NEW_FRONTEND_INFORMATIONAL="$5" \
+  NEW_FRONTEND_COMPANY="${6:-${CF_GLOBAL_COMPANY:-SoftwareAB}}" \
+  NEW_FRONTEND_PRODUCT="${7:-${CF_GLOBAL_PRODUCT:-Chart\ Finder}}" \
   python3 - "$tmp_file" <<'PY'
 import json
 import os
@@ -128,6 +130,8 @@ data = {
     "comment": os.environ["NEW_FRONTEND_COMMENT"],
     "buildNumber": os.environ["NEW_FRONTEND_BUILD_NUMBER"],
     "informationalVersion": os.environ["NEW_FRONTEND_INFORMATIONAL"],
+    "company": os.environ.get("NEW_FRONTEND_COMPANY", ""),
+    "product": os.environ.get("NEW_FRONTEND_PRODUCT", ""),
 }
 with open(path, "w", encoding="utf-8") as handle:
     json.dump(data, handle, indent=2)
@@ -234,8 +238,9 @@ update_backend() {
     fi
   fi
 
-  local default_build_number prompt_build_number
-  default_build_number="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  local default_build_number prompt_build_number current_time
+  current_time="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  default_build_number="$current_time"
   prompt_build_number="$default_build_number"
 
   local new_build_number
@@ -243,9 +248,17 @@ update_backend() {
     new_build_number="$CHARTFINDER_BACKEND_BUILD_NUMBER"
     echo "Using CHARTFINDER_BACKEND_BUILD_NUMBER=$new_build_number"
   else
-    read -r -p "Build number (UTC timestamp) [${prompt_build_number}]: " new_build_number_input
+    read -r -p "Build number (UTC timestamp) [${prompt_build_number}] (type 'ignore' to keep current): " new_build_number_input
     if [[ -z "$new_build_number_input" ]]; then
       new_build_number="$default_build_number"
+    elif [[ "$(printf '%s' "$new_build_number_input" | tr '[:upper:]' '[:lower:]')" == "ignore" ]]; then
+      if [[ -n "$current_build_number" ]]; then
+        new_build_number="$current_build_number"
+        echo "Keeping existing build number: $current_build_number"
+      else
+        new_build_number="$default_build_number"
+        echo "No existing build number; using default $default_build_number"
+      fi
     else
       new_build_number="$new_build_number_input"
     fi
@@ -338,8 +351,9 @@ update_frontend() {
     fi
   fi
 
-  local default_build_number prompt_build_number
-  default_build_number="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  local default_build_number prompt_build_number current_time
+  current_time="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  default_build_number="$current_time"
   prompt_build_number="$default_build_number"
 
   local new_build_number
@@ -347,9 +361,17 @@ update_frontend() {
     new_build_number="$CHARTFINDER_FRONTEND_BUILD_NUMBER"
     echo "Using CHARTFINDER_FRONTEND_BUILD_NUMBER=$new_build_number"
   else
-    read -r -p "Build number (UTC timestamp) [${prompt_build_number}]: " new_build_number_input
+    read -r -p "Build number (UTC timestamp) [${prompt_build_number}] (type 'ignore' to keep current): " new_build_number_input
     if [[ -z "$new_build_number_input" ]]; then
       new_build_number="$default_build_number"
+    elif [[ "$(printf '%s' "$new_build_number_input" | tr '[:upper:]' '[:lower:]')" == "ignore" ]]; then
+      if [[ -n "$current_build_number" ]]; then
+        new_build_number="$current_build_number"
+        echo "Keeping existing build number: $current_build_number"
+      else
+        new_build_number="$default_build_number"
+        echo "No existing build number; using default $default_build_number"
+      fi
     else
       new_build_number="$new_build_number_input"
     fi
@@ -363,7 +385,9 @@ update_frontend() {
     fi
   fi
 
-  write_frontend_metadata "$new_version" "${new_branch:-}" "${new_comment:-}" "$new_build_number" "$informational"
+  local company_name="${CF_GLOBAL_COMPANY:-SoftwareAB}"
+  local product_name="${CF_GLOBAL_PRODUCT:-Chart Finder}"
+  write_frontend_metadata "$new_version" "${new_branch:-}" "${new_comment:-}" "$new_build_number" "$informational" "$company_name" "$product_name"
   run_frontend_version_artifacts || exit $?
 
   echo ""
@@ -413,7 +437,9 @@ PY
           informational="${informational}.${current_comment}"
         fi
       fi
-    write_frontend_metadata "${current_version:-}" "${current_branch:-}" "${current_comment:-}" "$CHARTFINDER_FRONTEND_BUILD_NUMBER" "$informational"
+    local company_name="${CF_GLOBAL_COMPANY:-SoftwareAB}"
+    local product_name="${CF_GLOBAL_PRODUCT:-Chart Finder}"
+    write_frontend_metadata "${current_version:-}" "${current_branch:-}" "${current_comment:-}" "$CHARTFINDER_FRONTEND_BUILD_NUMBER" "$informational" "$company_name" "$product_name"
     run_frontend_version_artifacts || exit $?
     echo "Updated frontend build number in $frontend_version_file (batch mode)"
       ;;

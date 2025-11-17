@@ -1,0 +1,15 @@
+{
+  "npmName": "@andybrucenet/chart-finder-sdk",
+  "supportsES6": true,
+  "useSingleRequestParameter": true,
+  "usePromises": true,
+  "stringEnums": true,
+  "modelPropertyNaming": "camelCase",
+  "withSeparateModelsAndApi": true,
+  "modelPackage": "models",
+  "apiPackage": "apis",
+  "enumPropertyNaming": "camelCase",
+  "disallowAdditionalPropertiesIfNotPresent": false,
+  "allowUnicodeIdentifiers": false,
+  "typescriptThreePlus": true
+}

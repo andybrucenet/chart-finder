@@ -4,8 +4,9 @@
 
 .PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger \
 	frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
-	frontend-ios frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-version \
-	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean
+	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-version \
+	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean \
+	clean veryclean
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -43,6 +44,9 @@ help:
 		"  frontend-start-macos  Start Expo dev server targeting desktop/web preview" \
 		"  frontend-android  Run the Expo Android workflow" \
 		"  frontend-ios      Run the Expo iOS workflow" \
+		"  frontend-refresh-ios   Rebuild/run iOS native, then start Expo iOS" \
+		"  frontend-refresh-android  Rebuild/run Android native, then start Expo Android" \
+		"  frontend-refresh-all  Rebuild native binaries for iOS and Android" \
 		"  frontend-doctor   Run Expo doctor" \
 		"  frontend-format   Run the formatter (if defined)" \
 		"  frontend-reinstall  Clean caches then install dependencies" \
@@ -151,6 +155,15 @@ frontend-android:
 frontend-ios:
 	@$(MAKE) -C frontend ios
 
+frontend-refresh-ios:
+	@$(MAKE) -C frontend refresh-ios
+
+frontend-refresh-android:
+	@$(MAKE) -C frontend refresh-android
+
+frontend-refresh-all:
+	@$(MAKE) -C frontend refresh-all
+
 frontend-doctor:
 	@$(MAKE) -C frontend doctor
 
@@ -165,3 +178,16 @@ frontend-clean:
 
 frontend-version:
 	@$(MAKE) -C frontend version
+
+clean:
+	$(call log,ROOT: clean)
+	@$(MAKE) backend-clean
+	@$(MAKE) frontend-clean
+	@$(MAKE) infra-clean
+
+veryclean: clean
+	$(call log,ROOT: veryclean)
+	@$(MAKE) -C backend veryclean
+	@$(MAKE) -C frontend veryclean
+	@$(MAKE) -C infra veryclean
+	@$(MAKE) -C backend/clients veryclean

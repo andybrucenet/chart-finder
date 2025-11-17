@@ -50,3 +50,18 @@
 - New deploy helper `aws-sam-deploy.sh` supports `build`/`clean`/`rebuild`/`status` modes, wrapping stack deletion and SAM deploy logic behind a Make-style interface.
 - Successful `sam deploy` created the `cf-sab-u-dev` stack (Lambda + DynamoDB) with no IAM failures; CLI warning notes Pydantic’s Py3.14 incompatibility (benign, needs tracking).
 - Next test: hit the deployed API/Lambda for a smoke check and capture the endpoint & expected payload in docs.
+
+## 2025-11-17 Session Notes
+- Frontend now reads Expo config from `app.config.ts` which imports the generated `VersionInfo`; version metadata (company/product, base URLs, versions, build numbers) flows from `.local` → `frontend/version.json` → `versionInfo.ts` → Expo config.
+- Added `frontend-refresh-ios`, `frontend-refresh-android`, and `frontend-refresh-all` targets (plus top-level wrappers) to chain native rebuilds with Expo dev server runs.
+- `versionInfo.ts` now includes `companyName`, `productName`, and slugified variants; `app.config.ts` derives bundle IDs/packages from these fields.
+- TypeScript config allows explicit `.ts` imports (`allowImportingTsExtensions`), fixing Expo config resolution without needing a JS shim.
+- Updated `useVersion` hook to consume the generated `UtilsApi` via `utilsGetVersionRaw()` and parse JSON directly, replacing the homegrown fetch helper.
+- Version screen now renders the API response and warns-free monospace styling by using `Platform.select` for fonts.
+- Calculator code path removed; frontend entry screen renamed to `VersionScreen`.
+- Reminder: **AI must not run build/deploy/Expo/CocoaPods commands**—user owns `frontend-refresh-*`, `expo run`, etc.
+
+### Next Steps
+- Decide on the actual mobile app feature set (e.g., splash screens, chart discovery/purchase flows, potential “listen to music” capability).
+- Design splash screens/logo assets for both iOS and Android, aligned with the new bundle identifiers.
+- Outline the core screens and navigation (what replaces the current placeholder version check).

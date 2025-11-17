@@ -9,6 +9,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@andybrucenet/chart-finder-sdk": "^2025.11.10-build.20251117092638",
     "@expo/metro-runtime": "~3.1.3",
     "@react-navigation/native": "^6.1.10",
     "@react-navigation/native-stack": "^6.9.18",

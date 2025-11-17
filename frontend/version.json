@@ -1,7 +1,9 @@
 {
   "version": "2025.11.10.10000",
   "branch": "main",
-  "comment": "Initial compile with versioning",
-  "buildNumber": "2025-11-16T13:51:57Z",
-  "informationalVersion": "2025.11.10.10000+main.Initial compile with versioning"
+  "comment": "Consumes API from backend",
+  "buildNumber": "2025-11-17T17:40:49Z",
+  "informationalVersion": "2025.11.10.10000+main.Consumes API from backend",
+  "company": "SoftwareAB",
+  "product": "Chart Finder"
 }

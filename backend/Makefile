@@ -7,10 +7,10 @@ DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug
 
-.PHONY: all build-number build test clean rebuild deploy swagger swagger-clean
+.PHONY: all build-number build test clean veryclean rebuild deploy swagger swagger-clean swagger-rebuild
 
 SWAGGER_DOC_NAME ?= v1
-SWAGGER_OUTPUT ?= $(ROOT)/docs/api/backend.$(SWAGGER_DOC_NAME).json
+SWAGGER_OUTPUT ?= $(ROOT)/docs/api/chart-finder-openapi-$(SWAGGER_DOC_NAME).json
 SWAGGER_DLL ?= $(ROOT)/src/backend/ChartFinder.Api/bin/$(BUILD_CONFIGURATION)/net8.0/ChartFinder.Api.dll
 SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
 
@@ -40,6 +40,10 @@ clean:
 	@echo "[backend] dotnet clean $(SLN) -c $(BUILD_CONFIGURATION)"
 	@$(DOTNET) clean "$(SLN)" -c $(BUILD_CONFIGURATION)
 
+veryclean: clean
+	$(call log,BACKEND: veryclean)
+	@echo "[backend] No extra cleanup defined (extend this target as needed)."
+
 rebuild:
 	$(call log,BACKEND: rebuild)
 	@$(MAKE) clean BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
@@ -62,7 +66,7 @@ $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	@cd "$(ROOT)/backend" && $(DOTNET) tool restore
 	@$(MAKE) build BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
 	$(call log,BACKEND: swagger)
-	@tmpfile="$$(mktemp "$(dir $(SWAGGER_OUTPUT))/backend.$(SWAGGER_DOC_NAME).XXXXXX.json")" && \
+	@tmpfile="$$(mktemp "$(dir $(SWAGGER_OUTPUT))/chart-finder-openapi-$(SWAGGER_DOC_NAME).XXXXXX.json")" && \
 	echo "[backend] DOTNET_ROLL_FORWARD=Major ASPNETCORE_ENVIRONMENT=Development dotnet tool run nswag -- aspnetcore2openapi /project:$(ROOT)/src/backend/ChartFinder.Api/ChartFinder.Api.csproj /configuration:$(BUILD_CONFIGURATION) /documentName:$(SWAGGER_DOC_NAME) /AspNetCoreEnvironment:Development /output:$$tmpfile" && \
 	cd "$(ROOT)/backend" && DOTNET_ROLL_FORWARD=Major ASPNETCORE_ENVIRONMENT=Development $(DOTNET) tool run nswag -- aspnetcore2openapi /project:"$(ROOT)/src/backend/ChartFinder.Api/ChartFinder.Api.csproj" /configuration:"$(BUILD_CONFIGURATION)" /documentName:"$(SWAGGER_DOC_NAME)" /AspNetCoreEnvironment:Development /output:"$$tmpfile" && \
 	if [ ! -f "$(SWAGGER_OUTPUT)" ] || ! cmp -s "$$tmpfile" "$(SWAGGER_OUTPUT)"; then \
@@ -77,3 +81,6 @@ swagger: $(SWAGGER_OUTPUT)
 swagger-clean:
 	$(call log,BACKEND: swagger clean)
 	@rm -f $(SWAGGER_OUTPUT)
+
+swagger-rebuild: swagger-clean swagger
+

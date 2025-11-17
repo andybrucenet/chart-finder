@@ -1,0 +1,4 @@
+# .gitignore for backup/clients
+#
+# npm tooling
+node_modules

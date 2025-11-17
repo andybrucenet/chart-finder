@@ -2,12 +2,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AuthScreen } from '../screens/AuthScreen';
-import { CalculatorScreen } from '../screens/CalculatorScreen';
+import { VersionScreen } from '../screens/VersionScreen';
 import { useAuth } from '../providers/AuthProvider';
 
 export type RootStackParamList = {
   Auth: undefined;
-  Calculator: undefined;
+  Version: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -29,7 +29,7 @@ export function AppNavigator(): JSX.Element {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
-          <Stack.Screen name="Calculator" component={CalculatorScreen} />
+          <Stack.Screen name="Version" component={VersionScreen} />
         ) : (
           <Stack.Screen name="Auth" component={AuthScreen} />
         )}

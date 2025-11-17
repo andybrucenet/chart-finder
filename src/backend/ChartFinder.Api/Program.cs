@@ -1,7 +1,7 @@
+using System.IO;
+using Microsoft.AspNetCore.Http;
 using ChartFinder.Api.Configuration;
 using ChartFinder.Common.Versioning;
-using NSwag.AspNetCore;
-using NSwag.Generation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +60,25 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-app.MapGet("/", () => "Welcome to running ASP.NET Core Minimal API on AWS Lambda");
+var aboutPagePath = Path.Combine(app.Environment.ContentRootPath, "Pages", "About.html");
+var supportPagePath = Path.Combine(app.Environment.ContentRootPath, "Pages", "Support.html");
+
+IResult ServeStaticPage(string path)
+{
+    if (!File.Exists(path))
+    {
+        return Results.Problem(
+            detail: $"Missing static page: {Path.GetFileName(path)}",
+            statusCode: StatusCodes.Status500InternalServerError);
+    }
+
+    return Results.File(path, "text/html; charset=utf-8");
+}
+
+app.MapGet("/", () => ServeStaticPage(aboutPagePath))
+    .ExcludeFromDescription();
+
+app.MapGet("/support", () => ServeStaticPage(supportPagePath))
+    .ExcludeFromDescription();
 
 app.Run();

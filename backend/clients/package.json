@@ -1,0 +1,14 @@
+{
+  "name": "chart-finder-backend-clients",
+  "private": true,
+  "description": "Tooling to generate Chart Finder client SDKs from the backend OpenAPI spec.",
+  "scripts": {
+    "noop": "echo \"[clients] no-op\"",
+    "generate:ts": "bash ./scripts/clients-generate-ts.sh",
+    "generate:dotnet": "bash ./scripts/clients-generate-dotnet.sh",
+    "generate:all": "npm run generate:ts && npm run generate:dotnet"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.25.0"
+  }
+}

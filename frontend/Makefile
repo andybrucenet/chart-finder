@@ -15,7 +15,7 @@ FRONTEND_VERSION_ARTIFACTS_SCRIPT := $(FRONTEND_SCRIPTS_DIR)/frontend-version-ar
 
 .DEFAULT_GOAL := help
 
-.PHONY: help all install ci build deps build-number version-artifacts test lint typecheck clean reinstall start start-ios start-android start-macos android ios doctor format version
+.PHONY: help all install ci build deps build-number version-artifacts test lint typecheck clean veryclean reinstall start start-ios start-android start-macos android ios doctor format version refresh-ios refresh-android refresh-all
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -45,6 +45,9 @@ help:
 		"  start-macos       expo start --localhost --web" \
 		"  android           expo run:android" \
 		"  ios               expo run:ios" \
+		"  refresh-ios       Rebuild/run iOS, then start Expo for iOS" \
+		"  refresh-android   Rebuild/run Android, then start Expo for Android" \
+		"  refresh-all       Rebuild iOS and Android natives (no Expo start)" \
 		"  doctor            expo doctor" \
 		"  format            npm run format (if defined)" \
 		"  reinstall         clean + install" \
@@ -91,6 +94,10 @@ clean:
 	$(call log,FRONTEND: clean)
 	@rm -rf "$(APP_DIR)/node_modules" "$(APP_DIR)/.expo" "$(APP_DIR)/.expo-shared" "$(APP_DIR)/dist"
 
+veryclean: clean
+	$(call log,FRONTEND: veryclean)
+	@true
+
 reinstall:
 	$(call log,FRONTEND: reinstall)
 	@$(MAKE) clean
@@ -116,9 +123,24 @@ android: deps build-number
 	$(call log,FRONTEND: android)
 	$(call expo_run,run:android)
 
+refresh-android:
+	$(call log,FRONTEND: refresh android)
+	@$(MAKE) android
+	@$(MAKE) start-android
+
 ios: deps build-number
 	$(call log,FRONTEND: ios)
 	$(call expo_run,run:ios)
+
+refresh-ios:
+	$(call log,FRONTEND: refresh ios)
+	@$(MAKE) ios
+	@$(MAKE) start-ios
+
+refresh-all:
+	$(call log,FRONTEND: refresh all)
+	@$(MAKE) ios
+	@$(MAKE) android
 
 doctor: deps
 	$(call log,FRONTEND: doctor)

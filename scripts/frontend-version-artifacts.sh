@@ -56,6 +56,7 @@ frontend_version_artifacts_generate_ts() {
 import json
 import os
 import sys
+import re
 
 version_path, output_path = sys.argv[1], sys.argv[2]
 data = json.load(open(version_path, encoding="utf-8"))
@@ -93,6 +94,18 @@ version_full_numeric = "".join([
     global_release or "",
 ])
 
+company = data.get("company", "")
+product = data.get("product", "")
+
+def slugify(value: str) -> str:
+    if not value:
+        return ""
+    lowered = value.lower()
+    return re.sub(r"[^a-z0-9]+", "", lowered)
+
+company_slug = slugify(company)
+product_slug = slugify(product)
+
 def fmt_value(value: str) -> str:
     return (value or "").replace("\\", "\\\\").replace("`", "\\`")
 
@@ -112,6 +125,10 @@ export const VersionInfo = {{
   branch: `{branch}`,
   informationalVersion: `{informationalVersion}`,
   apiBaseUrl: `{apiBaseUrl}`,
+  companyName: `{companyName}`,
+  productName: `{productName}`,
+  companySlug: `{companySlug}`,
+  productSlug: `{productSlug}`,
 }} as const;
 """.format(
     version=fmt_value(version),
@@ -127,6 +144,10 @@ export const VersionInfo = {{
     branch=fmt_value(data.get("branch", "")),
     informationalVersion=fmt_value(data.get("informationalVersion", "")),
     apiBaseUrl=fmt_value(base_uri),
+    companyName=fmt_value(company),
+    productName=fmt_value(product),
+    companySlug=fmt_value(company_slug),
+    productSlug=fmt_value(product_slug),
 )
 
 with open(output_path, "w", encoding="utf-8") as handle:
