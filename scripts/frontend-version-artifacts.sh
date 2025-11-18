@@ -17,7 +17,7 @@ lcl_dot_local_settings_source "$the_frontend_version_artifacts_root_dir" || exit
 source "$the_frontend_version_artifacts_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
 
 the_frontend_version_artifacts_version_file="$the_frontend_version_artifacts_root_dir/frontend/version.json"
-the_frontend_version_artifacts_ts_file="$the_frontend_version_artifacts_root_dir/src/frontend/chart-finder-mobile/src/versionInfo.ts"
+the_frontend_version_artifacts_ts_file="$the_frontend_version_artifacts_root_dir/src/frontend/chart-finder-react/src/versionInfo.ts"
 
 frontend_version_artifacts_log() {
   local i_message="$1"

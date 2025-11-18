@@ -16,7 +16,7 @@ source "$the_frontend_src_sig_root_dir/scripts/lcl-os-checks.sh" 'source-only' |
 lcl_dot_local_settings_source "$the_frontend_src_sig_root_dir" || exit $?
 source "$the_frontend_src_sig_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
 
-the_frontend_src_sig_app_dir="${CF_FRONTEND_APP_DIR:-$the_frontend_src_sig_root_dir/src/frontend/chart-finder-mobile}"
+the_frontend_src_sig_app_dir="${CF_FRONTEND_APP_DIR:-$the_frontend_src_sig_root_dir/src/frontend/chart-finder-react}"
 the_frontend_src_sig_state_dir="$the_frontend_src_sig_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
 the_frontend_src_sig_state_file="$the_frontend_src_sig_state_dir/frontend-source.sig"
 

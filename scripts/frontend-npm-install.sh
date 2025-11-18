@@ -18,7 +18,7 @@ source "$the_frontend_npm_install_root_dir/scripts/cf-env-vars.sh" 'source-only'
 set -euo pipefail
 
 the_frontend_npm_install_npm_bin="${NPM:-npm}"
-the_frontend_npm_install_app_dir="${CF_FRONTEND_APP_DIR:-$the_frontend_npm_install_root_dir/src/frontend/chart-finder-mobile}"
+the_frontend_npm_install_app_dir="${CF_FRONTEND_APP_DIR:-$the_frontend_npm_install_root_dir/src/frontend/chart-finder-react}"
 the_frontend_npm_install_lock_file="${the_frontend_npm_install_app_dir}/package-lock.json"
 the_frontend_npm_install_node_modules_dir="${the_frontend_npm_install_app_dir}/node_modules"
 the_frontend_npm_install_state_dir="$the_frontend_npm_install_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
