@@ -1,5 +1,5 @@
 # tests
 
-- Purpose: Automated test suites organized by application layer.
-- Layout: `backend/` currently populated; add `frontend/` when client tests exist.
-- Execution: Run `dotnet test` at the project level or from the solution to execute all suites.
+- Purpose: Document how automated test suites are organized per application layer.
+- Layout: Each stack keeps its test projects beside the code it validates (e.g., backend tests live under `src/backend/*Tests`). Add stack-specific folders here only when we need extra docs.
+- Execution: Run `dotnet test ChartFinder-backend.sln` for the full suite or target the individual `*Tests` projects under `src/backend/`.

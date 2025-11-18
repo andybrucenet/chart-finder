@@ -1,8 +1,8 @@
 # 2025-01-17
 
 ## Key Decisions
-- Maintain a single repo while partitioning code into `src/backend`, `src/frontend`, and `src/infra`; mirror backend tests under `tests/backend`.
-- Keep `ChartFinder.sln` at the repository root so future front-end stacks (Flutter, MAUI, etc.) stay decoupled.
+- Maintain a single repo while partitioning code into `src/backend`, `src/frontend`, and `src/infra`; backend tests live alongside their projects under `src/backend`.
+- Keep `ChartFinder-backend.sln` at the repository root so future front-end stacks (Flutter, MAUI, etc.) stay decoupled.
 - Treat DynamoDB as one implementation of a `IChartRepository` interface; plan for alternate providers and keep domain models AWS-agnostic.
 - Record AWS SAM build outputs under `.aws-sam/` but keep them untracked; expand `.gitignore` with platform-specific artifacts when needed.
 - Capture ongoing architecture and process notes inside `docs/notes/` so conversations remain versioned with the project.

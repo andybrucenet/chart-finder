@@ -31,6 +31,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\common\ChartFinder.Common\ChartFinder.Common.csproj" />
+    <ProjectReference Include="..\ChartFinder.Common\ChartFinder.Common.csproj" />
   </ItemGroup>
 </Project>

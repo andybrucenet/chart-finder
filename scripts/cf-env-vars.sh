@@ -33,10 +33,11 @@ lcl_dot_local_settings_source "$the_cf_env_vars_root_dir" || exit $?
 # vars
 #
 # name of Directory.Build.props and local cache to hold extracted values
-the_cf_env_vars_msbuild_props_name='Directory.Build.props'
-the_cf_env_vars_msbuild_props_src_path="$the_cf_env_vars_root_dir/$the_cf_env_vars_msbuild_props_name"
-the_cf_env_vars_msbuild_props_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/$the_cf_env_vars_msbuild_props_name"
-the_cf_env_vars_msbuild_props_cached="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/msbuild-props.sh"
+the_cf_env_vars_dirbuildprops_name='Directory.Build.props'
+the_cf_env_vars_backend_dirbuildprops_rel_path="src/backend/$the_cf_env_vars_dirbuildprops_name"
+the_cf_env_vars_backend_dirbuildprops_src_path="$the_cf_env_vars_root_dir/$the_cf_env_vars_backend_dirbuildprops_rel_path"
+the_cf_env_vars_backend_dirbuildprops_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/backend-$the_cf_env_vars_dirbuildprops_name"
+the_cf_env_vars_backend_version_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-version.sh"
 #
 # name of frontend/version.json and local cache to hold extracted values
 the_cf_env_vars_frontend_version_src_fname='version.json'
@@ -53,9 +54,10 @@ function cf_env_vars_frontend_version_prop_read {
 }
 #
 # load from cached Directory.Build.props (slow)
-function cf_env_vars_msbuild_prop_read {
+function cf_env_vars_dirbuildprops_read {
+  local dirbuildprops_path="$1" ; shift
   local prop="$1"
-  python3 - <<'PY' "$prop" "$the_cf_env_vars_msbuild_props_dst_path"
+  python3 - <<'PY' "$prop" "$dirbuildprops_path"
 import sys
 from xml.etree import ElementTree as ET
 
@@ -74,20 +76,20 @@ PY
 }
 #
 # does msbuild props require cache?
-function cf_env_vars_msbuild_props_is_cached {
-  if [ ! -s "$the_cf_env_vars_msbuild_props_dst_path" ] ; then
+function cf_env_vars_dirbuildprops_is_cached {
+  if [ ! -s "$the_cf_env_vars_backend_dirbuildprops_dst_path" ] ; then
     # Directory.Build.props missing
     return 1
   fi
-  if [ ! -s "$the_cf_env_vars_msbuild_props_cached" ] ; then
+  if [ ! -s "$the_cf_env_vars_backend_version_dst_path" ] ; then
     # derived env vars missing
     return 1
   fi
-  if [ "$the_cf_env_vars_msbuild_props_src_path" -nt "$the_cf_env_vars_msbuild_props_dst_path" ] ; then
+  if [ "$the_cf_env_vars_backend_dirbuildprops_src_path" -nt "$the_cf_env_vars_backend_dirbuildprops_dst_path" ] ; then
     # not cached (change in source)
     return 1
   fi
-  if [ "$the_cf_env_vars_msbuild_props_src_path" -nt "$the_cf_env_vars_msbuild_props_cached" ] ; then
+  if [ "$the_cf_env_vars_backend_dirbuildprops_src_path" -nt "$the_cf_env_vars_backend_version_dst_path" ] ; then
     # not cached (source newer than derived env vars)
     return 1
   fi
@@ -97,31 +99,31 @@ function cf_env_vars_msbuild_props_is_cached {
 }
 #
 # auto-cache msbuild props
-function cf_env_vars_msbuild_props_auto_cache {
-  if cf_env_vars_msbuild_props_is_cached ; then
+function cf_env_vars_backend_dirbuildprops_auto_cache {
+  if cf_env_vars_dirbuildprops_is_cached ; then
     # no cache necessary
     return 0
   fi
 
   # copy to cached file (stop on failure)
-  /bin/cp "$the_cf_env_vars_msbuild_props_src_path" "$the_cf_env_vars_msbuild_props_dst_path" || return $?
+  /bin/cp "$the_cf_env_vars_backend_dirbuildprops_src_path" "$the_cf_env_vars_backend_dirbuildprops_dst_path" || return $?
 
   # load everything to cache
-  local l_CF_BACKEND_VERSION_FULL="`cf_env_vars_msbuild_prop_read ChartFinderVersion | dos2unix`"
+  local l_CF_BACKEND_VERSION_FULL="`cf_env_vars_dirbuildprops_read "$the_cf_env_vars_backend_dirbuildprops_dst_path" ChartFinderVersion | dos2unix`"
   local l_CF_BACKEND_VERSION_MAJOR="`echo "$l_CF_BACKEND_VERSION_FULL" | awk -F'.' '{print $1}'`"
   local l_CF_BACKEND_VERSION_MINOR="`echo "$l_CF_BACKEND_VERSION_FULL" | awk -F'.' '{print $2}'`"
   local l_CF_BACKEND_VERSION_RELEASE="`echo "$l_CF_BACKEND_VERSION_FULL" | awk -F'.' '{print $3}'`"
   local l_CF_BACKEND_VERSION_GLOBAL_RELEASE="`echo "$l_CF_BACKEND_VERSION_FULL" | awk -F'.' '{print $4}'`"
-  cat >"$the_cf_env_vars_msbuild_props_cached" <<EOF
+  cat >"$the_cf_env_vars_backend_version_dst_path" <<EOF
 #!/bin/bash
-# auto-cached $the_cf_env_vars_msbuild_props_name
+# auto-cached $the_cf_env_vars_dirbuildprops_name
 #
 # hold auto-synchronized env vars extracted from msbuild properties for backend.
 # note: all variables can be overridden from command line
 #
 # globals
-[ x"\$CF_GLOBAL_COMPANY" = x ] && export CF_GLOBAL_COMPANY="`cf_env_vars_msbuild_prop_read Company | dos2unix`"
-[ x"\$CF_GLOBAL_PRODUCT" = x ] && export CF_GLOBAL_PRODUCT="`cf_env_vars_msbuild_prop_read Product | dos2unix`"
+[ x"\$CF_GLOBAL_COMPANY" = x ] && export CF_GLOBAL_COMPANY="`cf_env_vars_dirbuildprops_read "$the_cf_env_vars_backend_dirbuildprops_dst_path" Company | dos2unix`"
+[ x"\$CF_GLOBAL_PRODUCT" = x ] && export CF_GLOBAL_PRODUCT="`cf_env_vars_dirbuildprops_read "$the_cf_env_vars_backend_dirbuildprops_dst_path" Product | dos2unix`"
 #
 # backend version
 [ x"\$CF_BACKEND_VERSION_FULL" = x ] && export CF_BACKEND_VERSION_FULL="$l_CF_BACKEND_VERSION_FULL"
@@ -132,12 +134,12 @@ function cf_env_vars_msbuild_props_auto_cache {
 [ x"\$CF_BACKEND_VERSION_FULL_NUMERIC" = x ] && export CF_BACKEND_VERSION_FULL_NUMERIC="$l_CF_BACKEND_VERSION_MAJOR$l_CF_BACKEND_VERSION_MINOR$l_CF_BACKEND_VERSION_RELEASE$l_CF_BACKEND_VERSION_GLOBAL_RELEASE"
 [ x"\$CF_BACKEND_VERSION_SHORT" = x ] && export CF_BACKEND_VERSION_SHORT="$l_CF_BACKEND_VERSION_MAJOR.$l_CF_BACKEND_VERSION_MINOR.$l_CF_BACKEND_VERSION_RELEASE"
 [ x"\$CF_BACKEND_VERSION_SHORT_NUMERIC" = x ] && export CF_BACKEND_VERSION_SHORT_NUMERIC="$l_CF_BACKEND_VERSION_MAJOR$l_CF_BACKEND_VERSION_MINOR$l_CF_BACKEND_VERSION_RELEASE"
-[ x"\$CF_BACKEND_BUILD_NUMBER" = x ] && export CF_BACKEND_BUILD_NUMBER="`cf_env_vars_msbuild_prop_read ChartFinderBackendBuildNumber | dos2unix`"
+[ x"\$CF_BACKEND_BUILD_NUMBER" = x ] && export CF_BACKEND_BUILD_NUMBER="`cf_env_vars_dirbuildprops_read "$the_cf_env_vars_backend_dirbuildprops_dst_path" ChartFinderBackendBuildNumber | dos2unix`"
 #
 # indicate no error
 true
 EOF
-  chmod +x "$the_cf_env_vars_msbuild_props_cached" || return $?
+  chmod +x "$the_cf_env_vars_backend_version_dst_path" || return $?
   return 0
 }
 #
@@ -204,9 +206,9 @@ EOF
 export CF_DEFAULT_BASE_URI="${CF_PROD_BASE_URI:-https://api.chart-finder.app/}"
 #
 # handle msbuild (backend) cache
-[ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_msbuild_props_dst_path"
-cf_env_vars_msbuild_props_auto_cache || exit $?
-source "$the_cf_env_vars_msbuild_props_cached" || exit $?
+[ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_backend_dirbuildprops_dst_path"
+cf_env_vars_backend_dirbuildprops_auto_cache || exit $?
+source "$the_cf_env_vars_backend_version_dst_path" || exit $?
 #
 # handle frontend cache
 [ x"$CF_ENV_VARS_OPTION_REBUILD_FRONTEND" = x1 ] && rm -f "$the_cf_env_vars_frontend_version_dst_path"

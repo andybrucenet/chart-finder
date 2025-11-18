@@ -7,7 +7,13 @@ Server-side projects covering the API, core domain, and infrastructure adapters.
 - `ChartFinder.Domain` – shared entities and repository abstractions.
 - `ChartFinder.Infrastructure.Aws` – AWS implementations.
 - `ChartFinder.Infrastructure.FileSystem` – local/offline adapters.
+- `ChartFinder.Api.UnitTests` – unit coverage for the API surface.
+- `ChartFinder.Api.IntegrationTests` – end-to-end harness for the Lambda/API gateway path.
+
+## Tests
+
+All test projects have 'Tests' at the end. To run these tests, `dotnet test ChartFinder-backend.sln` from top-level folder.
 
 ## Docs
 - Build and deploy routines: `docs/cookbooks/backend/aws.md`.
-- Tests mirror these projects under `tests/backend/`.
+- Version metadata + shared build settings: `src/backend/Directory.Build.props`.

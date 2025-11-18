@@ -2,12 +2,12 @@
 #
 # chart-finder: Backend Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-SLN ?= $(ROOT)/ChartFinder.sln
+SLN ?= $(ROOT)/ChartFinder-backend.sln
 DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug
 
-.PHONY: all build-number build test clean veryclean rebuild deploy swagger swagger-clean swagger-rebuild
+.PHONY: all restore build-number build test clean veryclean rebuild deploy swagger swagger-clean swagger-rebuild
 
 SWAGGER_DOC_NAME ?= v1
 SWAGGER_OUTPUT ?= $(ROOT)/docs/api/chart-finder-openapi-$(SWAGGER_DOC_NAME).json
@@ -17,6 +17,11 @@ SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
 log = @printf '\n***** %s\n' "$(1)"
 
 all: swagger
+
+restore:
+	$(call log,BACKEND: restore)
+	@echo "[backend] dotnet restore $(SLN)"
+	@$(DOTNET) restore "$(SLN)"
 
 build: build-number
 	$(call log,BACKEND: build)
@@ -83,4 +88,3 @@ swagger-clean:
 	@rm -f $(SWAGGER_OUTPUT)
 
 swagger-rebuild: swagger-clean swagger
-

@@ -5,15 +5,18 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3015A82B-3FFC-470B-AE62-0A170DF98351}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F5B08A0F-8FA5-4B7F-8EC5-0B0664E27E5D}"
+	ProjectSection(SolutionItems) = preProject
+		src\backend\Directory.Build.props = src\backend\Directory.Build.props
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{6D6D9D41-ED12-4860-8BF5-3BA9D1CA0103}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Api", "src\backend\ChartFinder.Api\ChartFinder.Api.csproj", "{856319AB-D101-4EC9-9549-30F62FED9D0C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{084B5500-6EA0-4262-ADA0-8518216E8BF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Api.UnitTests", "src\backend\ChartFinder.Api.UnitTests\ChartFinder.Api.UnitTests.csproj", "{A5600CE1-AD06-4F00-BEEF-191CA860569E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Api.UnitTests", "tests\backend\ChartFinder.Api.UnitTests\ChartFinder.Api.UnitTests.csproj", "{A5600CE1-AD06-4F00-BEEF-191CA860569E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Api.IntegrationTests", "tests\backend\ChartFinder.Api.IntegrationTests\ChartFinder.Api.IntegrationTests.csproj", "{4C665867-BECC-40EC-BE97-9AC587EDF43B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Api.IntegrationTests", "src\backend\ChartFinder.Api.IntegrationTests\ChartFinder.Api.IntegrationTests.csproj", "{4C665867-BECC-40EC-BE97-9AC587EDF43B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Infrastructure.FileSystem", "src\backend\ChartFinder.Infrastructure.FileSystem\ChartFinder.Infrastructure.FileSystem.csproj", "{9A6E8643-24A2-468A-BE1A-75DE5A327095}"
 EndProject
@@ -23,7 +26,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Infrastructure.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Domain", "src\backend\ChartFinder.Domain\ChartFinder.Domain.csproj", "{BC98B4D3-A415-4292-80C1-C8B240AD6A37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Common", "src\common\ChartFinder.Common\ChartFinder.Common.csproj", "{1E05C28A-7F86-4F0A-8D81-6FE7A0E9E65A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChartFinder.Common", "src\backend\ChartFinder.Common\ChartFinder.Common.csproj", "{1E05C28A-7F86-4F0A-8D81-6FE7A0E9E65A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,13 +68,13 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{856319AB-D101-4EC9-9549-30F62FED9D0C} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
-		{A5600CE1-AD06-4F00-BEEF-191CA860569E} = {084B5500-6EA0-4262-ADA0-8518216E8BF6}
-		{4C665867-BECC-40EC-BE97-9AC587EDF43B} = {084B5500-6EA0-4262-ADA0-8518216E8BF6}
+		{A5600CE1-AD06-4F00-BEEF-191CA860569E} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
+		{4C665867-BECC-40EC-BE97-9AC587EDF43B} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
 		{9A6E8643-24A2-468A-BE1A-75DE5A327095} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
 		{B28982D4-62A9-4C9D-A8D2-3778B5F3CE54} = {3015A82B-3FFC-470B-AE62-0A170DF98351}
 		{35897C89-AE21-4DDA-AA32-FF64C4DAC868} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
 		{BC98B4D3-A415-4292-80C1-C8B240AD6A37} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
 		{6D6D9D41-ED12-4860-8BF5-3BA9D1CA0103} = {3015A82B-3FFC-470B-AE62-0A170DF98351}
-		{1E05C28A-7F86-4F0A-8D81-6FE7A0E9E65A} = {6D6D9D41-ED12-4860-8BF5-3BA9D1CA0103}
+		{1E05C28A-7F86-4F0A-8D81-6FE7A0E9E65A} = {B28982D4-62A9-4C9D-A8D2-3778B5F3CE54}
 	EndGlobalSection
 EndGlobal

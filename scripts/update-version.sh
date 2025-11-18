@@ -22,6 +22,8 @@ script_dir="$the_update_version_script_dir"
 repo_root="$the_update_version_root_dir"
 frontend_version_file="$repo_root/frontend/version.json"
 frontend_version_artifacts_script="$repo_root/scripts/frontend-version-artifacts.sh"
+backend_props_rel_path="src/backend/Directory.Build.props"
+backend_props_file="$repo_root/$backend_props_rel_path"
 
 print_usage() {
   cat <<'USAGE'
@@ -159,7 +161,7 @@ detect_branch() {
 }
 
 update_backend() {
-  local props_file="$repo_root/Directory.Build.props"
+  local props_file="$backend_props_file"
 
   if [[ ! -f "$props_file" ]]; then
     echo "ERROR: Cannot find $props_file" >&2
@@ -275,7 +277,7 @@ update_backend() {
   update_props "$props_file" "$new_version" "$new_branch" "$new_comment" "$new_build_number" "$informational"
 
   echo ""
-  echo "Updated backend version metadata in Directory.Build.props"
+  echo "Updated backend version metadata in $backend_props_rel_path"
 }
 
 update_frontend() {
@@ -406,7 +408,7 @@ main() {
       ;;
     backend-batch)
       : "${CHARTFINDER_BACKEND_BUILD_NUMBER:?CHARTFINDER_BACKEND_BUILD_NUMBER required}"
-      python3 - "$repo_root/Directory.Build.props" "$CHARTFINDER_BACKEND_BUILD_NUMBER" <<'PY'
+      python3 - "$backend_props_file" "$CHARTFINDER_BACKEND_BUILD_NUMBER" <<'PY'
 import sys
 from xml.etree import ElementTree as ET
 
@@ -419,7 +421,7 @@ if elem is None:
 elem.text = build_number
 tree.write(path, encoding='utf-8', xml_declaration=False)
 PY
-      echo "Updated ChartFinderBackendBuildNumber in Directory.Build.props (batch mode)"
+      echo "Updated ChartFinderBackendBuildNumber in $backend_props_rel_path (batch mode)"
       ;;
     frontend)
       update_frontend
