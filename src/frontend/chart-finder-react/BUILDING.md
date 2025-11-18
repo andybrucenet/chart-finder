@@ -6,7 +6,7 @@ For historical purposes we document some basic install / build steps here.
 
 1. Install dependencies:
    ```bash
-   cd src/frontend/chart-finder-mobile
+   cd src/frontend/chart-finder-react
    npm install
    ```
 2. Launch Expo with the calculator API base URL (custom domain or gateway output):

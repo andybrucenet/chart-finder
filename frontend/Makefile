@@ -2,7 +2,7 @@
 #
 # chart-finder: Frontend Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-APP_DIR ?= $(ROOT)/src/frontend/chart-finder-mobile
+APP_DIR ?= $(ROOT)/src/frontend/chart-finder-react
 EXPO_PUBLIC_API_BASE_URL ?=
 
 NPM ?= npm

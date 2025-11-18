@@ -2,7 +2,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { VersionInfo } from './src/versionInfo.ts';
 
 const DEFAULT_APP_NAME = 'Chart Finder';
-const DEFAULT_SLUG = 'chart-finder-mobile';
+const DEFAULT_SLUG = 'chart-finder-react';
 
 const versionShort = VersionInfo.versionShort || '1.0.0';
 const iosBuildNumber = VersionInfo.versionFullNumeric || '1';
