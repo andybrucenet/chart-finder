@@ -9,7 +9,7 @@
 - `./scripts/setup-dev-env-aws.sh` (or `./scripts/sync-configs.sh`) to refresh hydrated config.
 - `./scripts/aws-sam-preflight.sh` whenever application code or template changes require a rebuild.
 - `./scripts/aws-sam-deploy.sh build` for deploys (uses `.local/infra/aws/samconfig.toml` and the current billing env).
-- Invoke the deployed API Gateway endpoint (e.g., `/calculator/v1/add/{x}/{y}`) to confirm success.
+- Invoke the deployed API Gateway endpoint (e.g., `/utils/v1/version`) to confirm success.
 
 ## IAM & Access
 - Ensure the admin bootstrap (`scripts/admin/admin-setup-dev-env.sh`) has been run after any policy edits under `infra/aws/iam/`.
