@@ -10,7 +10,7 @@ ifeq ($(STACK_DEPLOYMENT_MODE),batch)
 SAM_DEPLOY_ENV := AWS_SAM_DEPLOY_OPTION_NO_CONFIRM=1
 endif
 
-.PHONY: all configs build stage publish status uri smoke clean veryclean
+.PHONY: all configs build stage publish status uri smoke test clean veryclean rebuild
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -87,6 +87,15 @@ clean:
 	$(call log,INFRA: clean)
 	@echo "[infra] No dedicated infra clean step defined."
 
+test:
+	$(call log,INFRA: test)
+	@echo "[infra] No automated infra tests defined; skipping."
+
 veryclean: clean
 	$(call log,INFRA: veryclean)
 	@echo "[infra] No extra cleanup defined (extend this target as needed)."
+
+rebuild:
+	$(call log,INFRA: rebuild)
+	@$(MAKE) clean
+	@$(MAKE) build

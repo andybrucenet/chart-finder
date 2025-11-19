@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using CfCommonUtils = ChartFinder.Common.Framework.Utils;
 using System.Reflection;
 using System.Text;
 
@@ -192,19 +190,6 @@ public sealed class VersionInfo : IVersionInfo
     /// <summary>
     /// Retrieve custom assembly metadata by key (case-insensitive).
     /// </summary>
-    private static string? GetMetadataValue(Assembly assembly, IReadOnlyCollection<string> keys)
-    {
-        foreach (var attribute in assembly.GetCustomAttributes<AssemblyMetadataAttribute>())
-        {
-            foreach (var key in keys)
-            {
-                if (string.Equals(attribute.Key, key, StringComparison.OrdinalIgnoreCase))
-                {
-                    return attribute.Value;
-                }
-            }
-        }
-
-        return null;
-    }
+    private static string? GetMetadataValue(Assembly assembly, IReadOnlyCollection<string> keys) =>
+        CfCommonUtils.GetMetadataValue(assembly, keys);
 }

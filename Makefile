@@ -2,10 +2,11 @@
 #
 # chart-finder: Top-level Makefile
 
-.PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger \
+.PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build test rebuild publish \
+	backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \
 	frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
-	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-version \
-	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean \
+	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-rebuild frontend-publish frontend-version \
+	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean infra-test infra-rebuild \
 	clean veryclean
 
 log = @printf '\n***** %s\n' "$(1)"
@@ -16,6 +17,10 @@ help:
 		"  setup-dev-env     Hydrate local environment via scripts/setup-dev-env.sh" \
 		"  stack-refresh     Rebuild backend and refresh infra targets" \
 		"  stack-refresh-batch Same as stack-refresh but auto-confirms SAM deploy" \
+		"  build            Run build targets across backend, frontend, infra" \
+		"  test             Run automated tests (backend + frontend)" \
+		"  rebuild          Clean + build all stacks" \
+		"  publish          Invoke publish/deploy hooks for each stack" \
 		"  tls-status       Show the current TLS certificate status" \
 		"  tls-renew        Run scripts/tls-renew.sh to renew/import the wildcard cert" \
 		"  backend-all       Build + test backend projects" \
@@ -59,9 +64,10 @@ setup-dev-env:
 
 stack-refresh:
 	$(call log,STACK: refresh)
-	@$(MAKE) backend-build backend-swagger
+	@$(MAKE) backend-build
 	@$(MAKE) infra-build
 	@$(MAKE) infra-publish
+	@$(MAKE) backend-swagger
 
 stack-refresh-batch:
 	$(call log,STACK: refresh batch)
@@ -74,10 +80,36 @@ tls-status:
 tls-renew:
 	$(call log,TLS: renew)
 	@$(ROOT)/scripts/tls-renew.sh run
+
+build:
+	$(call log,ROOT: build)
+	@$(MAKE) backend-build
+	@$(MAKE) frontend-build
+	@$(MAKE) infra-build
+
+test:
+	$(call log,ROOT: test)
+	@$(MAKE) backend-test
+	@$(MAKE) frontend-test
+	@$(MAKE) infra-test
+
+rebuild:
+	$(call log,ROOT: rebuild)
+	@$(MAKE) backend-rebuild
+	@$(MAKE) frontend-rebuild
+	@$(MAKE) infra-rebuild
+
+publish:
+	$(call log,ROOT: publish)
+	@$(MAKE) backend-publish
+	@$(MAKE) frontend-publish
+	@$(MAKE) infra-publish
+
 backend backend-all:
 	@$(MAKE) -C backend all
 
 backend-build:
+	#@$(MAKE) -C backend build swagger
 	@$(MAKE) -C backend build
 
 backend-test:
@@ -94,6 +126,9 @@ backend-deploy:
 
 backend-swagger:
 	@$(MAKE) -C backend swagger
+
+backend-publish:
+	@$(MAKE) -C backend publish
 
 infra-all:
 	@$(MAKE) -C infra build
@@ -118,6 +153,12 @@ infra-smoke:
 
 infra-clean:
 	@$(MAKE) -C infra clean
+
+infra-test:
+	@$(MAKE) -C infra test
+
+infra-rebuild:
+	@$(MAKE) -C infra rebuild
 
 frontend frontend-install:
 	@$(MAKE) -C frontend install
@@ -175,6 +216,12 @@ frontend-reinstall:
 
 frontend-clean:
 	@$(MAKE) -C frontend clean
+
+frontend-rebuild:
+	@$(MAKE) -C frontend rebuild
+
+frontend-publish:
+	@$(MAKE) -C frontend publish
 
 frontend-version:
 	@$(MAKE) -C frontend version

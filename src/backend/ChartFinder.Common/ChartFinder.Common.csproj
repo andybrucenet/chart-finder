@@ -6,6 +6,15 @@
     <Description>Shared utilities for Chart Finder (e.g., versioning helpers).</Description>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../common/ChartFinder.Common/AppData/IAppDataInstance.cs">
+      <Link>AppData\IAppDataInstance.cs</Link>
+    </Compile>
+    <Compile Include="../../common/ChartFinder.Common/AppData/AppDataServiceCollectionExtensions.cs">
+      <Link>AppData\AppDataServiceCollectionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="../../common/ChartFinder.Common/Framework/Utils.cs">
+      <Link>Framework\Utils.cs</Link>
+    </Compile>
     <Compile Include="../../common/ChartFinder.Common/Versioning/IVersionInfo.cs">
       <Link>Versioning\IVersionInfo.cs</Link>
     </Compile>

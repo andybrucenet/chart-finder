@@ -36,7 +36,7 @@ lcl_dot_local_settings_source "$the_cf_env_vars_root_dir" || exit $?
 the_cf_env_vars_dirbuildprops_name='Directory.Build.props'
 the_cf_env_vars_backend_dirbuildprops_rel_path="src/backend/$the_cf_env_vars_dirbuildprops_name"
 the_cf_env_vars_backend_dirbuildprops_src_path="$the_cf_env_vars_root_dir/$the_cf_env_vars_backend_dirbuildprops_rel_path"
-the_cf_env_vars_backend_dirbuildprops_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/backend-$the_cf_env_vars_dirbuildprops_name"
+the_cf_env_vars_backend_dirbuildprops_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-$the_cf_env_vars_dirbuildprops_name"
 the_cf_env_vars_backend_version_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-version.sh"
 #
 # name of frontend/version.json and local cache to hold extracted values
@@ -87,6 +87,10 @@ function cf_env_vars_dirbuildprops_is_cached {
   fi
   if [ "$the_cf_env_vars_backend_dirbuildprops_src_path" -nt "$the_cf_env_vars_backend_dirbuildprops_dst_path" ] ; then
     # not cached (change in source)
+    return 1
+  fi
+  if ! diff "$the_cf_env_vars_backend_dirbuildprops_src_path" "$the_cf_env_vars_backend_dirbuildprops_dst_path" >/dev/null 2>&1 ; then
+    # not cached (source different than derived
     return 1
   fi
   if [ "$the_cf_env_vars_backend_dirbuildprops_src_path" -nt "$the_cf_env_vars_backend_version_dst_path" ] ; then
@@ -205,10 +209,17 @@ EOF
 # default base URI to use when generating code interfaces
 export CF_DEFAULT_BASE_URI="${CF_PROD_BASE_URI:-https://api.chart-finder.app/}"
 #
-# handle msbuild (backend) cache
+# handle backend Directory.Build.props cache
 [ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_backend_dirbuildprops_dst_path"
 cf_env_vars_backend_dirbuildprops_auto_cache || exit $?
 source "$the_cf_env_vars_backend_version_dst_path" || exit $?
+#
+# handle backend derived vars
+if [ x"$CF_BACKEND_EXPOSE_OPENAPI" = x ] ; then
+  [ x"$CF_LOCAL_BILLING_ENV" = x'dev' ] && CF_BACKEND_EXPOSE_OPENAPI='true' || CF_BACKEND_EXPOSE_OPENAPI='false'
+fi
+export CF_BACKEND_EXPOSE_OPENAPI
+
 #
 # handle frontend cache
 [ x"$CF_ENV_VARS_OPTION_REBUILD_FRONTEND" = x1 ] && rm -f "$the_cf_env_vars_frontend_version_dst_path"

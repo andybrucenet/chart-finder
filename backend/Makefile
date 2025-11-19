@@ -7,7 +7,7 @@ DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug
 
-.PHONY: all restore build-number build test clean veryclean rebuild deploy swagger swagger-clean swagger-rebuild
+.PHONY: all restore build-number configs build build-core test clean veryclean rebuild deploy publish swagger swagger-clean swagger-rebuild
 
 SWAGGER_DOC_NAME ?= v1
 SWAGGER_OUTPUT ?= $(ROOT)/docs/api/chart-finder-openapi-$(SWAGGER_DOC_NAME).json
@@ -16,19 +16,27 @@ SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
 
 log = @printf '\n***** %s\n' "$(1)"
 
-all: swagger
+all: build
 
 restore:
 	$(call log,BACKEND: restore)
 	@echo "[backend] dotnet restore $(SLN)"
 	@$(DOTNET) restore "$(SLN)"
 
-build: build-number
+build:
 	$(call log,BACKEND: build)
+	@$(MAKE) build-core BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
+
+build-core: build-number configs
 	@echo "[backend] dotnet restore $(SLN)"
 	@$(DOTNET) restore "$(SLN)"
 	@echo "[backend] dotnet build $(SLN) -c $(BUILD_CONFIGURATION)"
 	@$(DOTNET) build "$(SLN)" -c $(BUILD_CONFIGURATION)
+
+configs:
+	$(call log,BACKEND: configs)
+	@echo "[backend] $(ROOT)/scripts/backend-env-metadata.sh"
+	@"$(ROOT)/scripts/backend-env-metadata.sh"
 
 build-number:
 	$(call log,BACKEND: build-number)
@@ -39,6 +47,7 @@ test:
 	$(call log,BACKEND: test)
 	@echo "[backend] dotnet test $(SLN) -c $(BUILD_CONFIGURATION)"
 	@$(DOTNET) test "$(SLN)" -c $(BUILD_CONFIGURATION)
+	@$(MAKE) -C "$(ROOT)/backend/clients" test
 
 clean:
 	$(call log,BACKEND: clean)
@@ -54,6 +63,10 @@ rebuild:
 	@$(MAKE) clean BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
 	@$(MAKE) build BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
 
+publish:
+	$(call log,BACKEND: publish)
+	@$(MAKE) deploy BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
+
 deploy:
 	$(call log,BACKEND: deploy)
 	@if [ "$${CF_LOCAL_CLOUD_PROVIDER:-aws}" != "aws" ]; then \
@@ -67,19 +80,17 @@ deploy:
 
 $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	@mkdir -p $(dir $(SWAGGER_OUTPUT))
-	@echo "[backend] dotnet tool restore (nswag)"
-	@cd "$(ROOT)/backend" && $(DOTNET) tool restore
-	@$(MAKE) build BUILD_CONFIGURATION=$(BUILD_CONFIGURATION)
-	$(call log,BACKEND: swagger)
-	@tmpfile="$$(mktemp "$(dir $(SWAGGER_OUTPUT))/chart-finder-openapi-$(SWAGGER_DOC_NAME).XXXXXX.json")" && \
-	echo "[backend] DOTNET_ROLL_FORWARD=Major ASPNETCORE_ENVIRONMENT=Development dotnet tool run nswag -- aspnetcore2openapi /project:$(ROOT)/src/backend/ChartFinder.Api/ChartFinder.Api.csproj /configuration:$(BUILD_CONFIGURATION) /documentName:$(SWAGGER_DOC_NAME) /AspNetCoreEnvironment:Development /output:$$tmpfile" && \
-	cd "$(ROOT)/backend" && DOTNET_ROLL_FORWARD=Major ASPNETCORE_ENVIRONMENT=Development $(DOTNET) tool run nswag -- aspnetcore2openapi /project:"$(ROOT)/src/backend/ChartFinder.Api/ChartFinder.Api.csproj" /configuration:"$(BUILD_CONFIGURATION)" /documentName:"$(SWAGGER_DOC_NAME)" /AspNetCoreEnvironment:Development /output:"$$tmpfile" && \
-	if [ ! -f "$(SWAGGER_OUTPUT)" ] || ! cmp -s "$$tmpfile" "$(SWAGGER_OUTPUT)"; then \
-		mv "$$tmpfile" "$(SWAGGER_OUTPUT)"; \
-	else \
-		rm "$$tmpfile"; \
-		echo "[backend] OpenAPI spec unchanged"; \
-	fi
+	@echo "[backend] curl \"$${CF_LOCAL_AWS_BASE_URI}swagger/v1/swagger.json\""
+	@source "$(ROOT)/scripts/cf-env-vars.sh" 'source-only' && \
+	  tmpfile="$$(mktemp "$(dir $(SWAGGER_OUTPUT))/chart-finder-openapi-$(SWAGGER_DOC_NAME).XXXXXX.json")" && \
+	  curl --fail --silent --show-error "$${CF_LOCAL_AWS_BASE_URI}swagger/v1/swagger.json" >"$$tmpfile" && \
+	  if [ ! -f "$(SWAGGER_OUTPUT)" ] || ! cmp -s "$$tmpfile" "$(SWAGGER_OUTPUT)"; then \
+	    mv "$$tmpfile" "$(SWAGGER_OUTPUT)"; \
+	    echo "[backend] OpenAPI spec updated"; \
+	  else \
+	    rm "$$tmpfile"; \
+	    echo "[backend] OpenAPI spec unchanged"; \
+	  fi
 
 swagger: $(SWAGGER_OUTPUT)
 

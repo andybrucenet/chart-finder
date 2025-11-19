@@ -1,6 +1,6 @@
-using System.IO;
-using Microsoft.AspNetCore.Http;
+using System.Numerics;
 using ChartFinder.Api.Configuration;
+using ChartFinder.Common.AppData;
 using ChartFinder.Common.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +36,11 @@ builder.Services.AddOptions<DynamoOptions>()
     .ValidateDataAnnotations()
     .Validate(options => !string.IsNullOrWhiteSpace(options.TableName), "TableName must be provided.")
     .ValidateOnStart();
-builder.Services.AddChartFinderVersion(typeof(Program).Assembly);
+
+// ChartFinderDev: Instance info specific to this app
+var programAssembly = typeof(Program).Assembly;
+builder.Services.AddChartFinderAppData(programAssembly);
+builder.Services.AddChartFinderVersion(programAssembly);
 
 // Add AWS Lambda support. When application is run in Lambda Kestrel is swapped out as the web server with Amazon.Lambda.AspNetCoreServer. This
 // package will act as the webserver translating request and responses between the Lambda event source and ASP.NET Core.
@@ -44,11 +48,11 @@ builder.Services.AddAWSLambdaHosting(LambdaEventSource.RestApi);
 
 var app = builder.Build();
 
-
-// hi
+// setup endpoints
 app.UseHttpsRedirection();
-if (app.Environment.IsDevelopment())
+if (AppDataServiceCollectionExtensions.Instance!.ExposeOpenAPI)
 {
+    // note: we always enable this endpoint for this project
     app.UseOpenApi(options => options.Path = "/swagger/v1/swagger.json");
     app.UseSwaggerUi(settings =>
     {

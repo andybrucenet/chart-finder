@@ -8,7 +8,7 @@ API_SPEC := $(ROOT)/docs/api/chart-finder-openapi-v1.json
 CACHED_API_SPEC := $(STATE_DIR)/chart-finder-openapi-v1.json
 NPM ?= npm
 
-.PHONY: all setup build rebuild clean veryclean api-contract-status api-contract-update build-impl summary
+.PHONY: all setup build rebuild clean veryclean api-contract-status api-contract-update build-impl summary test
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -40,6 +40,10 @@ endef
 
 build: setup
 	$(call run_if_changed,$(MAKE) build-impl,echo "[clients] OpenAPI spec unchanged; skipping build.")
+
+test:
+	$(call log,CLIENTS: test)
+	@echo "[clients] No automated tests defined; skipping."
 
 rebuild: clean build
 

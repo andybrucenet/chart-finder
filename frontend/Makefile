@@ -15,7 +15,7 @@ FRONTEND_VERSION_ARTIFACTS_SCRIPT := $(FRONTEND_SCRIPTS_DIR)/frontend-version-ar
 
 .DEFAULT_GOAL := help
 
-.PHONY: help all install ci build deps build-number version-artifacts test lint typecheck clean veryclean reinstall start start-ios start-android start-macos android ios doctor format version refresh-ios refresh-android refresh-all
+.PHONY: help all install ci build deps build-number version-artifacts test lint typecheck clean veryclean rebuild reinstall publish start start-ios start-android start-macos android ios doctor format version refresh-ios refresh-android refresh-all
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -97,6 +97,15 @@ clean:
 veryclean: clean
 	$(call log,FRONTEND: veryclean)
 	@true
+
+rebuild:
+	$(call log,FRONTEND: rebuild)
+	@$(MAKE) clean
+	@$(MAKE) build
+
+publish:
+	$(call log,FRONTEND: publish)
+	@echo "[frontend] No publish workflow defined; skipping."
 
 reinstall:
 	$(call log,FRONTEND: reinstall)

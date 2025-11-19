@@ -6,6 +6,11 @@
     "description": "Musician-facing API for discovering and purchasing charts.",
     "version": "v1"
   },
+  "servers": [
+    {
+      "url": "https://sab-u-dev-api.chart-finder.app"
+    }
+  ],
   "paths": {
     "/utils/v1/version": {
       "get": {

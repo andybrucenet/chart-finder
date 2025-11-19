@@ -12,8 +12,9 @@
     <ChartFinderVersion Condition="'$(ChartFinderVersion)' == ''">2025.11.11.10001</ChartFinderVersion>
     <ChartFinderBackendBuildBranch Condition="'$(ChartFinderBackendBuildBranch)' == ''">main</ChartFinderBackendBuildBranch>
     <ChartFinderBackendBuildComment Condition="'$(ChartFinderBackendBuildComment)' == ''">Rearchitect for file locations</ChartFinderBackendBuildComment>
-    <ChartFinderBackendBuildNumber Condition="'$(ChartFinderBackendBuildNumber)' == ''">2025-11-18T17:18:41Z</ChartFinderBackendBuildNumber>
+    <ChartFinderBackendBuildNumber Condition="'$(ChartFinderBackendBuildNumber)' == ''">2025-11-19T08:58:12Z</ChartFinderBackendBuildNumber>
     <ChartFinderBackendInformationalVersion Condition="'$(ChartFinderBackendInformationalVersion)' == ''">2025.11.11.10001+main.Rearchitect for file locations</ChartFinderBackendInformationalVersion>
+    <ChartFinderBackendExposeOpenAPI Condition="'$(ChartFinderBackendExposeOpenAPI)' == ''">true</ChartFinderBackendExposeOpenAPI>
 
     <Version>$(ChartFinderVersion)</Version>
     <AssemblyVersion>$(ChartFinderVersion)</AssemblyVersion>
@@ -25,5 +26,6 @@
     <AssemblyMetadata Include="BackendBuildBranch" Value="$(ChartFinderBackendBuildBranch)" />
     <AssemblyMetadata Include="BackendBuildComment" Value="$(ChartFinderBackendBuildComment)" />
     <AssemblyMetadata Include="BackendBuildNumber" Value="$(ChartFinderBackendBuildNumber)" />
+    <AssemblyMetadata Include="BackendExposeOpenAPI" Value="$(ChartFinderBackendExposeOpenAPI)" />
   </ItemGroup>
 </Project>
