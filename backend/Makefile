@@ -87,6 +87,7 @@ $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	  if [ ! -f "$(SWAGGER_OUTPUT)" ] || ! cmp -s "$$tmpfile" "$(SWAGGER_OUTPUT)"; then \
 	    mv "$$tmpfile" "$(SWAGGER_OUTPUT)"; \
 	    echo "[backend] OpenAPI spec updated"; \
+	    cd clients && $(MAKE); \
 	  else \
 	    rm "$$tmpfile"; \
 	    echo "[backend] OpenAPI spec unchanged"; \

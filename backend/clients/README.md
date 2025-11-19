@@ -11,6 +11,7 @@ lean while still letting us publish npm / NuGet packages.
    one-time registry setup:
    - **NuGet**: create a nuget.org account (Microsoft sign-in), then create a dedicated API key scoped to the `ChartFinder.Client` package with “Push” permission; store the key securely.
    - **npm (public npm)**: run `npm login` (or configure an auth token) so `npm whoami` succeeds; `backend/clients/scripts/npm-login.sh` enforces this during setup.
+   - **Dart / pub.dev**: create a publisher (e.g., `chart-finder.app`) under the `sab.chartfinder@gmail.com` Google account by adding the DNS TXT challenge in Cloudflare. The first time you run `dart pub publish` for the generated Flutter client, the CLI opens a browser window and prompts you to log in—complete that flow to cache the token locally (no manual API key needed).
 3. Run `CLIENTS_FORCE=1 make build` (or just `make build`) to regenerate + publish.
    The Makefile compares `docs/api/chart-finder-openapi-v1.json` with the cached
    copy under `.local/state/chart-finder-openapi-v1.json` and skips the build

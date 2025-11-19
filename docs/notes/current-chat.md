@@ -66,3 +66,6 @@
 - Design splash screens/logo assets for both iOS and Android, aligned with the new bundle identifiers.
 - Outline the core screens and navigation (what replaces the current placeholder version check).
 - Stand up parallel backend solutions/projects (e.g., net8 for Lambda, “ChartFinder.Api.NSwag” on net10) that link shared sources from `src/common`, so tooling with new runtime requirements doesn’t block the deployed runtime.
+
+## TODO
+- Avoid unnecessary `.NET` rebuilds: if no backend source files changed, `make stack-refresh` should skip `dotnet build` (and thus prevent spurious stack publishes).
