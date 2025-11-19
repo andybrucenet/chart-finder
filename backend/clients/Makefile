@@ -54,6 +54,8 @@ build-impl:
 	@"$(CLIENTS_DIR)/scripts/clients-prepare-dotnet.sh"
 	$(call log,CLIENTS: prepare npm package)
 	@"$(CLIENTS_DIR)/scripts/clients-prepare-npm.sh"
+	$(call log,CLIENTS: prepare dart package)
+	@"$(CLIENTS_DIR)/scripts/clients-prepare-dart.sh"
 	$(call log,CLIENTS: summary)
 	@"$(CLIENTS_DIR)/scripts/clients-summary.sh"
 ifneq ($(CLIENTS_VERIFY),)

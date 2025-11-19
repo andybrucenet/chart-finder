@@ -28,14 +28,16 @@ clients_summary_main() {
     fi
   fi
 
-  local npm_version nuget_version
+  local npm_version nuget_version dart_version
   npm_version="$(lcl_version_normalize_npm "${CF_BACKEND_VERSION_SHORT}" "${CF_BACKEND_BUILD_NUMBER}")"
   nuget_version="$(lcl_version_normalize_nuget "${CF_BACKEND_VERSION_SHORT}" "${CF_BACKEND_BUILD_NUMBER}")"
+  dart_version="$(lcl_version_normalize_pub "${CF_BACKEND_VERSION_SHORT}" "${CF_BACKEND_BUILD_NUMBER}")"
 
   cat <<REPORT
 [clients] spec path: $spec_path ($spec_status vs cache)
 [clients] npm version: $npm_version → https://www.npmjs.com/package/@andybrucenet/chart-finder-sdk/v/$npm_version
 [clients] NuGet version: $nuget_version → https://www.nuget.org/packages/ChartFinder.Client/$nuget_version
+[clients] Dart version: $dart_version → https://pub.dev/packages/chart_finder_client/versions/$dart_version
 [clients] default base URI: ${CF_DEFAULT_BASE_URI}
 REPORT
 }

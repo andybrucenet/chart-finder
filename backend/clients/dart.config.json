@@ -1,0 +1,11 @@
+{
+  "generatorName": "dart-dio",
+  "additionalProperties": {
+    "pubName": "chart_finder_client",
+    "pubLibraryPrefix": "chart_finder",
+    "nullableFields": true,
+    "useEnumExtension": true,
+    "useDefaultNullForLists": true,
+    "dateLibrary": "core"
+  }
+}

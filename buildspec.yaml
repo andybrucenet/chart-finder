@@ -14,7 +14,7 @@ phases:
     commands:
       - set -euo pipefail
       - echo "=== Running unit tests ==="
-      - dotnet test ChartFinder-backend.sln --configuration Release
+      - dotnet test src/backend/backend.sln --configuration Release
   build:
     commands:
       - set -euo pipefail

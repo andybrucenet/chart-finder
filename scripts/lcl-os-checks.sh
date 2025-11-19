@@ -732,6 +732,24 @@ function lcl_version_normalize_nuget {
   echo "${i_short}-build.$i_build"
 }
 #
+# Dart/pub.dev packages also follow SemVer, so reuse the `-build.<build>` suffix.
+function lcl_version_normalize_pub {
+  local i_short="${1:-}"
+  local i_build_raw="${2:-$g_VERSION_NORMALIZE_DEFAULT_BUILD}"
+
+  if [ x"$i_short" = x ]; then
+    echo "lcl_version_normalize_pub: missing short version" >&2
+    return 1
+  fi
+
+  local i_build="$(echo "$i_build_raw" | tr -cd '0-9')"
+  if [ x"$i_build" = x ]; then
+    i_build="$g_VERSION_NORMALIZE_DEFAULT_BUILD"
+  fi
+
+  echo "${i_short}-build.$i_build"
+}
+#
 # versioning - self test helper to validate version cache behavior
 # usage: [cf-home]
 function lcl_version_self_test {

@@ -1,0 +1,26 @@
+{
+  "folders": [
+    {
+      "name": "Backend (.NET)",
+      "path": "src/backend"
+    },
+    {
+      "name": "Frontend (React/Expo)",
+      "path": "src/frontend/chart-finder-react"
+    },
+    {
+      "name": "Flutter",
+      "path": "src/frontend/chart-finder-flutter"
+    },
+    {
+      "name": "Infra/Scripts",
+      "path": "scripts"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true
+    }
+  }
+}

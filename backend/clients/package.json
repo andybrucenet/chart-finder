@@ -6,7 +6,8 @@
     "noop": "echo \"[clients] no-op\"",
     "generate:ts": "bash ./scripts/clients-generate-ts.sh",
     "generate:dotnet": "bash ./scripts/clients-generate-dotnet.sh",
-    "generate:all": "npm run generate:ts && npm run generate:dotnet"
+    "generate:dart": "bash ./scripts/clients-generate-dart.sh",
+    "generate:all": "npm run generate:ts && npm run generate:dotnet && npm run generate:dart"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.25.0"

@@ -12,7 +12,7 @@ Server-side projects covering the API, core domain, and infrastructure adapters.
 
 ## Tests
 
-All test projects have 'Tests' at the end. To run these tests, `dotnet test ChartFinder-backend.sln` from top-level folder.
+All test projects have 'Tests' at the end. To run these tests, `dotnet test src/backend/backend.sln` from the repo root.
 
 ## Docs
 - Build and deploy routines: `docs/cookbooks/backend/aws.md`.

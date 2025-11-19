@@ -2,7 +2,7 @@
 #
 # chart-finder: Backend Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-SLN ?= $(ROOT)/ChartFinder-backend.sln
+SLN ?= $(ROOT)/src/backend/backend.sln
 DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug

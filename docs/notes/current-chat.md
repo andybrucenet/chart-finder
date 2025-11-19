@@ -2,7 +2,7 @@
 
 ## Key Decisions
 - Maintain a single repo while partitioning code into `src/backend`, `src/frontend`, and `src/infra`; backend tests live alongside their projects under `src/backend`.
-- Keep `ChartFinder-backend.sln` at the repository root so future front-end stacks (Flutter, MAUI, etc.) stay decoupled.
+- Keep `src/backend/backend.sln` alongside the backend sources so future front-end stacks (Flutter, MAUI, etc.) stay decoupled.
 - Treat DynamoDB as one implementation of a `IChartRepository` interface; plan for alternate providers and keep domain models AWS-agnostic.
 - Record AWS SAM build outputs under `.aws-sam/` but keep them untracked; expand `.gitignore` with platform-specific artifacts when needed.
 - Capture ongoing architecture and process notes inside `docs/notes/` so conversations remain versioned with the project.
@@ -62,6 +62,7 @@
 - Reminder: **AI must not run build/deploy/Expo/CocoaPods commands**—user owns `frontend-refresh-*`, `expo run`, etc.
 
 ### Next Steps
+- Stand up the Flutter tooling via FVM before touching new code: `dart pub global activate fvm`, `fvm install/use <version>`, and wire VS Code build/deploy tasks to `.fvm/flutter_sdk`.
 - Decide on the actual mobile app feature set (e.g., splash screens, chart discovery/purchase flows, potential “listen to music” capability).
 - Design splash screens/logo assets for both iOS and Android, aligned with the new bundle identifiers.
 - Outline the core screens and navigation (what replaces the current placeholder version check).
@@ -69,3 +70,5 @@
 
 ## TODO
 - Avoid unnecessary `.NET` rebuilds: if no backend source files changed, `make stack-refresh` should skip `dotnet build` (and thus prevent spurious stack publishes).
+- Add a proper release flow where client publishes use only `A.B.C` versions (not `-build.*`) and require a matching `CHANGELOG.md` entry before publishing.
+- Lock down the Flutter app model: map the navigation stack, confirm native outputs for every target platform, enforce an MVC split between UI and logic, and wire in a skinnable theme from the start.
