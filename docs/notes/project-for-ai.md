@@ -20,6 +20,7 @@
 - Treat `.local/` as the source of truth for hydrated configuration; consult those files when validating deploy settings.
 - When generating new code - always add XML documentation (or equivalent) for public methods.
 - Keep onboarding notes in `docs/notes/` and use existing scripts (`setup-dev-env.sh`, `sync-configs.sh`) for repo hydration.
+- Script-specific variables use the form `the_[script-name]_[var-name]` and `ALL_CAPS` is reserved for "real" environment variables (those that are shared between scripts or passed to 3rd-party tools). Thus, for a script like frontend-src-sig.sh which needs to track location of the Flutter frontend src dir, we'd use a name like `the_frontend_src_sig_flutter_dir` instead of a name like `FLUTTER_DIR`. This was humans can easily see which env vars are meant to be shared vs. those env vars which are really local to the script itself (albeit still a global env var).
 
 ## Quick Daily Kickoff
 1. Rehydrate configs if needed: `./scripts/setup-dev-env-aws.sh` or `./scripts/sync-configs.sh`.

@@ -9,11 +9,13 @@ DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug
 
-.PHONY: all restore build-number configs build build-core test clean veryclean rebuild deploy publish swagger swagger-clean swagger-rebuild
+.PHONY: all restore build-number configs build build-core test clean veryclean rebuild deploy publish swagger swagger-clean swagger-rebuild swagger-metadata
 
 SWAGGER_DOC_NAME ?= v1
 SWAGGER_OUTPUT ?= $(ROOT)/docs/api/chart-finder-openapi-$(SWAGGER_DOC_NAME).json
 SWAGGER_DLL ?= $(ROOT)/src/backend/ChartFinder.Api/bin/$(BUILD_CONFIGURATION)/net8.0/ChartFinder.Api.dll
+SWAGGER_METADATA_SCRIPT ?= $(ROOT)/scripts/backend-openapi-annotate.sh
+SWAGGER_METADATA_INPUT ?= $(SWAGGER_OUTPUT)
 SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
 
 log = @printf '\n***** %s\n' "$(1)"
@@ -86,6 +88,7 @@ $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	@source "$(ROOT)/scripts/cf-env-vars.sh" 'source-only' && \
 	  tmpfile="$$(mktemp "$(dir $(SWAGGER_OUTPUT))/chart-finder-openapi-$(SWAGGER_DOC_NAME).XXXXXX.json")" && \
 	  curl --fail --silent --show-error "$${CF_LOCAL_AWS_BASE_URI}swagger/v1/swagger.json" >"$$tmpfile" && \
+	  "$(SWAGGER_METADATA_SCRIPT)" "$$tmpfile" && \
 	  if [ ! -f "$(SWAGGER_OUTPUT)" ] || ! cmp -s "$$tmpfile" "$(SWAGGER_OUTPUT)"; then \
 	    mv "$$tmpfile" "$(SWAGGER_OUTPUT)"; \
 	    echo "[backend] OpenAPI spec updated"; \
@@ -96,6 +99,15 @@ $(SWAGGER_OUTPUT): $(SWAGGER_SOURCES)
 	  fi
 
 swagger: $(SWAGGER_OUTPUT)
+
+swagger-metadata:
+	$(call log,BACKEND: swagger metadata)
+	@if [ ! -f "$(SWAGGER_METADATA_INPUT)" ]; then \
+		echo "[backend] ERROR: Swagger metadata input not found: $(SWAGGER_METADATA_INPUT)"; \
+		exit 1; \
+	fi
+	@echo "[backend] $(SWAGGER_METADATA_SCRIPT) $(SWAGGER_METADATA_INPUT)"
+	@"$(SWAGGER_METADATA_SCRIPT)" "$(SWAGGER_METADATA_INPUT)"
 
 swagger-clean:
 	$(call log,BACKEND: swagger clean)

@@ -2,6 +2,7 @@
 #
 # chart-finder: Frontend Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
 APP_DIR ?= $(ROOT)/src/frontend/chart-finder-react
 EXPO_PUBLIC_API_BASE_URL ?=
 

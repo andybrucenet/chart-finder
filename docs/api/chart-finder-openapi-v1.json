@@ -4,7 +4,9 @@
   "info": {
     "title": "Chart Finder API",
     "description": "Musician-facing API for discovering and purchasing charts.",
-    "version": "v1"
+    "version": "v1",
+		"x-chartfinder-backend-version": "2025.11.11.10001",
+    "x-chartfinder-backend-build-number": "2025-11-19T08:58:12Z"
   },
   "servers": [
     {

@@ -11,12 +11,29 @@ while [ -h "$the_frontend_src_sig_source" ]; do
 done
 the_frontend_src_sig_script_dir="$( cd -P "$( dirname "$the_frontend_src_sig_source" )" >/dev/null 2>&1 && pwd )"
 the_frontend_src_sig_root_dir="$( realpath "$the_frontend_src_sig_script_dir"/.. )"
-
-source "$the_frontend_src_sig_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
-lcl_dot_local_settings_source "$the_frontend_src_sig_root_dir" || exit $?
 source "$the_frontend_src_sig_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
 
-the_frontend_src_sig_app_dir="${CF_FRONTEND_APP_DIR:-$the_frontend_src_sig_root_dir/src/frontend/chart-finder-react}"
+the_frontend_src_sig_app_dir_react="${CF_FRONTEND_APP_DIR_REACT:-${CF_FRONTEND_APP_DIR:-$the_frontend_src_sig_root_dir/src/frontend/chart-finder-react}}"
+the_frontend_src_sig_app_dir_flutter="${CF_FRONTEND_APP_DIR_FLUTTER:-$the_frontend_src_sig_root_dir/src/frontend/chart-finder-flutter}"
+the_frontend_src_sig_source_roots=()
+the_frontend_src_sig_active_env="${CF_LOCAL_FRONTEND_ENV:-all}"
+case "$the_frontend_src_sig_active_env" in
+  react)
+    [ -d "$the_frontend_src_sig_app_dir_react" ] && the_frontend_src_sig_source_roots+=("react|$the_frontend_src_sig_app_dir_react")
+    ;;
+  flutter)
+    [ -d "$the_frontend_src_sig_app_dir_flutter" ] && the_frontend_src_sig_source_roots+=("flutter|$the_frontend_src_sig_app_dir_flutter")
+    ;;
+  all|both|'')
+    [ -d "$the_frontend_src_sig_app_dir_react" ] && the_frontend_src_sig_source_roots+=("react|$the_frontend_src_sig_app_dir_react")
+    [ -d "$the_frontend_src_sig_app_dir_flutter" ] && the_frontend_src_sig_source_roots+=("flutter|$the_frontend_src_sig_app_dir_flutter")
+    ;;
+  *)
+    frontend_src_sig_log "WARN: unknown CF_LOCAL_FRONTEND_ENV='$the_frontend_src_sig_active_env'; hashing all known roots."
+    [ -d "$the_frontend_src_sig_app_dir_react" ] && the_frontend_src_sig_source_roots+=("react|$the_frontend_src_sig_app_dir_react")
+    [ -d "$the_frontend_src_sig_app_dir_flutter" ] && the_frontend_src_sig_source_roots+=("flutter|$the_frontend_src_sig_app_dir_flutter")
+    ;;
+esac
 the_frontend_src_sig_state_dir="$the_frontend_src_sig_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
 the_frontend_src_sig_state_file="$the_frontend_src_sig_state_dir/frontend-source.sig"
 
@@ -37,8 +54,10 @@ USAGE
 }
 
 frontend_src_sig_verify_prereqs() {
-  if [ ! -d "$the_frontend_src_sig_app_dir" ]; then
-    frontend_src_sig_log "ERROR: frontend app dir missing: $the_frontend_src_sig_app_dir"
+  if [ ${#the_frontend_src_sig_source_roots[@]} -eq 0 ]; then
+    frontend_src_sig_log "ERROR: no frontend source directories found (expected react and/or flutter)"
+    frontend_src_sig_log "Checked REACT: $the_frontend_src_sig_app_dir_react"
+    frontend_src_sig_log "Checked FLUTTER: $the_frontend_src_sig_app_dir_flutter"
     return 1
   fi
   if ! mkdir -p "$the_frontend_src_sig_state_dir"; then
@@ -49,39 +68,62 @@ frontend_src_sig_verify_prereqs() {
 }
 
 frontend_src_sig_compute_signature() {
+  local -a l_signature_args=()
+  local l_entry l_prefix l_path
+  for l_entry in "${the_frontend_src_sig_source_roots[@]}"; do
+    l_prefix="${l_entry%%|*}"
+    l_path="${l_entry#*|}"
+    l_signature_args+=("$l_prefix" "$l_path")
+  done
   local l_signature
   if ! l_signature="$(
-    python3 - "$the_frontend_src_sig_app_dir" <<'PY'
+    python3 - "${l_signature_args[@]}" <<'PY'
 import hashlib
 import os
 import sys
 
-root = sys.argv[1]
-skip_dirs = {'.git', '.expo', '.expo-shared', 'node_modules', 'dist', 'build', '.turbo'}
-skip_files = {'src/versionInfo.ts'}
-records = []
+args = sys.argv[1:]
+if len(args) % 2 != 0:
+    print("ERROR: expected prefix/path argument pairs", file=sys.stderr)
+    sys.exit(2)
 
-for dirpath, dirnames, filenames in os.walk(root):
-    dirnames[:] = [d for d in dirnames if d not in skip_dirs]
-    for name in filenames:
-        path = os.path.join(dirpath, name)
-        rel_path = os.path.relpath(path, root)
-        rel_posix = rel_path.replace(os.sep, '/')
-        if rel_posix in skip_files:
-            continue
-        try:
-            with open(path, 'rb') as handle:
-                file_hash = hashlib.sha256()
-                while True:
-                    chunk = handle.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    file_hash.update(chunk)
-        except FileNotFoundError:
-            continue
-        except PermissionError:
-            continue
-        records.append((rel_posix, file_hash.hexdigest()))
+roots = [(args[i], args[i + 1]) for i in range(0, len(args), 2)]
+if not roots:
+    print("ERROR: no frontend roots provided", file=sys.stderr)
+    sys.exit(3)
+
+skip_dirs_common = {'.git', '.expo', '.expo-shared', '.turbo', 'dist', 'build', '.dart_tool', '.fvm', '.idea', '.gradle'}
+skip_dirs_per_prefix = {
+    'react': skip_dirs_common | {'node_modules'},
+    'flutter': skip_dirs_common | {'node_modules', 'ios', 'android', '.symlinks'},
+}
+skip_files = {'src/versionInfo.ts', 'lib/version_info.dart', 'lib/version_info.g.dart'}
+
+records = []
+for prefix, root in roots:
+    if not os.path.isdir(root):
+        continue
+    local_skip_dirs = skip_dirs_per_prefix.get(prefix, skip_dirs_common)
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in local_skip_dirs]
+        for name in filenames:
+            path = os.path.join(dirpath, name)
+            rel_path = os.path.relpath(path, root)
+            rel_posix = rel_path.replace(os.sep, '/')
+            rel_with_prefix = f"{prefix}/{rel_posix}" if prefix else rel_posix
+            if rel_with_prefix in skip_files or rel_posix in skip_files:
+                continue
+            try:
+                with open(path, 'rb') as handle:
+                    file_hash = hashlib.sha256()
+                    while True:
+                        chunk = handle.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        file_hash.update(chunk)
+            except (FileNotFoundError, PermissionError):
+                continue
+            records.append((rel_with_prefix, file_hash.hexdigest()))
 
 records.sort()
 summary = hashlib.sha256()

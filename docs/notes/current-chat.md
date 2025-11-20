@@ -68,7 +68,36 @@
 - Outline the core screens and navigation (what replaces the current placeholder version check).
 - Stand up parallel backend solutions/projects (e.g., net8 for Lambda, “ChartFinder.Api.NSwag” on net10) that link shared sources from `src/common`, so tooling with new runtime requirements doesn’t block the deployed runtime.
 
+## 2025-11-20 Session Notes
+- Renamed the generic `aws-run-cmd.sh` helper to `cf-run-cmd.sh` so every stack command (especially Make targets) can load the fully-hydrated env without implying AWS-only usage.
+- Added `scripts/cf-env-vars-to-make.sh`, which sources `cf-env-vars.sh` and emits Make-style assignments/exports (including the derived `the_cf_env_vars_*` paths) so a single `$(eval $(shell …))` call bootstraps the environment for all recipes.
+- Optimized `scripts/cf-env-vars.sh` for Cygwin-heavy runs by short-circuiting when `CF_ENV_VARS_TO_MAKE_ALREADY_RUN=1`, while still honoring explicit rebuild flags and keeping the cached backend/frontend metadata available.
+- Updated the top-level, backend, backend-clients, and infra Makefiles to compute `ROOT` from their own paths and immediately call `$(ROOT)/scripts/cf-env-vars-to-make.sh`, ensuring targets in any subdirectory inherit the same env without wrapping `make` in `cf-run-cmd.sh`.
+- Expanded `frontend-src-sig.sh` so it hashes both the React (`src/frontend/chart-finder-react`) and Flutter (`src/frontend/chart-finder-flutter`) trees (when present), skipping framework-specific build/cache folders and bumping the shared frontend build number whenever either stack changes; respected `CF_LOCAL_FRONTEND_ENV` so only the active stack is scanned when set.
+
+## 2025-11-21 Session Notes
+- Added `scripts/backend-openapi-annotate.sh` and wired it into the backend Makefile so OpenAPI downloads automatically embed `x-chartfinder-backend-version` and `x-chartfinder-backend-build-number`.
+- Introduced `swagger-metadata` plus `SWAGGER_METADATA_SCRIPT/INPUT` knobs, letting us re-annotate any existing spec without regenerating or bumping backend build numbers.
+- `BACKEND_OPENAPI_ANNOTATE_OPTION_STDOUT=1` now emits to stdout via a temp file, enabling non-destructive checks or piping into other tooling.
+- Confirmed `docs/api/chart-finder-openapi-v1.json` carries the new metadata, so frontend clients can read the published version to select the matching generated API bundle.
+
 ## TODO
 - Avoid unnecessary `.NET` rebuilds: if no backend source files changed, `make stack-refresh` should skip `dotnet build` (and thus prevent spurious stack publishes).
 - Add a proper release flow where client publishes use only `A.B.C` versions (not `-build.*`) and require a matching `CHANGELOG.md` entry before publishing.
 - Lock down the Flutter app model: map the navigation stack, confirm native outputs for every target platform, enforce an MVC split between UI and logic, and wire in a skinnable theme from the start.
+- [HIGH] Capture backend Lambda logging requirements and ensure structured logs flow from .NET to CloudWatch (or equivalent) for observability.
+
+## Next Steps
+### Makefiles (1)
+- Create a new `frontend/Makefile` that reads `CF_LOCAL_FRONTEND_ENV` (`react` or `flutter`) and dispatches to sub-makes.
+- Update `frontend/Makefile-react` as needed (likely minimal) so it plays nicely with the new wrapper.
+- Add `frontend/Makefile-flutter` covering all Flutter build/run commands.
+
+### Frontend API Clients
+- Ensure both React and Flutter frontends load the generated API client by reading `docs/api/chart-finder-openapi-v1.json`.
+
+### Flutter Version Screen
+- Implement the initial Flutter “Version” screen to confirm end-to-end wiring.
+
+### Makefiles (2)
+- Extend both frontend Makefiles with a smoke-test target that validates the version screen loads successfully.
