@@ -3,20 +3,23 @@
 This guide assumes you have already completed the one-time onboarding steps in [`docs/notes/setup/README.md`](docs/notes/setup/README.md). With `.local/` hydrated and credentials in place, use the workflows below for day-to-day development.
 
 ## Daily Checklist (All Roles)
-1. **Refresh environment metadata** – `make setup-dev-env` (only if `.local` inputs changed) or `make infra configs` when templates are edited.
-2. **Confirm AWS session** – run `./scripts/aws-login.sh` (or `aws sso login`) so subsequent commands share the right Identity Center persona.
+1. **Refresh environment metadata** – Only if API keys (rare) change or backend Cloud provider templates change (example: AWS IAM permissions; very rare). In either case - simply run `make setup-dev-env` and the `.local` cache is updated.
+2. **Confirm AWS session** – run `./scripts/aws-login.sh` so subsequent commands share the right Identity Center persona.
 3. **Sync dependencies** – backend (`make backend-build` handles restore), frontend (`make frontend-install` or stack-specific install target).
 4. **Run the appropriate workflow** – backend, frontend, or infra sections below.
 5. **Record outcomes** – capture notable changes or issues in `docs/notes/current-chat.md` so the next session picks up smoothly.
 
 ## Backend Workflow
 
+Normally you will simply run `make stack-refresh` from the list below - this pretty much does everything.
+
+For specific steps see below.
+
 | Step | Command | Notes |
 | --- | --- | --- |
 | Restore & build | `make backend-build` | Runs `backend/Makefile` which restores, builds, and ensures env metadata + source signatures are current. |
 | Tests | `make backend-test` | Executes .NET test projects and backend client tests (`backend/clients`). |
 | Stack deploy | `make stack-refresh` | Rebuilds backend + infra, runs `aws-sam-preflight.sh`, deploys via `aws-sam-deploy.sh build`, refreshes the OpenAPI spec, and runs the `utils/v1/version` smoke test. Set `CF_STACK_DEPLOYMENT_MODE=batch` to auto-confirm SAM prompts. |
-| Swagger refresh only | `make backend-swagger` | Downloads the live OpenAPI doc, annotates it with version metadata, and regenerates SDKs when the file changes. |
 | Smoke tests | `make backend-smoke` | Hits the deployed `utils/v1/version` endpoint (also run automatically by `make stack-refresh`). |
 
 Key references:
@@ -40,7 +43,11 @@ Near-term roadmap items (tracked in `docs/notes/current-chat.md`):
 - Ensure both stacks read the generated API client metadata from `docs/api/chart-finder-openapi-v1.json`.
 - Add smoke tests that load the “Version” screen per stack.
 
-## Infrastructure & AWS Ops
+## Infrastructure & Cloud Ops
+
+Normally you don't need to do anything here...the initial `make setup-dev-env` gets all the `.local` files hydrated. And the `make stack-refresh` automatically checks for any changes to backend / infra configs and rebuilds as necessary.
+
+Use these steps only as a general reference; again, your expected workflow will typically just be `make stack-refresh`.
 
 | Step | Command | Notes |
 | --- | --- | --- |
