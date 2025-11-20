@@ -3,23 +3,17 @@
 Authoritative checklist for authenticating against each registry Chart Finder publishes to. Store tokens/keys outside the repo (password manager or OS keychain) and hydrate `.local/local.env` with any variables noted below.
 
 ## npm (TypeScript SDK)
+> npm does **not** accept a custom API key for this workflow; you must perform an interactive `npm login` once per machine and let npm store the token in `~/.npmrc`.
+
 1. Create / sign in to an npm account with 2FA enabled.  
-2. Run `npm login --scope=@andybrucenet --registry=https://registry.npmjs.org` so the scoped token lands in `~/.npmrc`.  
-3. Verify with `npm whoami` and `npm config get //registry.npmjs.org/:_authToken` (should return a masked value).  
-4. Optional: create an automation token (`npm token create --read-only=false`) and store it in a password manager.  
-5. To reuse the token on new machines, add the line below to `~/.npmrc` (do **not** commit it):  
-   ```
-   //registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}
-   ```  
-   Then export `NPM_PUBLISH_TOKEN` in your shell or secrets manager before running publishes.
+2. Run `npm login --scope=@andybrucenet --registry=https://registry.npmjs.org` and complete the CLI prompts. npm writes the resulting auth token to `~/.npmrc` in plaintext, similar to how the AWS CLI caches tokens.  
+3. Verify with `npm whoami`. There is no supported way (in this project) to inject an alternate token via env var; rely on npm’s own credential store.  
+4. When rotating credentials, run `npm logout` followed by `npm login` again. Keep the `.npmrc` file out of Git—Git already ignores it by default.
 
 ## NuGet (.NET SDK)
 1. Sign in to [nuget.org](https://www.nuget.org/) using a Microsoft account.  
 2. Create an API key scoped to the `ChartFinder.Client` package with “Push” permission.  
-3. Store the API key securely and add it to your local env by editing `.local/local.env` (or rerun `scripts/setup-dev-env.sh` when prompts exist) so it contains:  
-   ```
-   CF_LOCAL_BACKEND_API_KEY_NUGET_ORG=<nuget-api-key>
-   ```  
+3. Store the API key securely. When `make setup-dev-env` prompts for “NuGet API key,” supply the value so it’s written to `.local/local.env` automatically (never edit that file by hand). If you ever rotate the key, rerun `make setup-dev-env` and re-enter the new value.  
 4. Validate access:
    ```bash
    dotnet nuget list source
@@ -32,11 +26,11 @@ Authoritative checklist for authenticating against each registry Chart Finder pu
 
 ## pub.dev (Dart SDK)
 1. Install Dart (bundled with Flutter or via `brew install dart`).  
-2. Run `dart pub token add https://pub.dev` (or the interactive `dart pub publish` flow) to authenticate; this stores credentials under `$HOME/.pub-cache/credentials.json`.  
-3. To create/transfer a publisher:
-   - Sign in to <https://pub.dev/> with the account owning the DNS domain.  
-   - Add the TXT record that pub.dev prompts for (we use Cloudflare).  
-   - Approve the verification email and assign maintainers (e.g., `sab.chartfinder@gmail.com`).  
+2. Create/transfer a publisher:
+   - Sign in to <https://pub.dev/> with the Google account that owns the target domain.  
+   - Follow pub.dev’s prompt to add a DNS TXT record proving domain ownership (we manage the record in Cloudflare).  
+   - Once verified, assign maintainers (e.g., `sab.chartfinder@gmail.com`).  
+3. Run `dart pub publish` the first time you push a new package. The CLI opens a browser, confirms the DNS TXT record, and returns a token that Dart stores under `$HOME/.pub-cache/credentials.json` automatically. No manual API key management is required after the initial verification.  
 4. Before publishing the generated client, dry-run the package:
    ```bash
    cd .local/backend/clients/dart
