@@ -12,7 +12,7 @@
 - Invoke the deployed API Gateway endpoint (e.g., `/utils/v1/version`) to confirm success.
 
 ## IAM & Access
-- Ensure the admin bootstrap (`scripts/admin/admin-setup-dev-env.sh`) has been run after any policy edits under `infra/aws/iam/`.
+- Ensure the admin bootstrap (`scripts/admin/admin-setup-dev-env.sh`) has been run after any policy edits under `infra/aws/iam/`. Refer to [`docs/notes/sso-cli-setup.md`](../../notes/sso-cli-setup.md) for the full Identity Center + permission-set walkthrough.
 - IAM errors during deploys usually indicate the permission set needs to be rehydrated from `.local/infra/aws/iam/policies/`.
 
 ## Troubleshooting

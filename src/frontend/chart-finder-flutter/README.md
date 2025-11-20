@@ -6,16 +6,16 @@ management, and backend integration later.
 
 ## Prerequisites
 
-- Flutter 3.24+ with the stable channel selected.
-- Dart SDK bundled with Flutter (no global installs needed beyond `flutter`).
+- Follow [`docs/notes/setup/flutter-fvm.md`](../../../docs/notes/setup/flutter-fvm.md) to install FVM and pin the repo-specific Flutter SDK under `.fvm/flutter_sdk`.
+- Ensure `fvm` is on your PATH so `fvm flutter doctor` succeeds.
 - Xcode / Android Studio only if you plan to run the iOS or Android simulators.
 
 ## First Run
 
 ```bash
 cd src/frontend/chart-finder-flutter
-flutter pub get
-flutter run -d chrome   # pick any device/simulator you prefer
+fvm flutter pub get
+fvm flutter run -d chrome   # pick any device/simulator you prefer
 ```
 
 The starter app renders a single screen that confirms the build is wired up.

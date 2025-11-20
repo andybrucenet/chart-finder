@@ -58,6 +58,39 @@
   - Expected output shows account `<WORKLOAD_ACCOUNT_ID>` and role `arn:aws:sts::<WORKLOAD_ACCOUNT_ID>:assumed-role/<SSO_DEV_PERMISSION_SET_ROLE>/...`
 - After a successful login, subsequent CLI commands using `--profile <DEV_PROFILE_NAME>` reuse the cached SSO token until it expires (then rerun `aws sso login`).
 
+## Permission-Set + Inline Policy Bootstrap
+Identity Center assignments alone are not enough—the stack deploy needs extra IAM actions (e.g., `iam:CreateRole`, `iam:TagRole`, `iam:PutRolePolicy`). Keep the long-form procedure here so every change is documented once.
+
+### Developer Checklist
+1. Run `make setup-dev-env` to hydrate `.local/` with your values (account ID, artifact bucket name, region, `CF_LOCAL_DEV_ID`, etc.).  
+2. Verify `.local/local.env` contains:
+   - `CF_LOCAL_BILLING_ENV`, `CF_LOCAL_ENV_ID`, `CF_LOCAL_AWS_REGION`, `CF_LOCAL_AWS_ACCOUNT_ID`
+   - `CF_LOCAL_AWS_ARTIFACT_BUCKET` (usually `<env-id>-s3-artifacts`)
+   - `CF_LOCAL_USEREMAIL`
+3. Commit IAM template changes (if any) under `infra/aws/iam/**` so admins can regenerate their `.local` copies.
+4. Share your hydrated `.local/` (or just the `infra/aws/iam` + `.local/local.env` payload) with the admin persona that owns the workload account. Never commit `.local/` to Git; hand the bundle to the admin over a secure channel.
+
+### Admin Bootstrap Script
+Admins run `scripts/admin/admin-setup-dev-env.sh /path/to/dev/.local` from the repo root *while authenticated as the AWS administrator persona* (the CLI profile must map to the workload account and have permission to write IAM, S3, and Identity Center resources). The script wraps `admin-setup-dev-env-aws.sh` and performs:
+
+1. **Artifact bucket provisioning** – creates or updates `CF_LOCAL_AWS_ARTIFACT_BUCKET`, enables versioning + AES256 encryption, and tags it (`Project`, `Environment`, `Owner`).  
+2. **CodeBuild execution policy** – hydrates `infra/aws/iam/policies/codebuild-exec-permissions.json` into an account-scoped managed policy (`${CF_LOCAL_ENV_ID}-codebuild-exec-policy`) and prunes stale versions so the IAM limit (5) isn’t exceeded.  
+3. **CodeBuild role** – creates/updates `${CF_LOCAL_ENV_ID}-codebuild-exec-role`, applies the hydrated trust policy, and attaches the managed policy.  
+4. **Identity Center inline policy** – reads `.local/infra/aws/iam/policies/dev-permission-set-inline-policy.json` and applies it via `aws sso-admin put-inline-policy-to-permission-set`, then triggers `provision-permission-set` so the changes replicate to the workload account. Use the environment variables below to override detection when multiple permission sets or Identity Center regions exist:
+   - `ADMIN_SETUP_DEV_ENV_AWS_SSO_REGION`
+   - `ADMIN_SETUP_DEV_ENV_AWS_SSO_INSTANCE_ARN`
+   - `ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_ARN`
+   - `ADMIN_SETUP_DEV_ENV_AWS_PERMISSION_SET_NAME`
+
+The script requires `aws --profile <admin>` to resolve to the same account as `CF_LOCAL_AWS_ACCOUNT_ID`. If they differ, the script stops before creating resources.
+
+### Common IAM Failures
+- **CloudFormation can’t create roles/policies** – rerun the admin bootstrap so the inline policy grants `iam:CreateRole`, `iam:AttachRolePolicy`, `iam:TagRole`, etc., scoped to `arn:aws:iam::<account>:role/cf-*-*`.  
+- **`sso-admin` throttling or `AccessDenied`** – confirm the workload account was registered as the Identity Center delegated administrator (see earlier section).  
+- **Artifact bucket access denied** – ensure the bucket exists in `CF_LOCAL_AWS_REGION` and the admin bootstrap tagged/encrypted it correctly; retry `admin-setup-dev-env-aws.sh` after fixing any naming mismatch.  
+
+Document any new IAM action requirements in `infra/aws/iam/policies/*` and rerun the admin bootstrap so every developer inherits the change.
+
 ## Future Automation
 - Identity Center SSO tokens are interactive; CI/CD needs a dedicated IAM role or access keys in the workload account (e.g., GitHub OIDC trust, service IAM user).
 - Keep these URLs, profile names, and browser assignments documented to avoid repeating the multi-hour troubleshooting.

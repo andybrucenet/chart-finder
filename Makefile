@@ -55,7 +55,7 @@ help:
 		"  frontend-refresh-ios   Rebuild/run iOS native, then start Expo iOS" \
 		"  frontend-refresh-android  Rebuild/run Android native, then start Expo Android" \
 		"  frontend-refresh-all  Rebuild native binaries for iOS and Android" \
-		"  frontend-doctor   Run Expo doctor" \
+		"  frontend-doctor   Run appropriate 'doctor' on active frontend (e.g. flutter doctor)" \
 		"  frontend-format   Run the formatter (if defined)" \
 		"  frontend-reinstall  Clean caches then install dependencies" \
 		"  frontend-clean    Remove frontend caches" \

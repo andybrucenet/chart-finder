@@ -9,8 +9,11 @@ Musician-facing service: play a tune, get the name, find the best charts.
 - [`docs/notes/project-for-ai.md`](docs/notes/project-for-ai.md) – current focus and rules of engagement.
 - [`docs/notes/current-chat.md`](docs/notes/current-chat.md) – session trail and next actions.
 - [`docs/cookbooks/backend/aws.md`](docs/cookbooks/backend/aws.md) – daily backend and deploy workflow.
+- [`docs/notes/sso-cli-setup.md`](docs/notes/sso-cli-setup.md) – AWS Identity Center login + permission-set bootstrap.
 - [`docs/notes/environment-variables.md`](docs/notes/environment-variables.md) – environment variable reference.
 - [`docs/notes/versioning.md`](docs/notes/versioning.md) – release numbering and update workflow.
+- [`docs/notes/setup/package-registries.md`](docs/notes/setup/package-registries.md) – npm/NuGet/pub.dev prep.
+- [`docs/notes/setup/flutter-fvm.md`](docs/notes/setup/flutter-fvm.md) – FVM pinning + IDE integration for Flutter.
 - [`docs/api/`](docs/api) – checked-in OpenAPI specs generated via `make backend-swagger`.
 - [`Makefile`](Makefile) – run `make help` for common build/setup targets.
 
