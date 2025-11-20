@@ -5,6 +5,9 @@ Musician-facing service: play a tune, get the name, find the best charts.
 ## Getting Started
 - Read the onboarding playbook: [`docs/notes/setup/README.md`](docs/notes/setup/README.md) – one-time setup, environment hydration, stack management, backend verification, and frontend placeholders.
 
+## Daily Operations
+- See the building guide [`./BUILDING.md`](./BUILDING.md) - All the steps required for building / running the software.
+
 ## Documentation Links
 - [`docs/notes/project-for-ai.md`](docs/notes/project-for-ai.md) – current focus and rules of engagement.
 - [`docs/notes/current-chat.md`](docs/notes/current-chat.md) – session trail and next actions.
