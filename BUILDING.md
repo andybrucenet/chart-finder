@@ -2,21 +2,21 @@
 
 This guide assumes you have already completed the one-time onboarding steps in [`docs/notes/setup/README.md`](docs/notes/setup/README.md). With `.local/` hydrated and credentials in place, use the workflows below for day-to-day development.
 
-## Daily Checklist (All Roles)
-1. **Refresh environment metadata** – Only if API keys (rare) change or backend Cloud provider templates change (example: AWS IAM permissions; very rare). In either case - simply run `make setup-dev-env` and the `.local` cache is updated.
-2. **Confirm AWS session** – run `./scripts/aws-login.sh` so subsequent commands share the right Identity Center persona.
-3. **Sync dependencies** – backend (`make backend-build` handles restore), frontend (`make frontend-install` or stack-specific install target).
-4. **Run the appropriate workflow** – backend, frontend, or infra sections below.
-5. **Record outcomes** – capture notable changes or issues in `docs/notes/current-chat.md` so the next session picks up smoothly.
+## Backend / Cloud Workflow
 
-## Backend Workflow
+For backend or infrastructure work the daily driver is:
 
-Normally you will simply run `make stack-refresh` from the list below - this pretty much does everything.
+```
+make stack-refresh
+```
 
-For specific steps see below.
+That one target restores/builds the .NET solution, rehydrates infra configs when inputs change, runs `aws-sam-preflight.sh`, deploys via `aws-sam-deploy.sh build`, refreshes the OpenAPI spec (updating `docs/api/chart-finder-openapi-v1.json` with metadata), and executes the `utils/v1/version` smoke test. It will also prompt for AWS SSO login automatically if your session expired, update `CF_LOCAL_AWS_BASE_URI` when the API endpoint changes, and surface TLS or IAM issues along the way. Think of it as the Swiss Army knife—only drop to the individual steps below when you need tighter loops.
+
+### Target Reference
 
 | Step | Command | Notes |
 | --- | --- | --- |
+| Optional AWS login check | `./scripts/aws-login.sh` | Handy if you just want to verify Identity Center state. `make stack-refresh` implicitly does the same when it hits AWS. |
 | Restore & build | `make backend-build` | Runs `backend/Makefile` which restores, builds, and ensures env metadata + source signatures are current. |
 | Tests | `make backend-test` | Executes .NET test projects and backend client tests (`backend/clients`). |
 | Stack deploy | `make stack-refresh` | Rebuilds backend + infra, runs `aws-sam-preflight.sh`, deploys via `aws-sam-deploy.sh build`, refreshes the OpenAPI spec, and runs the `utils/v1/version` smoke test. Set `CF_STACK_DEPLOYMENT_MODE=batch` to auto-confirm SAM prompts. |
@@ -29,7 +29,7 @@ Key references:
 
 ## Frontend Workflow
 
-Chart Finder currently maintains an Expo/React stack and a Flutter prototype. `CF_LOCAL_FRONTEND_ENV` controls which stack top-level Make targets operate on.
+Frontend development does not require AWS logins—work locally unless you are validating against a deployed API. Use `CF_LOCAL_FRONTEND_ENV` to pick the active stack (`react` or `flutter`) and run the stack-specific commands:
 
 | Task | React Commands | Flutter Commands |
 | --- | --- | --- |
@@ -45,9 +45,7 @@ Near-term roadmap items (tracked in `docs/notes/current-chat.md`):
 
 ## Infrastructure & Cloud Ops
 
-Normally you don't need to do anything here...the initial `make setup-dev-env` gets all the `.local` files hydrated. And the `make stack-refresh` automatically checks for any changes to backend / infra configs and rebuilds as necessary.
-
-Use these steps only as a general reference; again, your expected workflow will typically just be `make stack-refresh`.
+`make stack-refresh` already chains the infra targets (`infra configs`, `infra build`, `infra publish`, `infra smoke`). Use the commands below only when isolating a specific SAM or template issue; otherwise let the higher-level target keep everything in sync.
 
 | Step | Command | Notes |
 | --- | --- | --- |
@@ -57,7 +55,7 @@ Use these steps only as a general reference; again, your expected workflow will 
 | Stack status / URI | `make infra status` / `make infra uri` | Delegates to `aws-sam-deploy.sh status|uri`. |
 | Smoke test | `make infra smoke` | Uses `scripts/aws-sam-stack-state.sh` + `curl` to hit `utils/v1/version`, updating `CF_LOCAL_AWS_BASE_URI` if it changed. |
 
-For TLS operations, use:
+For TLS operations (typically handled alongside `stack-refresh` but callable standalone), use:
 - `make tls-status` → `scripts/tls-status.sh` (checks expiry).
 - `make tls-renew` → `scripts/tls-renew.sh` (renews/imports the wildcard certificate).
 
