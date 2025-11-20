@@ -133,7 +133,7 @@ PY
   echo 'Importing TLS certificate into ACM...'
   echo "  aws ${import_args[*]}"
   local import_output
-  import_output="$("$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" "${import_args[@]}")"
+  import_output="$("$the_aws_sam_deploy_root_dir/scripts/cf-run-cmd.sh" "${import_args[@]}")"
   local import_rc=$?
   local certificate_arn
   certificate_arn="$(printf '%s\n' "$import_output" | tail -n1 | tr -d '[:space:]')"
@@ -177,7 +177,7 @@ fi
 
 if [ "$the_aws_sam_deploy_mode" = "uri" ]; then
   # get the URL
-  "$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" aws cloudformation describe-stacks \
+  "$the_aws_sam_deploy_root_dir/scripts/cf-run-cmd.sh" aws cloudformation describe-stacks \
     --stack-name "$CF_LOCAL_ENV_ID" \
     --query "Stacks[0].Outputs" \
     --no-cli-pager \
@@ -191,7 +191,7 @@ elif [ "$the_aws_sam_deploy_mode" = "clean" ] || [ "$the_aws_sam_deploy_mode" = 
   || [ "$the_aws_sam_deploy_stack_status" = "ROLLBACK_COMPLETE" ] \
   || [ "$the_aws_sam_deploy_stack_status" = "ROLLBACK_FAILED" ]; then
   echo "Deleting stack $CF_LOCAL_ENV_ID (status: ${the_aws_sam_deploy_stack_status:-unknown})..."
-  "$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" aws cloudformation delete-stack \
+  "$the_aws_sam_deploy_root_dir/scripts/cf-run-cmd.sh" aws cloudformation delete-stack \
     --stack-name "$CF_LOCAL_ENV_ID" \
     --no-cli-pager
   the_aws_sam_deploy_delete_rc=$?
@@ -200,7 +200,7 @@ elif [ "$the_aws_sam_deploy_mode" = "clean" ] || [ "$the_aws_sam_deploy_mode" = 
     exit $the_aws_sam_deploy_delete_rc
   fi
   echo "Waiting for stack delete to complete..."
-  "$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" aws cloudformation wait stack-delete-complete \
+  "$the_aws_sam_deploy_root_dir/scripts/cf-run-cmd.sh" aws cloudformation wait stack-delete-complete \
     --stack-name "$CF_LOCAL_ENV_ID" \
     --no-cli-pager
   the_aws_sam_deploy_wait_rc=$?
@@ -230,7 +230,7 @@ the_aws_sam_deploy_tmp_samconfig_toml="${the_aws_sam_deploy_tmp_prefix}samconfig
 the_aws_sam_deploy_root_dir="$( realpath "$the_aws_sam_deploy_script_dir"/.. )"
 DOLLAR='$' envsubst < "$the_aws_sam_deploy_root_dir/$g_DOT_LOCAL_DIR_NAME/infra/aws/samconfig.toml" >"$the_aws_sam_deploy_tmp_samconfig_toml" || exit $?
 set -x
-"$the_aws_sam_deploy_root_dir/scripts/aws-run-cmd.sh" sam deploy \
+"$the_aws_sam_deploy_root_dir/scripts/cf-run-cmd.sh" sam deploy \
   --config-file "$the_aws_sam_deploy_tmp_samconfig_toml" \
   --config-env "$the_aws_sam_deploy_config_env"
 the_aws_sam_deploy_deploy_rc=$?

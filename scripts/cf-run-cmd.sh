@@ -1,7 +1,7 @@
 #!/bin/bash
-# aws-run-cmd.sh ABr
+# cf-run-cmd.sh ABr
 #
-# Invoke a command with local AWS variables exported
+# Invoke a command with local ChartFinder variables exported
 
 # locate script source directory
 SOURCE="${BASH_SOURCE[0]}"
@@ -12,17 +12,16 @@ while [ -h "$SOURCE" ]; do
   # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
-the_aws_run_cmd_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-the_aws_run_cmd_root_dir="$( realpath "$the_aws_run_cmd_script_dir"/.. )"
-source "$the_aws_run_cmd_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
-lcl_dot_local_settings_source "$the_aws_run_cmd_root_dir" || exit $?
-#set | grep -e '^AWS_'
+the_cf_run_cmd_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+the_cf_run_cmd_root_dir="$( realpath "$the_cf_run_cmd_script_dir"/.. )"
+source "$the_cf_run_cmd_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
+#set | grep -e '^CF_'
 
 if [ "$1" = "--eval" ]; then
   shift
   cmd="$*"
   if [ -z "$cmd" ]; then
-    echo "aws-run-cmd.sh: missing command for --eval" >&2
+    echo "cf-run-cmd.sh: missing command for --eval" >&2
     exit 1
   fi
   exec "${SHELL:-/bin/bash}" -lc "$cmd"

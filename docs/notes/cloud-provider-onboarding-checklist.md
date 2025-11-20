@@ -33,7 +33,7 @@ Use this list whenever we add a new cloud backend (Azure, Google, etc.). Adapt o
    - Extend `sync-configs.sh` or create provider-specific hydrators.
 
 7. **Local Tooling & Scripts**
-   - Add login helpers (mirroring `aws-login.sh` / `aws-run-cmd.sh`).
+   - Add login helpers (mirroring `aws-login.sh` / `aws-logout.sh`).
    - Document local testing strategy (emulators, local stacks).
 
 8. **Validation**

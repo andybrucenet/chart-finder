@@ -64,7 +64,7 @@ tls_renew_check_binary() {
 
 tls_renew_find_cert_arn() {
   local l_output
-  l_output="$("$the_tls_renew_root_dir/scripts/aws-run-cmd.sh" aws cloudformation describe-stacks \
+  l_output="$("$the_tls_renew_root_dir/scripts/cf-run-cmd.sh" aws cloudformation describe-stacks \
     --region "$the_tls_renew_region" \
     --stack-name "$the_tls_renew_stack_name" \
     --query "Stacks[0].Outputs[?OutputKey=='ApiCertificateArn'].OutputValue" \

@@ -21,5 +21,5 @@ the_aws_sam_stack_state_args=(
   --no-cli-pager
 )
 
-exec "$the_aws_sam_stack_state_root_dir/scripts/aws-run-cmd.sh" "${the_aws_sam_stack_state_args[@]}" |
+exec "$the_aws_sam_stack_state_root_dir/scripts/cf-run-cmd.sh" "${the_aws_sam_stack_state_args[@]}" |
   jq '.Stacks[0]'

@@ -167,7 +167,7 @@ setup_dev_env_aws_ensure_tls_certificate() {
   echo "  Import TLS certificate into ACM..."
   echo "    aws ${import_args[*]}"
   local import_output
-  import_output="$("$the_setup_env_dev_aws_root_dir/scripts/aws-run-cmd.sh" "${import_args[@]}")"
+  import_output="$("$the_setup_env_dev_aws_root_dir/scripts/cf-run-cmd.sh" "${import_args[@]}")"
   local import_rc=$?
   local certificate_arn
   certificate_arn="$(printf '%s\n' "$import_output" | tail -n1 | tr -d '[:space:]')"
@@ -190,7 +190,7 @@ setup_dev_env_aws_ensure_tls_certificate() {
 setup_dev_env_aws_ensure_tls_certificate || exit $?
 #
 # always update CF_LOCAL_AWS_SSO_ROLE as it is driven through login - but we need it for hydration
-CF_LOCAL_AWS_SSO_ROLE="`"$the_setup_env_dev_aws_root_dir"/scripts/aws-run-cmd.sh \
+CF_LOCAL_AWS_SSO_ROLE="`"$the_setup_env_dev_aws_root_dir"/scripts/cf-run-cmd.sh \
   aws sts get-caller-identity --output json --no-cli-pager \
   | jq -r '.Arn' \
   | awk -F':' '{print $6}' | awk -F'/' '{print $2}' \
@@ -235,7 +235,7 @@ echo 'CHECK AWS LOGIN...'
 echo ''
 #
 # get the region
-CF_LOCAL_AWS_ACCOUNT_ID="`"$the_setup_env_dev_aws_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity --output json --no-cli-pager | jq -r '.Account' | dos2unix`"
+CF_LOCAL_AWS_ACCOUNT_ID="`"$the_setup_env_dev_aws_root_dir/scripts/cf-run-cmd.sh" aws sts get-caller-identity --output json --no-cli-pager | jq -r '.Account' | dos2unix`"
 lcl_dot_local_settings_update "$the_setup_env_dev_aws_root_dir" CF_LOCAL_AWS_ACCOUNT_ID "$CF_LOCAL_AWS_ACCOUNT_ID" || exit $?
 export CF_LOCAL_AWS_ACCOUNT_ID
 echo "CF_LOCAL_AWS_ACCOUNT_ID='$CF_LOCAL_AWS_ACCOUNT_ID'"
@@ -285,7 +285,7 @@ else
   # initial setup creates a '.personal' section using defaults and non-interactive
   echo '  CREATE DEPLOYMENT...'
   set -x
-  "$the_setup_env_dev_aws_root_dir"/scripts/aws-run-cmd.sh sam deploy \
+  "$the_setup_env_dev_aws_root_dir"/scripts/cf-run-cmd.sh sam deploy \
     --guided \
     --config-file "$the_setup_env_dev_aws_sam_config_wrk_path" \
     --config-env "$CF_LOCAL_BILLING_ENV" \

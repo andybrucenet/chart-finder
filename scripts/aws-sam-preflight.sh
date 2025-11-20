@@ -43,7 +43,7 @@ echo ''
 # run the build
 echo 'AWS SAM BUILD...'
 set -x
-"$the_aws_sam_preflight_root_dir/scripts/aws-run-cmd.sh" sam build \
+"$the_aws_sam_preflight_root_dir/scripts/cf-run-cmd.sh" sam build \
   --template-file "$the_template_path" \
   --build-dir "$the_build_dir" \
   --build-in-source \
@@ -56,7 +56,7 @@ echo ''
 # run the validate
 echo 'AWS SAM VALIDATE...'
 set -x
-"$the_aws_sam_preflight_root_dir/scripts/aws-run-cmd.sh" sam validate \
+"$the_aws_sam_preflight_root_dir/scripts/cf-run-cmd.sh" sam validate \
   --template-file "$the_build_dir"/template.yaml \
   --config-env "$CF_LOCAL_BILLING_ENV" \
   --lint || exit $?

@@ -26,7 +26,7 @@ the_aws_login_tmp_path_prefix="$the_aws_login_tmp_dir/$the_aws_login_tmp_fname_p
 
 # logged in? (note - on error do *not show* problems)
 the_aws_login_wrk_path="${the_aws_login_tmp_path_prefix}info.txt"
-"$the_aws_login_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity --no-cli-pager >"$the_aws_login_wrk_path" 2>&1
+"$the_aws_login_root_dir/scripts/cf-run-cmd.sh" aws sts get-caller-identity --no-cli-pager >"$the_aws_login_wrk_path" 2>&1
 the_rc=$?
 if [ $the_rc -eq 0 ] ; then
   [ x"$AWS_LOGIN_OPTION_SHOW_LOGIN_INFO" = x1 ] && cat "$the_aws_login_wrk_path"
@@ -35,7 +35,7 @@ fi
 rm -f "$the_aws_login_wrk_path"
 
 # perform a login without launching browser against the current profile
-"$the_aws_login_root_dir/scripts/aws-run-cmd.sh" aws sso login --no-browser --no-cli-pager
+"$the_aws_login_root_dir/scripts/cf-run-cmd.sh" aws sso login --no-browser --no-cli-pager
 
 # run again to show the login info
-[ x"$AWS_LOGIN_OPTION_SHOW_LOGIN_INFO" = x1 ] && "$the_aws_login_root_dir/scripts/aws-run-cmd.sh" aws sts get-caller-identity --no-cli-pager
+[ x"$AWS_LOGIN_OPTION_SHOW_LOGIN_INFO" = x1 ] && "$the_aws_login_root_dir/scripts/cf-run-cmd.sh" aws sts get-caller-identity --no-cli-pager

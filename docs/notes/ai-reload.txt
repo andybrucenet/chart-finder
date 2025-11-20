@@ -1,1 +1,6 @@
-From docs/notes - reload project-for-ai.md (overview and *project rules for you*) and current-chat.md (chat session). Very important rule: do *not generate or modify code on disk* unless specifically asked! Now - please remind me what I last indicated is the next task?
+* Working directory for chat session is $HOME/proj/git/src/github.com/andybrucenet/chart-finder. Will refer to this as CF_HOME.
+* Reload docs/notes/project-for-ai.md which contains overview and *project rules for you*
+* Reload docs/notes/current-chat.md (chat session) which contains session info, TODO, and Next Steps
+* Very important rule: do *not generate or modify code on disk* unless specifically asked!
+
+Now - please remind me what I last indicated is the next task?
