@@ -7,15 +7,6 @@
 - Record AWS SAM build outputs under `.aws-sam/` but keep them untracked; expand `.gitignore` with platform-specific artifacts when needed.
 - Capture ongoing architecture and process notes inside `docs/notes/` so conversations remain versioned with the project.
 
-## Next Actions
-- Define a concise AWS naming convention that embeds project + environment without tripping service limits.
-- Tag every AWS artifact with environment and owner metadata for cost tracking and filtering.
-- Extend the setup flow to create one-time AWS resources (e.g., per-dev artifact buckets) once variables are known.
-- Ensure `local.env` captures all required config values, including future `CF_BACKEND_PROVIDER` for AWS/Azure switching and inputs consumed by dedicated cloud setup scripts.
-- Finish AWS CI/CD bootstrap: create artifact bucket + IAM attachments so CodeBuild/SAM deploy calls succeed end-to-end.
-- Harden the new `aws-sam-deploy.sh` helper (document modes, pull SAM warnings into a tracking issue, consider migrating to a Makefile once targets settle).
-- Add smoke tests for the deployed Lambda/API Gateway path to confirm the stack stays healthy.
-
 ## 2025-01-18 Session Notes
 - Confirmed AWS remains first-class target, followed by local/offline, then Azure (and possibly Google) adapters.
 - Documented preference to keep AI-generated code out of the repo; assistant now supplies inline snippets only when asked.
