@@ -340,8 +340,11 @@ function lcl_dot_local_settings_update {
   [ $l_rc -ne 0 ] && return $l_rc
 
   # set executable - function result is zero on success
-  chmod +x "$l_path"
-  return $?
+  chmod +x "$l_path" || return $?
+
+  # ensure that variable value is assigned to the variable name
+  printf -v "$i_var_name" "%s" "$i_var_new_value"
+  return 0
 }
 #
 # read .local settings entry with a default value if not exists

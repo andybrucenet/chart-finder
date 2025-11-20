@@ -1,7 +1,9 @@
 # Makefile, ABr
 #
 # chart-finder: Infra Makefile
+
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
 SCRIPTS_DIR := $(ROOT)/scripts
 STACK_STATE_SCRIPT := $(SCRIPTS_DIR)/aws-sam-stack-state.sh
 STACK_DEPLOYMENT_MODE ?= $(CF_STACK_DEPLOYMENT_MODE)

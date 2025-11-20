@@ -2,6 +2,9 @@
 #
 # chart-finder: Top-level Makefile
 
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
+
 .PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build test rebuild publish \
 	backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \
 	frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \

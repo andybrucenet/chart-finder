@@ -46,7 +46,7 @@ the_setup_dev_env_local_env_path="$the_setup_dev_env_local_dir/$the_setup_dev_en
 the_setup_dev_env_tools_ok=1
 the_setup_dev_env_tools='which envsubst jq npm rsync'
 for i in $the_setup_dev_env_tools ; do
-	! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL (GLOBAL) $i" && the_setup_dev_env_tools_ok=0
+  ! which $i >/dev/null 2>&1 && echo "ERROR: MISSING_REQUIRED_TOOL (GLOBAL) $i" && the_setup_dev_env_tools_ok=0
 done
 [ $the_setup_dev_env_tools_ok -ne 1 ] && exit 1
 
@@ -83,17 +83,21 @@ lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_PRJ_ID 'cf'
 export CF_LOCAL_PRJ_ID
 echo "  CF_LOCAL_PRJ_ID='$CF_LOCAL_PRJ_ID' (abbreviation for 'chart-finder')"
 #
-  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_DOMAIN 'chart-finder.app' || exit $?
-  export CF_LOCAL_DOMAIN
-  echo "  CF_LOCAL_DOMAIN='$CF_LOCAL_DOMAIN'"
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_DOMAIN 'chart-finder.app' || exit $?
+export CF_LOCAL_DOMAIN
+echo "  CF_LOCAL_DOMAIN='$CF_LOCAL_DOMAIN'"
 #
-  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_CLOUD_PROVIDER 'aws' || exit $?
-  export CF_LOCAL_CLOUD_PROVIDER
-  echo "  CF_LOCAL_CLOUD_PROVIDER='$CF_LOCAL_CLOUD_PROVIDER'"
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_CLOUD_PROVIDER 'aws' || exit $?
+export CF_LOCAL_CLOUD_PROVIDER
+echo "  CF_LOCAL_CLOUD_PROVIDER='$CF_LOCAL_CLOUD_PROVIDER'"
 #
-  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CERT_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/cert.pem" || exit $?
-  export CF_LOCAL_TLS_CERT_PATH
-  echo "  CF_LOCAL_TLS_CERT_PATH='$CF_LOCAL_TLS_CERT_PATH'"
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_FRONTEND_ENV 'flutter' || exit $?
+export CF_LOCAL_FRONTEND_ENV
+echo "  CF_LOCAL_FRONTEND_ENV='$CF_LOCAL_FRONTEND_ENV'"
+#
+lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CERT_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/cert.pem" || exit $?
+export CF_LOCAL_TLS_CERT_PATH
+echo "  CF_LOCAL_TLS_CERT_PATH='$CF_LOCAL_TLS_CERT_PATH'"
 #
 lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_LOCAL_TLS_CHAIN_PATH "$HOME/Documents/Personal/andy/certs/ssl/chart-finder/config/live/$CF_LOCAL_DOMAIN/chain.pem" || exit $?
 export CF_LOCAL_TLS_CHAIN_PATH

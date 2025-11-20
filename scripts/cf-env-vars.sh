@@ -17,32 +17,52 @@ if [ x"$CF_ENV_VARS_OPTION_REBUILD_ALL" = x1 ] ; then
   CF_ENV_VARS_OPTION_REBUILD_FRONTEND=1
 fi
 
-# locate script source directory
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do
-  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-done
-the_cf_env_vars_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-the_cf_env_vars_root_dir="$( realpath "$the_cf_env_vars_script_dir"/.. )"
-source "$the_cf_env_vars_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
-lcl_dot_local_settings_source "$the_cf_env_vars_root_dir" || exit $?
-
 ##############################################################
-# vars
+# optimization specifically for Cygwin in a build env.
+# issue: Makefile runs many subcommands - expensive on Cygwin.
+# To prevent this - each Makefile loads in cf-env-vars-to-make.sh
+# which exports all ChartFinder variables once. From that
+# point on - there is no need to source in env variables at
+# all regardless of how the command is run.
+the_cf_env_vars_optimization_flag=0
+[ x"$CF_ENV_VARS_TO_MAKE_ALREADY_RUN" != x ] && the_cf_env_vars_optimization_flag=1
+if [ \
+  x"$CF_ENV_VARS_OPTION_REBUILD_ALL" != x0 \
+  -o x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" != x0 \
+  -o x"$CF_ENV_VARS_OPTION_REBUILD_FRONTEND" != x0 \
+  ] ; then
+  # reset flag
+  the_cf_env_vars_optimization_flag=0
+fi
 #
-# name of Directory.Build.props and local cache to hold extracted values
-the_cf_env_vars_dirbuildprops_name='Directory.Build.props'
-the_cf_env_vars_backend_dirbuildprops_rel_path="src/backend/$the_cf_env_vars_dirbuildprops_name"
-the_cf_env_vars_backend_dirbuildprops_src_path="$the_cf_env_vars_root_dir/$the_cf_env_vars_backend_dirbuildprops_rel_path"
-the_cf_env_vars_backend_dirbuildprops_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-$the_cf_env_vars_dirbuildprops_name"
-the_cf_env_vars_backend_version_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-version.sh"
-#
-# name of frontend/version.json and local cache to hold extracted values
-the_cf_env_vars_frontend_version_src_fname='version.json'
-the_cf_env_vars_frontend_version_src_path="$the_cf_env_vars_root_dir/frontend/$the_cf_env_vars_frontend_version_src_fname"
-the_cf_env_vars_frontend_version_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/frontend-version.sh"
+if [ $the_cf_env_vars_optimization_flag -eq 0 ] ; then
+  # locate script source directory
+  SOURCE="${BASH_SOURCE[0]}"
+  while [ -h "$SOURCE" ]; do
+    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  done
+  the_cf_env_vars_script_dir="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  the_cf_env_vars_root_dir="$( realpath "$the_cf_env_vars_script_dir"/.. )"
+  source "$the_cf_env_vars_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
+  lcl_dot_local_settings_source "$the_cf_env_vars_root_dir" || exit $?
+
+  ##############################################################
+  # vars
+  #
+  # name of Directory.Build.props and local cache to hold extracted values
+  the_cf_env_vars_dirbuildprops_name='Directory.Build.props'
+  the_cf_env_vars_backend_dirbuildprops_rel_path="src/backend/$the_cf_env_vars_dirbuildprops_name"
+  the_cf_env_vars_backend_dirbuildprops_src_path="$the_cf_env_vars_root_dir/$the_cf_env_vars_backend_dirbuildprops_rel_path"
+  the_cf_env_vars_backend_dirbuildprops_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-$the_cf_env_vars_dirbuildprops_name"
+  the_cf_env_vars_backend_version_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/backend-version.sh"
+  #
+  # name of frontend/version.json and local cache to hold extracted values
+  the_cf_env_vars_frontend_version_src_fname='version.json'
+  the_cf_env_vars_frontend_version_src_path="$the_cf_env_vars_root_dir/frontend/$the_cf_env_vars_frontend_version_src_fname"
+  the_cf_env_vars_frontend_version_dst_path="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state/frontend-version.sh"
+fi
 
 ##############################################################
 # functions
@@ -206,39 +226,41 @@ EOF
 ##############################################################
 # PROGRAM ENTRY POINT
 #
-# default base URI to use when generating code interfaces
-export CF_DEFAULT_BASE_URI="${CF_PROD_BASE_URI:-https://api.chart-finder.app/}"
-#
-# handle backend Directory.Build.props cache
-[ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_backend_dirbuildprops_dst_path"
-cf_env_vars_backend_dirbuildprops_auto_cache || exit $?
-source "$the_cf_env_vars_backend_version_dst_path" || exit $?
-#
-# handle backend derived vars
-if [ x"$CF_BACKEND_EXPOSE_OPENAPI" = x ] ; then
-  [ x"$CF_LOCAL_BILLING_ENV" = x'dev' ] && CF_BACKEND_EXPOSE_OPENAPI='true' || CF_BACKEND_EXPOSE_OPENAPI='false'
+if [ $the_cf_env_vars_optimization_flag -eq 0 ] ; then
+  # default base URI to use when generating code interfaces
+  export CF_DEFAULT_BASE_URI="${CF_PROD_BASE_URI:-https://api.chart-finder.app/}"
+  #
+  # handle backend Directory.Build.props cache
+  [ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_backend_dirbuildprops_dst_path"
+  cf_env_vars_backend_dirbuildprops_auto_cache || exit $?
+  source "$the_cf_env_vars_backend_version_dst_path" || exit $?
+  #
+  # handle backend derived vars
+  if [ x"$CF_BACKEND_EXPOSE_OPENAPI" = x ] ; then
+    [ x"$CF_LOCAL_BILLING_ENV" = x'dev' ] && CF_BACKEND_EXPOSE_OPENAPI='true' || CF_BACKEND_EXPOSE_OPENAPI='false'
+  fi
+  export CF_BACKEND_EXPOSE_OPENAPI
+  
+  #
+  # handle frontend cache
+  [ x"$CF_ENV_VARS_OPTION_REBUILD_FRONTEND" = x1 ] && rm -f "$the_cf_env_vars_frontend_version_dst_path"
+  cf_env_vars_frontend_version_auto_cache || exit $?
+  source "$the_cf_env_vars_frontend_version_dst_path" || exit $?
+  #
+  # derive provider-specific base URI
+  if [ x"$CF_LOCAL_BASE_URI" = x ]; then
+    case "${CF_LOCAL_CLOUD_PROVIDER:-}" in
+      aws)
+        if [ -n "${CF_LOCAL_AWS_BASE_URI:-}" ]; then
+          export CF_LOCAL_BASE_URI="$CF_LOCAL_AWS_BASE_URI"
+        fi
+        ;;
+    esac
+  fi
+  #
+  # git branch is *always* dynamic (and we may need to separate from "last compiled git branch")
+  [ x"$CF_GLOBAL_BRANCH" = x ] && export CF_GLOBAL_BRANCH="`lcl_git_branch`"
 fi
-export CF_BACKEND_EXPOSE_OPENAPI
-
-#
-# handle frontend cache
-[ x"$CF_ENV_VARS_OPTION_REBUILD_FRONTEND" = x1 ] && rm -f "$the_cf_env_vars_frontend_version_dst_path"
-cf_env_vars_frontend_version_auto_cache || exit $?
-source "$the_cf_env_vars_frontend_version_dst_path" || exit $?
-#
-# derive provider-specific base URI
-if [ x"$CF_LOCAL_BASE_URI" = x ]; then
-  case "${CF_LOCAL_CLOUD_PROVIDER:-}" in
-    aws)
-      if [ -n "${CF_LOCAL_AWS_BASE_URI:-}" ]; then
-        export CF_LOCAL_BASE_URI="$CF_LOCAL_AWS_BASE_URI"
-      fi
-      ;;
-  esac
-fi
-#
-# git branch is *always* dynamic (and we may need to separate from "last compiled git branch")
-[ x"\$CF_GLOBAL_BRANCH" = x ] && export CF_GLOBAL_BRANCH="`lcl_git_branch`"
 #
 # show any variables?
 the_cf_env_vars_just_export=1
@@ -247,12 +269,19 @@ if [ x"$1" != x ] ; then
     the_cf_env_vars_just_export=0
   fi
 fi
-if [ $the_cf_env_vars_just_export -eq 1 ] ; then
-  # no error
-  true
-else
+if [ $the_cf_env_vars_just_export -ne 1 ] ; then
   # echo all desired vars
   for the_cf_env_vars_i in "$@" ; do
     echo "${!the_cf_env_vars_i}"
   done
 fi
+#
+# finally - unset options passed to this script
+unset \
+  the_cf_env_vars_optimization_flag \
+  the_cf_env_vars_just_export \
+  the_cf_env_vars_i \
+  CF_ENV_VARS_OPTION_REBUILD_ALL \
+  CF_ENV_VARS_OPTION_REBUILD_BACKEND \
+  CF_ENV_VARS_OPTION_REBUILD_FRONTEND
+

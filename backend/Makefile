@@ -1,7 +1,9 @@
 # Makefile, ABr
 #
 # chart-finder: Backend Makefile
+
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
 SLN ?= $(ROOT)/src/backend/backend.sln
 DOTNET ?= dotnet
 

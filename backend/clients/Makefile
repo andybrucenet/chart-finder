@@ -1,7 +1,9 @@
 # Makefile, ABr
 #
 # chart-finder: Backend client tooling
+
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
+$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
 CLIENTS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 STATE_DIR := $(ROOT)/.local/state
 API_SPEC := $(ROOT)/docs/api/chart-finder-openapi-v1.json
