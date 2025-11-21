@@ -3,7 +3,10 @@
 # chart-finder: Top-level Makefile
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
+
+# import chart-finder environment
+$(shell $(ROOT)/scripts/cf-env-vars-to-make.sh)
+include $(ROOT)/.local/state/cf-env-vars.mk
 
 .PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build test rebuild publish \
 	backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \

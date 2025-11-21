@@ -2,7 +2,12 @@
 # cf-env-vars-to-make.sh, ABr
 #
 # Helper script that sources cf-env-vars.sh and generates output
-# to set vars for Makefile
+# to set vars for Makefile.
+# Advantages:
+# * Makefile immediately has access to CF env vars
+# * CF_ENV_VARS_TO_MAKE_ALREADY_RUN is set, which optimizes
+#   calls such that any other subcommand (including child Makefiles)
+#   uses the cached/exported env vars set from the first call.
 
 # function to load all files in and
 cf_env_vars_to_make_main() {
@@ -48,19 +53,41 @@ cf_env_vars_to_make_main() {
   fi
 
   # process all variables
+  local l_output_fname='cf-env-vars.mk'
+  local l_tmp_output_path="${l_tmp_prefix}$l_output_fname"
+  touch "$l_tmp_output_path"
   if [ $l_rc -eq 0 ] ; then
     while IFS= read -r line; do
-      echo "$line := ${!line}"
-      echo "export $line"
+      echo "$line := ${!line}" >>"$l_tmp_output_path"
+      echo "export $line" >>"$l_tmp_output_path"
+      #echo "\$(info $line=\$($line))" >>"$l_tmp_output_path"
     done < "$l_tmp_var_names_path"
 
     # end with control var
-    echo "CF_ENV_VARS_TO_MAKE_ALREADY_RUN := 1"
-    echo "export CF_ENV_VARS_TO_MAKE_ALREADY_RUN"
+    echo "CF_ENV_VARS_TO_MAKE_ALREADY_RUN := 1" >>"$l_tmp_output_path"
+    echo "export CF_ENV_VARS_TO_MAKE_ALREADY_RUN" >>"$l_tmp_output_path"
+  fi
+
+  # overwrite the "real" destination if different
+  if [ $l_rc -eq 0 ] ; then
+    #set -x
+    local l_dest_dir="$the_cf_env_vars_to_make_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
+    [ ! -d "$l_dest_dir" ] && mkdir -p "$l_dest_dir"
+    [ ! -d "$l_dest_dir" ] && echo "MISSING_DIR: '$l_dest_dir'" && l_rc=2
+    if [ $l_rc -eq 0 ] ; then
+      local l_dest_path="$l_dest_dir/$l_output_fname"
+      #touch "$l_dest_path"
+      #diff "$l_dest_path" "$l_tmp_output_path"
+      if ! diff "$l_dest_path" "$l_tmp_output_path" >/dev/null 2>&1 ; then
+        /bin/cp "$l_tmp_output_path" "$l_dest_path"
+        l_rc=$?
+      fi
+    fi
+    set +x
   fi
 
   # cleanup
-  rm -f "$l_tmp_var_names_path"
+  rm -f "$l_tmp_output_path" "$l_tmp_var_names_path"
   return $l_rc
 }
 

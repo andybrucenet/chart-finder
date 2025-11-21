@@ -20,10 +20,9 @@ fi
 ##############################################################
 # optimization specifically for Cygwin in a build env.
 # issue: Makefile runs many subcommands - expensive on Cygwin.
-# To prevent this - each Makefile loads in cf-env-vars-to-make.sh
-# which exports all ChartFinder variables once. From that
-# point on - there is no need to source in env variables at
-# all regardless of how the command is run.
+# Each subcommand loads this script - potentially many times.
+# To optimize: each Makefile loads in cf-env-vars-to-make.sh
+# which exports all ChartFinder variables once.
 the_cf_env_vars_optimization_flag=0
 [ x"$CF_ENV_VARS_TO_MAKE_ALREADY_RUN" != x ] && the_cf_env_vars_optimization_flag=1
 if [ \
@@ -50,6 +49,9 @@ if [ $the_cf_env_vars_optimization_flag -eq 0 ] ; then
 
   ##############################################################
   # vars
+  #
+  # state directory location
+  the_cf_env_vars_state_dir="$the_cf_env_vars_root_dir/$g_DOT_LOCAL_DIR_NAME/state"
   #
   # name of Directory.Build.props and local cache to hold extracted values
   the_cf_env_vars_dirbuildprops_name='Directory.Build.props'

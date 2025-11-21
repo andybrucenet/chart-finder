@@ -3,7 +3,11 @@
 # chart-finder: Backend Makefile
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
+
+# import chart-finder environment
+$(shell $(ROOT)/scripts/cf-env-vars-to-make.sh)
+include $(ROOT)/.local/state/cf-env-vars.mk
+
 SLN ?= $(ROOT)/src/backend/backend.sln
 DOTNET ?= dotnet
 

@@ -72,6 +72,27 @@
 - `BACKEND_OPENAPI_ANNOTATE_OPTION_STDOUT=1` now emits to stdout via a temp file, enabling non-destructive checks or piping into other tooling.
 - Confirmed `docs/api/chart-finder-openapi-v1.json` carries the new metadata, so frontend clients can read the published version to select the matching generated API bundle.
 
+## 2025-11-22 Session Notes
+- Added `frontend/Makefile` as a stack-aware wrapper plus `frontend/Makefile-flutter`, ensuring `CF_LOCAL_FRONTEND_ENV` selects the correct frontend stack while React/Flutter makefiles now pin their own version-artifact runs.
+- Extended `scripts/frontend-version-artifacts.sh` so it emits both `versionInfo.ts` and the new Flutter `lib/version_info.dart`, keeping metadata generation consistent across stacks.
+- Introduced `frontend/scripts/frontend-flutter-cf-env-vars-to-make.sh`, which validates `CF_FRONTEND_FLUTTER_VER`, runs the required `fvm` install/use flow without leaking PATH mutations, and ensures Flutter version parity before exporting Make vars.
+- Gated `fvm flutter pub get` behind a `.local/state` stamp in `frontend/Makefile-flutter` so dependency installs only rerun when `pubspec.yaml`/`pubspec.lock` change; `clean` now clears the stamp to force refreshes.
+- Added `scripts/frontend-ios-simulator.sh` to detect or boot the desired iOS simulator (`CF_FRONTEND_IOS_SIMULATOR_NAME`, default `iPhone 18`) using `xcrun simctl`, giving future targets a reusable “ensure simulator is ready” step.
+- Captured the command to pick the newest available `iPhone 16` simulator runtime:
+  ```bash
+  xcrun simctl list devices --json \
+  | jq -r '
+      .devices
+      | to_entries[]
+      | .key as $runtime
+      | .value[]
+      | select(type == "object")
+      | select((.name == "iPhone 16") and (.isAvailable == true))
+      | [$runtime, .name, .udid]
+      | @tsv
+    ' | sort -ur | head -n 1
+  ```
+
 ## TODO
 - Avoid unnecessary `.NET` rebuilds: if no backend source files changed, `make stack-refresh` should skip `dotnet build` (and thus prevent spurious stack publishes).
 - Add a proper release flow where client publishes use only `A.B.C` versions (not `-build.*`) and require a matching `CHANGELOG.md` entry before publishing.
@@ -79,16 +100,10 @@
 - [HIGH] Capture backend Lambda logging requirements and ensure structured logs flow from .NET to CloudWatch (or equivalent) for observability.
 
 ## Next Steps
-### Makefiles (1)
-- Create a new `frontend/Makefile` that reads `CF_LOCAL_FRONTEND_ENV` (`react` or `flutter`) and dispatches to sub-makes.
-- Update `frontend/Makefile-react` as needed (likely minimal) so it plays nicely with the new wrapper.
-- Add `frontend/Makefile-flutter` covering all Flutter build/run commands.
-
-### Frontend API Clients
-- Ensure both React and Flutter frontends load the generated API client by reading `docs/api/chart-finder-openapi-v1.json`.
-
-### Flutter Version Screen
-- Implement the initial Flutter “Version” screen to confirm end-to-end wiring.
-
-### Makefiles (2)
-- Extend both frontend Makefiles with a smoke-test target that validates the version screen loads successfully.
+### Frontend Platform Follow-Ups
+- Update `scripts/frontend-ios-simulator.sh` to consume the saved `simctl`/`jq` query so it auto-selects the newest available `iPhone 16` runtime before booting.
+- Wire the Flutter app to render the generated `version_info.dart` (initial “Version” screen + smoke test target), proving the build can run on iOS.
+- Integrate the Flutter make targets with the simulator helper so `make frontend-ios` starts a sim, deploys, and verifies the app (aim for a working iOS run loop).
+- Import the Flutter (Dart) Chart Finder API client generated from `docs/api/chart-finder-openapi-v1.json`, deriving version/build metadata via the normalization helpers in `scripts/lcl-os-checks.sh`.
+- Finish the dependency audit by running `npm outdated --long` in `chart-finder-react` and planning the required upgrades/replacements for deprecated packages.
+- Add scripted checks around `fvm flutter` commands so CI/dev boxes verify the pinned `CF_FRONTEND_FLUTTER_VER` before builds run.

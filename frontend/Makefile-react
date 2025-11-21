@@ -2,7 +2,11 @@
 #
 # chart-finder: Frontend Makefile
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
+
+# import chart-finder environment
+$(shell $(ROOT)/scripts/cf-env-vars-to-make.sh)
+include $(ROOT)/.local/state/cf-env-vars.mk
+
 APP_DIR ?= $(ROOT)/src/frontend/chart-finder-react
 EXPO_PUBLIC_API_BASE_URL ?=
 
@@ -37,6 +41,7 @@ help:
 		"  build-number      Update build number when sources change" \
 		"  ci                npm ci for clean installs" \
 		"  build             npm run build (if defined)" \
+		"  rebuild           clean + build" \
 		"  test              npm run test (if defined)" \
 		"  lint              npm run lint (if defined)" \
 		"  typecheck         npm run typecheck (if defined)" \
@@ -69,7 +74,7 @@ build-number:
 
 version-artifacts:
 	$(call log,FRONTEND: version artifacts)
-	@cd "$(ROOT)" && "$(FRONTEND_VERSION_ARTIFACTS_SCRIPT)" run
+	@cd "$(ROOT)" && FRONTEND_VERSION_ARTIFACTS_OPTION_STACK=react "$(FRONTEND_VERSION_ARTIFACTS_SCRIPT)" run
 
 ci:
 	$(call log,FRONTEND: ci)
@@ -163,4 +168,4 @@ format: deps
 version:
 	$(call log,FRONTEND: version)
 	@cd "$(ROOT)" && ./scripts/update-version.sh frontend
-	@cd "$(ROOT)" && "$(FRONTEND_VERSION_ARTIFACTS_SCRIPT)" run
+	@cd "$(ROOT)" && FRONTEND_VERSION_ARTIFACTS_OPTION_STACK=react "$(FRONTEND_VERSION_ARTIFACTS_SCRIPT)" run

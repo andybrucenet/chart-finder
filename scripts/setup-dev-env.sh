@@ -149,6 +149,19 @@ if [ x"$CF_LOCAL_BACKEND_API_KEY_NUGET_ORG" = x ] ; then
 fi
 echo "  CF_LOCAL_BACKEND_API_KEY_NUGET_ORG set"
 #
+# note: special case for frontend where we must defined flutter
+# note: version (we *require* use of fvm to permit multiple
+# note: flutter versions to be installed)
+if [ x"$CF_FRONTEND_FLUTTER_VER" = x ] ; then
+  the_default_value='3.24.0'
+  read -p "  Enter value for CF_FRONTEND_FLUTTER_VER [$the_default_value]: " CF_FRONTEND_FLUTTER_VER
+  CF_FRONTEND_FLUTTER_VER="${CF_FRONTEND_FLUTTER_VER:-$the_default_value}"
+  lcl_dot_local_settings_update "$the_setup_dev_env_root_dir" CF_FRONTEND_FLUTTER_VER "$CF_FRONTEND_FLUTTER_VER" || exit $?
+  export CF_FRONTEND_FLUTTER_VER
+fi
+echo "  CF_FRONTEND_FLUTTER_VER='$CF_FRONTEND_FLUTTER_VER'"
+
+#
 echo '  OK'
 echo ''
 

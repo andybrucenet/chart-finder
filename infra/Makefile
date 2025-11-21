@@ -3,7 +3,11 @@
 # chart-finder: Infra Makefile
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-$(eval $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh))
+
+# import chart-finder environment
+$(shell $(ROOT)/scripts/cf-env-vars-to-make.sh)
+include $(ROOT)/.local/state/cf-env-vars.mk
+
 SCRIPTS_DIR := $(ROOT)/scripts
 STACK_STATE_SCRIPT := $(SCRIPTS_DIR)/aws-sam-stack-state.sh
 STACK_DEPLOYMENT_MODE ?= $(CF_STACK_DEPLOYMENT_MODE)
