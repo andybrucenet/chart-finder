@@ -17,6 +17,7 @@ Musician-facing service: play a tune, get the name, find the best charts.
 - [`docs/notes/versioning.md`](docs/notes/versioning.md) – release numbering and update workflow.
 - [`docs/notes/setup/package-registries.md`](docs/notes/setup/package-registries.md) – npm/NuGet/pub.dev prep.
 - [`docs/notes/setup/flutter-fvm.md`](docs/notes/setup/flutter-fvm.md) – FVM pinning + IDE integration for Flutter.
+- [`docs/notes/setup/flutter-app.md`](docs/notes/setup/flutter-app.md) – Flutter scaffolding tips (project naming, platform creation).
 - [`docs/api/`](docs/api) – checked-in OpenAPI specs generated via `make backend-swagger`.
 - [`Makefile`](Makefile) – run `make help` for common build/setup targets.
 
