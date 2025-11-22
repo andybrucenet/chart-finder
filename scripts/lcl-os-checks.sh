@@ -700,6 +700,32 @@ function lcl_version_update {
 # npm accepts SemVer with optional prerelease tags. We normalize the backend
 # version (expected format A.B.C) into `A.B.C-build.<build>` so each generated
 # package remains unique per build.
+function lcl_version_extract_short {
+  local i_value="${1:-}"
+  if [ x"$i_value" = x ]; then
+    echo "0.0.0"
+    return 1
+  fi
+
+  local l_clean="${i_value%%+*}"
+  l_clean="${l_clean%%-*}"
+  local l_major l_minor l_patch
+  IFS='.' read -r l_major l_minor l_patch _ <<<"$l_clean"
+  l_major="$(echo "${l_major:-0}" | tr -cd '0-9')"
+  l_minor="$(echo "${l_minor:-0}" | tr -cd '0-9')"
+  l_patch="$(echo "${l_patch:-0}" | tr -cd '0-9')"
+  [ -z "$l_major" ] && l_major="0"
+  [ -z "$l_minor" ] && l_minor="0"
+  [ -z "$l_patch" ] && l_patch="0"
+
+  if ! [[ $l_major =~ ^[0-9]+$ && $l_minor =~ ^[0-9]+$ && $l_patch =~ ^[0-9]+$ ]]; then
+    echo "lcl_version_extract_short: invalid version '$i_value'" >&2
+    return 1
+  fi
+
+  printf '%s.%s.%s\n' "$l_major" "$l_minor" "$l_patch"
+}
+
 function lcl_version_normalize_npm {
   local i_short="${1:-}"
   local i_build_raw="${2:-$g_VERSION_NORMALIZE_DEFAULT_BUILD}"
@@ -709,12 +735,18 @@ function lcl_version_normalize_npm {
     return 1
   fi
 
+  local l_short
+  if ! l_short="$(lcl_version_extract_short "$i_short")"; then
+    echo "lcl_version_normalize_npm: invalid short version '$i_short'" >&2
+    return 1
+  fi
+
   local i_build="$(echo "$i_build_raw" | tr -cd '0-9')"
   if [ x"$i_build" = x ]; then
     i_build="$g_VERSION_NORMALIZE_DEFAULT_BUILD"
   fi
 
-  echo "${i_short}-build.$i_build"
+  echo "${l_short}-build.$i_build"
 }
 #
 # NuGet also supports SemVer 2.0.0, so we reuse the `-build.<build>` pattern.
@@ -727,12 +759,18 @@ function lcl_version_normalize_nuget {
     return 1
   fi
 
+  local l_short
+  if ! l_short="$(lcl_version_extract_short "$i_short")"; then
+    echo "lcl_version_normalize_nuget: invalid short version '$i_short'" >&2
+    return 1
+  fi
+
   local i_build="$(echo "$i_build_raw" | tr -cd '0-9')"
   if [ x"$i_build" = x ]; then
     i_build="$g_VERSION_NORMALIZE_DEFAULT_BUILD"
   fi
 
-  echo "${i_short}-build.$i_build"
+  echo "${l_short}-build.$i_build"
 }
 #
 # Dart/pub.dev packages also follow SemVer, so reuse the `-build.<build>` suffix.
@@ -745,12 +783,18 @@ function lcl_version_normalize_pub {
     return 1
   fi
 
+  local l_short
+  if ! l_short="$(lcl_version_extract_short "$i_short")"; then
+    echo "lcl_version_normalize_pub: invalid short version '$i_short'" >&2
+    return 1
+  fi
+
   local i_build="$(echo "$i_build_raw" | tr -cd '0-9')"
   if [ x"$i_build" = x ]; then
     i_build="$g_VERSION_NORMALIZE_DEFAULT_BUILD"
   fi
 
-  echo "${i_short}-build.$i_build"
+  echo "${l_short}-build.$i_build"
 }
 #
 # versioning - self test helper to validate version cache behavior
