@@ -3,4 +3,5 @@
 * Reload docs/notes/current-chat.md (chat session) which contains session info, TODO, and Next Steps
 * Very important rule: do *not generate or modify code on disk* unless specifically asked!
 
-Now - please remind me what I last indicated is the next task?
+Analyze the "Next Steps" and give me a summary of what needs to be worked on today. You may also give me your advice on prioritization and efficiency in executing the next steps.
+2025-11-22T11:47:03.890825Z TODO: bump Android compileOptions/kotlinOptions to Java 17 in android/app/build.gradle to match Gradle 8.x.
