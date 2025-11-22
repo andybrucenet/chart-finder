@@ -15,14 +15,30 @@ cf_env_vars_to_make_main() {
   local l_rc=0
   local l_tmp_prefix="`lcl_os_tmp_dir`/cf-env-vars-to-make-$$-"
 
+  # store the known global vars from lcl-os-checks.sh
+  local l_tmp_var_names_path="${l_tmp_prefix}var-names.txt"
+  cat <<EOS > "$l_tmp_var_names_path"
+g_IS_LINUX
+g_IS_MAC
+g_IS_CYGWIN
+g_IS_MINGW
+g_UNAME
+g_VALID_OS
+g_UNAME_MACHINE
+g_PATH_SEP
+g_DOT_LOCAL_DIR_NAME
+g_DOT_LOCAL_SETTINGS_FNAME
+g_DOT_LOCAL_SETTINGS_TAG_LINE
+g_VERSION_ENV_VARS_TO_CHECK
+g_VERSION_NORMALIZE_DEFAULT_BUILD
+EOS
+
   # we need to identify all env variables to export for Makefile.
   # these include all CF_ vars but also any explicit vars from the
   # individual .local scripts (such as AWS_SDK_LOAD_CONFIG).
-  local l_tmp_var_names_path="${l_tmp_prefix}var-names.txt"
   local l_local_dir="$the_cf_env_vars_to_make_root_dir/$g_DOT_LOCAL_DIR_NAME"
   local l_local_rel_paths_to_process="$g_DOT_LOCAL_SETTINGS_FNAME"
   local l_local_path=''
-  touch "$l_tmp_var_names_path"
   for i in $l_local_rel_paths_to_process ; do
     l_local_path="$l_local_dir/$i"
     [ ! -s "$l_local_path" ] && continue
@@ -63,9 +79,10 @@ cf_env_vars_to_make_main() {
       #echo "\$(info $line=\$($line))" >>"$l_tmp_output_path"
     done < "$l_tmp_var_names_path"
 
-    # end with control var
-    echo "CF_ENV_VARS_TO_MAKE_ALREADY_RUN := 1" >>"$l_tmp_output_path"
-    echo "export CF_ENV_VARS_TO_MAKE_ALREADY_RUN" >>"$l_tmp_output_path"
+    # NOTE: trying to cache appears to break things!
+    ## end with control var
+    #echo "CF_ENV_VARS_TO_MAKE_ALREADY_RUN := 1" >>"$l_tmp_output_path"
+    #echo "export CF_ENV_VARS_TO_MAKE_ALREADY_RUN" >>"$l_tmp_output_path"
   fi
 
   # overwrite the "real" destination if different
