@@ -23,10 +23,13 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help
+.PHONY: help emulators
 help:
 	@printf "Front-end stack: %s (set CF_LOCAL_FRONTEND_ENV to switch)\n\n" "$(FRONTEND_STACK)"
 	@$(MAKE) -f "$(FRONTEND_STACK_MAKEFILE)" --no-print-directory help
 
 %:
 	@$(MAKE) -f "$(FRONTEND_STACK_MAKEFILE)" --no-print-directory $@
+
+emulators:
+	@$(ROOT)/scripts/frontend-android-emulator.sh list-avds

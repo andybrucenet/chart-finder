@@ -20,10 +20,12 @@ FRONTEND_SCRIPTS_DIR := $(ROOT)/scripts
 FRONTEND_SRC_SIG_SCRIPT := $(FRONTEND_SCRIPTS_DIR)/frontend-src-sig.sh
 FRONTEND_VERSION_ARTIFACTS_SCRIPT := $(FRONTEND_SCRIPTS_DIR)/frontend-version-artifacts.sh
 FRONTEND_FLUTTER_PUB_GET_STAMP := $(the_cf_env_vars_state_dir)/frontend-flutter-pub-get.stamp
+FRONTEND_ANDROID_EMULATOR_SCRIPT := $(ROOT)/scripts/frontend-android-emulator.sh
+FRONTEND_FLUTTER_SYNC_CLIENT_SCRIPT := $(ROOT)/scripts/frontend-flutter-sync-client.sh
 
 .DEFAULT_GOAL := help
 
-.PHONY: help all install deps ci build-number version-artifacts build build-android build-ios build-macos build-windows test lint typecheck clean veryclean rebuild reinstall publish start start-ios start-android start-macos android ios refresh-ios refresh-android refresh-all doctor format version flutter-check
+.PHONY: help all install deps ci build-number version-artifacts build build-android build-ios build-macos build-windows test lint typecheck clean veryclean rebuild reinstall publish start start-ios start-android start-macos android ios refresh-ios refresh-android refresh-all doctor format version flutter-check ensure-android-device ensure-client
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -80,7 +82,7 @@ $(FRONTEND_FLUTTER_PUB_GET_STAMP): $(APP_DIR)/pubspec.yaml $(APP_DIR)/pubspec.lo
 	@mkdir -p "$(the_cf_env_vars_state_dir)"
 	@touch "$@"
 
-deps: flutter-check install version-artifacts
+deps: flutter-check ensure-client install version-artifacts
 
 build-number:
 	$(call log,FRONTEND: build-number)
@@ -151,6 +153,13 @@ reinstall:
 	@$(MAKE) clean
 	@$(MAKE) install
 
+ensure-android-device:
+	@if [ -x "$(FRONTEND_ANDROID_EMULATOR_SCRIPT)" ]; then \
+		"$(FRONTEND_ANDROID_EMULATOR_SCRIPT)" ensure; \
+	else \
+		printf '[frontend] WARN: Missing %s; skipping emulator boot.\n' "$(FRONTEND_ANDROID_EMULATOR_SCRIPT)"; \
+	fi
+
 start: deps
 	$(call log,FRONTEND: start web)
 	$(call flutter_run,-d chrome)
@@ -159,7 +168,7 @@ start-ios: deps
 	$(call log,FRONTEND: start ios)
 	$(call flutter_run,-d ios)
 
-start-android: deps
+start-android: deps ensure-android-device
 	$(call log,FRONTEND: start android)
 	$(call flutter_run,-d android)
 
@@ -167,11 +176,11 @@ start-macos: deps
 	$(call log,FRONTEND: start macos)
 	$(call flutter_run,-d macos)
 
-android: deps build-number
+android: deps build-number ensure-android-device
 	$(call log,FRONTEND: android run)
 	$(call flutter_run,-d android)
 
-refresh-android:
+refresh-android: ensure-android-device
 	$(call log,FRONTEND: refresh android)
 	@$(MAKE) clean
 	$(call flutter_cmd,build apk)
@@ -205,3 +214,6 @@ version:
 	$(call log,FRONTEND: version)
 	@cd "$(ROOT)" && ./scripts/update-version.sh frontend
 	@cd "$(ROOT)" && FRONTEND_VERSION_ARTIFACTS_OPTION_STACK=flutter "$(FRONTEND_VERSION_ARTIFACTS_SCRIPT)" run
+ensure-client:
+	$(call log,FRONTEND: sync chart_finder_client)
+	@cd "$(ROOT)" && "$(FRONTEND_FLUTTER_SYNC_CLIENT_SCRIPT)"

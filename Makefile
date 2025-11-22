@@ -10,8 +10,9 @@ include $(ROOT)/.local/state/cf-env-vars.mk
 
 .PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build test rebuild publish \
 	backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \
-	frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
-	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-rebuild frontend-publish frontend-version \
+ frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
+ 	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-rebuild frontend-publish frontend-version \
+ 	frontend-emulators \
 	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean infra-test infra-rebuild \
 	clean veryclean
 
@@ -231,6 +232,9 @@ frontend-publish:
 
 frontend-version:
 	@$(MAKE) -C frontend version
+
+frontend-emulators:
+	@$(MAKE) -C frontend emulators
 
 clean:
 	$(call log,ROOT: clean)
