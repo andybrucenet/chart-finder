@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  dio: ^5.7.0
+  chart_finder_client: 2025.11.11-build.20251119085812
 
 dev_dependencies:
   flutter_test:
