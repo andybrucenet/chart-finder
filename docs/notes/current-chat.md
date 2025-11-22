@@ -52,58 +52,15 @@
 - Calculator code path removed; frontend entry screen renamed to `VersionScreen`.
 - Reminder: **AI must not run build/deploy/Expo/CocoaPods commands**—user owns `frontend-refresh-*`, `expo run`, etc.
 
-### Next Steps
-- Stand up the Flutter tooling via FVM before touching new code: `dart pub global activate fvm`, `fvm install/use <version>`, and wire VS Code build/deploy tasks to `.fvm/flutter_sdk`.
-- Decide on the actual mobile app feature set (e.g., splash screens, chart discovery/purchase flows, potential “listen to music” capability).
-- Design splash screens/logo assets for both iOS and Android, aligned with the new bundle identifiers.
-- Outline the core screens and navigation (what replaces the current placeholder version check).
-- Stand up parallel backend solutions/projects (e.g., net8 for Lambda, “ChartFinder.Api.NSwag” on net10) that link shared sources from `src/common`, so tooling with new runtime requirements doesn’t block the deployed runtime.
-
-## 2025-11-20 Session Notes
-- Renamed the generic `aws-run-cmd.sh` helper to `cf-run-cmd.sh` so every stack command (especially Make targets) can load the fully-hydrated env without implying AWS-only usage.
-- Added `scripts/cf-env-vars-to-make.sh`, which sources `cf-env-vars.sh` and emits Make-style assignments/exports (including the derived `the_cf_env_vars_*` paths) so a single `$(eval $(shell …))` call bootstraps the environment for all recipes.
-- Optimized `scripts/cf-env-vars.sh` for Cygwin-heavy runs by short-circuiting when `CF_ENV_VARS_TO_MAKE_ALREADY_RUN=1`, while still honoring explicit rebuild flags and keeping the cached backend/frontend metadata available.
-- Updated the top-level, backend, backend-clients, and infra Makefiles to compute `ROOT` from their own paths and immediately call `$(ROOT)/scripts/cf-env-vars-to-make.sh`, ensuring targets in any subdirectory inherit the same env without wrapping `make` in `cf-run-cmd.sh`.
-- Expanded `frontend-src-sig.sh` so it hashes both the React (`src/frontend/chart-finder-react`) and Flutter (`src/frontend/chart-finder-flutter`) trees (when present), skipping framework-specific build/cache folders and bumping the shared frontend build number whenever either stack changes; respected `CF_LOCAL_FRONTEND_ENV` so only the active stack is scanned when set.
-
-## 2025-11-21 Session Notes
-- Added `scripts/backend-openapi-annotate.sh` and wired it into the backend Makefile so OpenAPI downloads automatically embed `x-chartfinder-backend-version` and `x-chartfinder-backend-build-number`.
-- Introduced `swagger-metadata` plus `SWAGGER_METADATA_SCRIPT/INPUT` knobs, letting us re-annotate any existing spec without regenerating or bumping backend build numbers.
-- `BACKEND_OPENAPI_ANNOTATE_OPTION_STDOUT=1` now emits to stdout via a temp file, enabling non-destructive checks or piping into other tooling.
-- Confirmed `docs/api/chart-finder-openapi-v1.json` carries the new metadata, so frontend clients can read the published version to select the matching generated API bundle.
-
-## 2025-11-22 Session Notes
-- Added `frontend/Makefile` as a stack-aware wrapper plus `frontend/Makefile-flutter`, ensuring `CF_LOCAL_FRONTEND_ENV` selects the correct frontend stack while React/Flutter makefiles now pin their own version-artifact runs.
-- Extended `scripts/frontend-version-artifacts.sh` so it emits both `versionInfo.ts` and the new Flutter `lib/version_info.dart`, keeping metadata generation consistent across stacks.
-- Introduced `frontend/scripts/frontend-flutter-cf-env-vars-to-make.sh`, which validates `CF_FRONTEND_FLUTTER_VER`, runs the required `fvm` install/use flow without leaking PATH mutations, and ensures Flutter version parity before exporting Make vars.
-- Gated `fvm flutter pub get` behind a `.local/state` stamp in `frontend/Makefile-flutter` so dependency installs only rerun when `pubspec.yaml`/`pubspec.lock` change; `clean` now clears the stamp to force refreshes.
-- Added `scripts/frontend-ios-simulator.sh` to detect or boot the desired iOS simulator (`CF_FRONTEND_IOS_SIMULATOR_NAME`, default `iPhone 18`) using `xcrun simctl`, giving future targets a reusable “ensure simulator is ready” step.
-- Captured the command to pick the newest available `iPhone 16` simulator runtime:
-  ```bash
-  xcrun simctl list devices --json \
-  | jq -r '
-      .devices
-      | to_entries[]
-      | .key as $runtime
-      | .value[]
-      | select(type == "object")
-      | select((.name == "iPhone 16") and (.isAvailable == true))
-      | [$runtime, .name, .udid]
-      | @tsv
-    ' | sort -ur | head -n 1
-  ```
-
-## TODO
-- Avoid unnecessary `.NET` rebuilds: if no backend source files changed, `make stack-refresh` should skip `dotnet build` (and thus prevent spurious stack publishes).
-- Add a proper release flow where client publishes use only `A.B.C` versions (not `-build.*`) and require a matching `CHANGELOG.md` entry before publishing.
-- Lock down the Flutter app model: map the navigation stack, confirm native outputs for every target platform, enforce an MVC split between UI and logic, and wire in a skinnable theme from the start.
-- [HIGH] Capture backend Lambda logging requirements and ensure structured logs flow from .NET to CloudWatch (or equivalent) for observability.
-
 ## Next Steps
-### Frontend Platform Follow-Ups
-- Update `scripts/frontend-ios-simulator.sh` to consume the saved `simctl`/`jq` query so it auto-selects the newest available `iPhone 16` runtime before booting.
-- Wire the Flutter app to render the generated `version_info.dart` (initial “Version” screen + smoke test target), proving the build can run on iOS.
-- Integrate the Flutter make targets with the simulator helper so `make frontend-ios` starts a sim, deploys, and verifies the app (aim for a working iOS run loop).
-- Import the Flutter (Dart) Chart Finder API client generated from `docs/api/chart-finder-openapi-v1.json`, deriving version/build metadata via the normalization helpers in `scripts/lcl-os-checks.sh`.
-- Finish the dependency audit by running `npm outdated --long` in `chart-finder-react` and planning the required upgrades/replacements for deprecated packages.
-- Add scripted checks around `fvm flutter` commands so CI/dev boxes verify the pinned `CF_FRONTEND_FLUTTER_VER` before builds run.
+- Update scripts/README.md so new scripts (android-run, frontend-android-emulator, frontend-flutter-sync-client) are documented and tied back to the Make targets that invoke them.
+- Verify the Flutter dependency sync flow:
+  1. Backend change updates docs/api/chart-finder-openapi-v1.json.
+  2. `make frontend deps` checks pubspec.yaml’s chart_finder_client entry, updating it and rerunning `flutter pub get` when the spec version changes.
+- Hook AndroidManifest versioning (`versionName` = CF_FRONTEND_VERSION_SHORT, `versionCode` = CF_FRONTEND_VERSION_GLOBAL_RELEASE) into the Flutter deps target.
+- Re-run the Android pipeline end-to-end (deps, build, start) to confirm everything compiles and launches.
+- Negative/positive checks after verification:
+  * Tamper with chart-finder-openapi-v1.json to simulate an invalid spec version and confirm the dependency normalization fails as expected.
+  * Change CF_FRONTEND_VERSION_SHORT / CF_FRONTEND_VERSION_GLOBAL_RELEASE and confirm AndroidManifest picks up the new values automatically.
+- Once Android is stable, repeat the integration work for macOS, then iOS, then Windows.
+
