@@ -4,14 +4,17 @@ Chart Finder pins Flutter via [FVM](https://fvm.app/) so every developer, CI run
 
 ## Install Dart + FVM
 1. Ensure Dart is available (`brew install dart`, `choco install dart-sdk`, or install Flutter which bundles Dart).  
-2. Activate FVM globally:
+2. Activate FVM globally **using the system Dart you want future shells to prefer** (e.g., Homebrew’s `/usr/local/bin/dart` on macOS) so the generated snapshot matches that runtime:
    ```bash
-   dart pub global activate fvm
+   env PATH="/usr/local/bin:$PATH" /usr/local/bin/dart pub global deactivate fvm || true
+   env PATH="/usr/local/bin:$PATH" /usr/local/bin/dart pub global activate fvm
    ```
-3. Add FVM to your PATH if needed (macOS/Linux):  
+   If you ever see kernel-format or “fvm … doesn’t support Dart X.Y” errors, make sure the wrapper is pointing at a snapshot built by your preferred Dart. The snapshots live under `~/.pub-cache/global_packages/fvm/bin/`; deleting the incompatible one is safe as long as you re-run the `dart pub global activate fvm` command above immediately afterward.
+3. Add FVM to your PATH if needed (macOS/Linux) **after** higher-priority toolchains (e.g., keep `/usr/local/bin` ahead of any Flutter SDK bins so `dart pub …` keeps using the Homebrew SDK):
    ```bash
    export PATH="$HOME/.pub-cache/bin:$PATH"
    ```
+   If you temporarily prepend `.fvm/flutter_sdk/bin` to PATH for Flutter builds, make sure you drop it (or re-order PATH) before running `dart pub global activate …` again; otherwise FVM may reactivate under Flutter’s bundled Dart and reintroduce the kernel-format mismatch.
 
 ## Pin the Project Version
 1. Change into the Flutter app:

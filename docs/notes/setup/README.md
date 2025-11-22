@@ -9,7 +9,8 @@ Onboarding checklist for new contributors. Fill in the placeholders (e.g., `<CF_
 - **Toolchains**  
   - Install the base toolset: Git, bash-compatible shell, AWS CLI v2, `dotnet` (per `global.json`), Node.js + npm (for the React app), and Python 3.  
   - Install mobile tooling as needed: Xcode (macOS), Android Studio, and Expo CLI.  
-  - Flutter-specific tooling must run through **FVM**: see <a href="./flutter-fvm.md" target="_blank" rel="noopener">docs/notes/setup/flutter-fvm.md</a> for the pinned version, `.fvm/fvm_config.json`, and IDE tips.
+  - Flutter-specific tooling must run through **FVM**: see <a href="./flutter-fvm.md" target="_blank" rel="noopener">docs/notes/setup/flutter-fvm.md</a> for the pinned version, `.fvm/fvm_config.json`, and IDE tips.  
+  - When scaffolding Flutter platforms or new apps, follow <a href="./flutter-app.md" target="_blank" rel="noopener">docs/notes/setup/flutter-app.md</a> for the `--project-name` convention (underscores vs. hyphens) and platform creation steps.
 - **Package registries**  
   - Use <a href="./package-registries.md" target="_blank" rel="noopener">docs/notes/setup/package-registries.md</a> for the npm/NuGet/pub.dev walkthroughs. Store tokens in a password manager and hydrate `.local/local.env` with any required variables (e.g., `CF_LOCAL_BACKEND_API_KEY_NUGET_ORG`).
 
