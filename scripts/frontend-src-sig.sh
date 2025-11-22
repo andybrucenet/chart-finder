@@ -198,7 +198,15 @@ frontend_src_sig_run() {
   frontend_src_sig_log "Frontend Src Signature (CURRENT) : $l_current"
   frontend_src_sig_log "Frontend Src Signature (PREVIOUS): ${l_previous:-<none>}"
 
-  if [ -n "$l_previous" ] && [ "$l_current" = "$l_previous" ]; then
+  if [ -z "$l_previous" ]; then
+    frontend_src_sig_log "No previous signature found; seeding state without bumping build number."
+    if ! frontend_src_sig_write_signature "$l_current"; then
+      return 1
+    fi
+    return 0
+  fi
+
+  if [ "$l_current" = "$l_previous" ]; then
     frontend_src_sig_log "Signatures identical; no build number update required."
     return 0
   fi

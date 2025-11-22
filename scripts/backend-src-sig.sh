@@ -41,6 +41,14 @@ if [ x"$sig_cur" = x"$sig_prev" ] ; then
   exit 0
 fi
 
+# no previous signature? seed state without bumping build number
+if [ -z "$sig_prev" ]; then
+  echo '  No previous signature found; writing current signature without updating build number.'
+  echo "$sig_cur" >"$sig_file" || exit $?
+  echo '  OK'
+  exit 0
+fi
+
 # update
 default_build_number="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "  UPDATE: BUILD_NUMBER ($default_build_number)..."
