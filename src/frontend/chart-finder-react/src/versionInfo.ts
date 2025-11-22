@@ -9,7 +9,7 @@ export const VersionInfo = {
   versionFullNumeric: `2025111110001`,
   versionShort: `2025.11.11`,
   versionShortNumeric: `20251111`,
-  buildNumber: `2025-11-22T11:26:13Z`,
+  buildNumber: `2025-11-22T11:46:04Z`,
   buildComment: `Prep for different front-end`,
   branch: `main`,
   informationalVersion: `2025.11.11.10001+main.Prep for different front-end`,
@@ -20,4 +20,6 @@ export const VersionInfo = {
   productSlug: `chartfinder`,
   companySnake: `softwareab`,
   productSnake: `chart_finder`,
+  backendApiVersion: `2025.11.11.10001`,
+  backendApiBuildNumber: `2025-11-19T08:58:12Z`,
 } as const;
