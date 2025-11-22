@@ -18,6 +18,8 @@ class VersionInfo {
   final String productName;
   final String companySlug;
   final String productSlug;
+  final String companySnake;
+  final String productSnake;
 
   const VersionInfo({
     required this.version,
@@ -37,6 +39,8 @@ class VersionInfo {
     required this.productName,
     required this.companySlug,
     required this.productSlug,
+    required this.companySnake,
+    required this.productSnake,
   });
 }
 
@@ -49,7 +53,7 @@ const versionInfo = VersionInfo(
   versionFullNumeric: '2025111110001',
   versionShort: '2025.11.11',
   versionShortNumeric: '20251111',
-  buildNumber: '2025-11-20T14:33:43Z',
+  buildNumber: '2025-11-22T11:46:04Z',
   buildComment: 'Prep for different front-end',
   branch: 'main',
   informationalVersion: '2025.11.11.10001+main.Prep for different front-end',
@@ -58,4 +62,6 @@ const versionInfo = VersionInfo(
   productName: 'Chart Finder',
   companySlug: 'softwareab',
   productSlug: 'chartfinder',
+  companySnake: 'softwareab',
+  productSnake: 'chart_finder',
 );
