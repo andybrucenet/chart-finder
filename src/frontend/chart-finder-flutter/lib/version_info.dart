@@ -20,6 +20,8 @@ class VersionInfo {
   final String productSlug;
   final String companySnake;
   final String productSnake;
+  final String backendApiVersion;
+  final String backendApiBuildNumber;
 
   const VersionInfo({
     required this.version,
@@ -41,6 +43,8 @@ class VersionInfo {
     required this.productSlug,
     required this.companySnake,
     required this.productSnake,
+    required this.backendApiVersion,
+    required this.backendApiBuildNumber,
   });
 }
 
@@ -64,4 +68,6 @@ const versionInfo = VersionInfo(
   productSlug: 'chartfinder',
   companySnake: 'softwareab',
   productSnake: 'chart_finder',
+  backendApiVersion: '2025.11.11.10001',
+  backendApiBuildNumber: '2025-11-19T08:58:12Z',
 );
