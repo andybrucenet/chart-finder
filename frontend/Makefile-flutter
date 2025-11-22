@@ -23,7 +23,7 @@ FRONTEND_FLUTTER_PUB_GET_STAMP := $(the_cf_env_vars_state_dir)/frontend-flutter-
 
 .DEFAULT_GOAL := help
 
-.PHONY: help all install deps ci build-number version-artifacts build test lint typecheck clean veryclean rebuild reinstall publish start start-ios start-android start-macos android ios refresh-ios refresh-android refresh-all doctor format version flutter-check
+.PHONY: help all install deps ci build-number version-artifacts build build-android build-ios build-macos build-windows test lint typecheck clean veryclean rebuild reinstall publish start start-ios start-android start-macos android ios refresh-ios refresh-android refresh-all doctor format version flutter-check
 
 log = @printf '\n***** %s\n' "$(1)"
 
@@ -47,7 +47,11 @@ help:
 		"  version-artifacts Generate source artifacts from version metadata" \
 		"  build-number      Update build number when sources change" \
 		"  ci                fvm flutter pub get (clean workflow placeholder)" \
-		"  build             fvm flutter build web" \
+		"  build             Alias for build-android (fast, host-agnostic sanity build)" \
+		"  build-android     fvm flutter build apk --debug" \
+		"  build-ios         fvm flutter build ios --simulator (macOS only)" \
+		"  build-macos       fvm flutter build macos (macOS only)" \
+		"  build-windows     fvm flutter build windows (Windows host required)" \
 		"  test              fvm flutter test" \
 		"  lint              fvm flutter analyze" \
 		"  typecheck         Alias for lint until we add a stricter pass" \
@@ -94,9 +98,23 @@ ci:
 	$(call log,FRONTEND: ci)
 	$(call flutter_cmd,pub get)
 
-build: deps build-number
-	$(call log,FRONTEND: build web)
-	$(call flutter_cmd,build web)
+build: build-android
+
+build-android: deps build-number
+	$(call log,FRONTEND: build android apk)
+	$(call flutter_cmd,build apk --debug)
+
+build-ios: deps build-number
+	$(call log,FRONTEND: build ios simulator)
+	$(call flutter_cmd,build ios --simulator --no-codesign)
+
+build-macos: deps build-number
+	$(call log,FRONTEND: build macos)
+	$(call flutter_cmd,build macos)
+
+build-windows: deps build-number
+	$(call log,FRONTEND: build windows)
+	$(call flutter_cmd,build windows)
 
 test: deps
 	$(call log,FRONTEND: test)
