@@ -8,12 +8,12 @@ ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 $(shell $(ROOT)/scripts/cf-env-vars-to-make.sh)
 include $(ROOT)/.local/state/cf-env-vars.mk
 
-.PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build test rebuild publish \
-	backend backend-build backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \
- frontend frontend-install frontend-ci frontend-build frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
+.PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build deps test rebuild publish \
+	backend backend-build backend-deps backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \
+ frontend frontend-install frontend-ci frontend-build frontend-deps frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
  	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-rebuild frontend-publish frontend-version \
  	frontend-emulators \
-	infra infra-build infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean infra-test infra-rebuild \
+	infra infra-build infra-deps infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean infra-test infra-rebuild \
 	clean veryclean
 
 log = @printf '\n***** %s\n' "$(1)"
@@ -94,6 +94,12 @@ build:
 	@$(MAKE) frontend-build
 	@$(MAKE) infra-build
 
+deps:
+	$(call log,ROOT: deps)
+	@$(MAKE) backend-deps
+	@$(MAKE) infra-deps
+	@$(MAKE) frontend-deps
+
 test:
 	$(call log,ROOT: test)
 	@$(MAKE) backend-test
@@ -119,6 +125,9 @@ backend-build:
 	#@$(MAKE) -C backend build swagger
 	@$(MAKE) -C backend build
 
+backend-deps:
+	@$(MAKE) -C backend deps
+
 backend-test:
 	@$(MAKE) -C backend test
 
@@ -142,6 +151,9 @@ infra-all:
 
 infra-build:
 	@$(MAKE) -C infra build
+
+infra-deps:
+	@$(MAKE) -C infra deps
 
 infra-stage:
 	@$(MAKE) -C infra stage
@@ -175,6 +187,9 @@ frontend-ci:
 
 frontend-build:
 	@$(MAKE) -C frontend build
+
+frontend-deps:
+	@$(MAKE) -C frontend deps
 
 frontend-test:
 	@$(MAKE) -C frontend test

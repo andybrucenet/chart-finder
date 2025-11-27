@@ -16,11 +16,15 @@ ifeq ($(STACK_DEPLOYMENT_MODE),batch)
 SAM_DEPLOY_ENV := AWS_SAM_DEPLOY_OPTION_NO_CONFIRM=1
 endif
 
-.PHONY: all configs build stage publish status uri smoke test clean veryclean rebuild
+.PHONY: all deps configs build stage publish status uri smoke test clean veryclean rebuild
 
 log = @printf '\n***** %s\n' "$(1)"
 
 all: build
+
+deps:
+	$(call log,INFRA: deps)
+	@true
 
 configs:
 	$(call log,INFRA: configs)

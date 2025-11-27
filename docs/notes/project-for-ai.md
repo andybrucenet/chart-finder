@@ -21,4 +21,8 @@
 - When generating new code - always add XML documentation (or equivalent) for public methods.
 - Keep onboarding notes in `docs/notes/` and use existing scripts (`setup-dev-env.sh`, `sync-configs.sh`) for repo hydration.
 - Script-specific variables use the form `the_[script-name]_[var-name]` and `ALL_CAPS` is reserved for "real" environment variables (those that are shared between scripts or passed to 3rd-party tools). Thus, for a script like frontend-src-sig.sh which needs to track location of the Flutter frontend src dir, we'd use a name like `the_frontend_src_sig_flutter_dir` instead of a name like `FLUTTER_DIR`. This was humans can easily see which env vars are meant to be shared vs. those env vars which are really local to the script itself (albeit still a global env var).
-- *NEVER USE `set -euo` in a generated script!* Instead, check your error return codes. Using `set -euo` results in instant failures on any unexpected command, can pollute other scripts if 'source-only' option is used to source in (reuse) a script.
+- IMPORTANT: **NEVER USE `set -euo` in a generated script!** Instead, check your error return codes. Using `set -euo` results in instant failures on any unexpected command, can pollute other scripts if 'source-only' option is used to source in (reuse) a script.
+- When generating code into a Makefile, please use whsp (single line) between targets to make it easier to read for humans.
+- TODO items need to go into the "TODO" section within /docs/notes/current-chat.md. Please update this section as I call out items that need to be done in future. Also - nag me periodically about them by selecting one or two and asking "Hey - are you ready to hit this TODO items?"
+- Script file names should use `-` (dash) rather than `_` (underscore) to separate names as the preferred method unless the technology (e.g. flutter) precludes that.
+

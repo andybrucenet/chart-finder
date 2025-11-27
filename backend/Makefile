@@ -13,7 +13,7 @@ DOTNET ?= dotnet
 
 BUILD_CONFIGURATION ?= Debug
 
-.PHONY: all restore build-number configs build build-core test clean veryclean rebuild deploy publish swagger swagger-clean swagger-rebuild swagger-metadata
+.PHONY: all deps restore build-number configs build build-core test clean veryclean rebuild deploy publish swagger swagger-clean swagger-rebuild swagger-metadata
 
 SWAGGER_DOC_NAME ?= v1
 SWAGGER_OUTPUT ?= $(ROOT)/docs/api/chart-finder-openapi-$(SWAGGER_DOC_NAME).json
@@ -25,6 +25,10 @@ SWAGGER_SOURCES := $(shell find $(ROOT)/src/backend -name '*.cs')
 log = @printf '\n***** %s\n' "$(1)"
 
 all: build
+
+deps:
+	$(call log,BACKEND: deps)
+	@true
 
 restore:
 	$(call log,BACKEND: restore)

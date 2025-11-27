@@ -52,15 +52,10 @@
 - Calculator code path removed; frontend entry screen renamed to `VersionScreen`.
 - Reminder: **AI must not run build/deploy/Expo/CocoaPods commands**—user owns `frontend-refresh-*`, `expo run`, etc.
 
-## Next Steps
+## TODO
 - Update scripts/README.md so new scripts (android-run, frontend-android-emulator, frontend-flutter-sync-client) are documented and tied back to the Make targets that invoke them.
-- Verify the Flutter dependency sync flow:
-  1. Backend change updates docs/api/chart-finder-openapi-v1.json.
-  2. `make frontend deps` checks pubspec.yaml’s chart_finder_client entry, updating it and rerunning `flutter pub get` when the spec version changes.
-- Hook AndroidManifest versioning (`versionName` = CF_FRONTEND_VERSION_SHORT, `versionCode` = CF_FRONTEND_VERSION_GLOBAL_RELEASE) into the Flutter deps target.
-- Re-run the Android pipeline end-to-end (deps, build, start) to confirm everything compiles and launches.
-- Negative/positive checks after verification:
-  * Tamper with chart-finder-openapi-v1.json to simulate an invalid spec version and confirm the dependency normalization fails as expected.
-  * Change CF_FRONTEND_VERSION_SHORT / CF_FRONTEND_VERSION_GLOBAL_RELEASE and confirm AndroidManifest picks up the new values automatically.
-- Once Android is stable, repeat the integration work for macOS, then iOS, then Windows.
+- Extract every inline Python helper into dedicated executables under `scripts/helpers/` so the bash entrypoints only handle environment setup.
 
+
+## Next Steps
+- Once Android is stable, repeat the integration work for macOS, then iOS, then Windows.
