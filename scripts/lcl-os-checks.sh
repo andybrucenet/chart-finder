@@ -153,6 +153,11 @@ function lcl_os_print_var {
   eval echo "\$$1"
 }
 #
+# convert a string to a 'sluggable' (snakeable) string (ex: 'Chart Finder' becomes 'chart_finder')
+function lcl_string_to_slug {
+  echo "$1" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9 ]//g' -e 's/ /_/g' -e 's/__*/_/g'
+}
+#
 # git branch
 function lcl_git_branch() {
   local branch
@@ -725,7 +730,8 @@ function lcl_version_extract_short {
 
   printf '%s.%s.%s\n' "$l_major" "$l_minor" "$l_patch"
 }
-
+#
+# normalize version for npm
 function lcl_version_normalize_npm {
   local i_short="${1:-}"
   local i_build_raw="${2:-$g_VERSION_NORMALIZE_DEFAULT_BUILD}"

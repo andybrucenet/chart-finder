@@ -1,15 +1,19 @@
 # Flutter App Setup
 
-Project-scoped checklist for scaffolding Flutter platforms inside the Chart Finder repo (or any future app that shares the same conventions).
+Project-scoped checklist for scaffolding Flutter platforms inside the Chart Finder repo.
+
+> Forking this workflow for another product? Update `scripts/update-version.sh` (see `write_frontend_metadata`) so the generated `frontend/version.json` contains your new company/product names **before** running the steps below; everything downstream (slugs, bundle IDs, etc.) derives from that metadata.
 
 ## 1. Folder Name vs. Dart Package Name
 - Flutter lets the **directory** use hyphens (e.g., `chart-finder-flutter`) but the **Dart package name** must use lowercase letters, numbers, and underscores (`chart_finder_flutter`).  
-- We expose the normalized identifiers in the generated version metadata (`VersionInfo.companySnake`, `VersionInfo.productSnake`) so every stack can reuse the same naming rules at build time.  
+- We expose the normalized identifiers in the generated version metadata (`VersionInfo.companySnake`, `VersionInfo.productSnake`) and export them via `CF_GLOBAL_*_SLUG` so every stack can reuse the same naming rules at build time (the slug comes from `lcl_string_to_slug` in `scripts/lcl-os-checks.sh`).  
 - When you run `flutter create` inside an existing folder, always pass `--project-name` (use `versionInfo.productSnake` if you want the normalized product name) so the generated platform code (Android package IDs, iOS bundle identifiers, etc.) reuses the underscore form:
   ```bash
   cd src/frontend/chart-finder-flutter
+  # Derive the underscore-safe project name from the shared env helper.
+  PRODUCT_SNAKE="$(../../../scripts/cf-env-vars.sh CF_GLOBAL_PRODUCT_SLUG)"
   fvm flutter create \
-    --project-name chart_finder_flutter \  # or `$(jq -r .productSnake frontend/version.json)`
+    --project-name "$PRODUCT_SNAKE" \
     --platforms android \
     .
   ```
@@ -20,10 +24,12 @@ Run `flutter create` only once per platform; the command is idempotent and skips
 
 ```bash
 # Add Android support (Gradle project under android/)
-fvm flutter create --project-name chart_finder_flutter --platforms android .
+PRODUCT_SNAKE="$(../../../scripts/cf-env-vars.sh CF_GLOBAL_PRODUCT_SLUG)"
+fvm flutter create --project-name "$PRODUCT_SNAKE" --platforms android .
 
 # Add the remaining desktop/Apple shells later
-fvm flutter create --project-name chart_finder_flutter --platforms ios,macos,windows .
+PRODUCT_SNAKE="$(../../../scripts/cf-env-vars.sh CF_GLOBAL_PRODUCT_SLUG)"
+fvm flutter create --project-name "$PRODUCT_SNAKE" --platforms ios,macos,windows .
 ```
 
 After each run:

@@ -57,7 +57,7 @@ const versionInfo = VersionInfo(
   versionFullNumeric: '2025111110001',
   versionShort: '2025.11.11',
   versionShortNumeric: '20251111',
-  buildNumber: '2025-11-27T12:06:06Z',
+  buildNumber: '2025-11-27T13:14:11Z',
   buildComment: 'Prep for different front-end',
   branch: 'main',
   informationalVersion: '2025.11.11.10001+main.Prep for different front-end',

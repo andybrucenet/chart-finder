@@ -262,6 +262,10 @@ if [ $the_cf_env_vars_optimization_flag -eq 0 ] ; then
   #
   # git branch is *always* dynamic (and we may need to separate from "last compiled git branch")
   [ x"$CF_GLOBAL_BRANCH" = x ] && export CF_GLOBAL_BRANCH="`lcl_git_branch`"
+  #
+  # sluggable names are also dynamic
+  [ x"$CF_GLOBAL_COMPANY_SLUG" = x ] && export CF_GLOBAL_COMPANY_SLUG="`lcl_string_to_slug "$CF_GLOBAL_COMPANY"`"
+  [ x"$CF_GLOBAL_PRODUCT_SLUG" = x ] && export CF_GLOBAL_PRODUCT_SLUG="`lcl_string_to_slug "$CF_GLOBAL_PRODUCT"`"
 fi
 #
 # show any variables?

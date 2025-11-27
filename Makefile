@@ -10,7 +10,7 @@ include $(ROOT)/.local/state/cf-env-vars.mk
 
 .PHONY: help setup-dev-env stack-refresh stack-refresh-batch tls-status tls-renew build deps test rebuild publish \
 	backend backend-build backend-deps backend-test backend-clean backend-rebuild backend-all backend-deploy backend-swagger backend-publish \
- frontend frontend-install frontend-ci frontend-build frontend-deps frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
+ frontend frontend-install frontend-ci frontend-build frontend-build-android frontend-build-ios frontend-build-macos frontend-build-windows frontend-deps frontend-test frontend-lint frontend-typecheck frontend-start frontend-start-ios frontend-start-android frontend-start-macos frontend-android \
  	frontend-ios frontend-refresh-ios frontend-refresh-android frontend-refresh-all frontend-doctor frontend-format frontend-reinstall frontend-clean frontend-rebuild frontend-publish frontend-version \
  	frontend-emulators \
 	infra infra-build infra-deps infra-stage infra-status infra-uri infra-publish infra-smoke infra-clean infra-test infra-rebuild \
@@ -187,6 +187,18 @@ frontend-ci:
 
 frontend-build:
 	@$(MAKE) -C frontend build
+
+frontend-build-android:
+	@$(MAKE) -C frontend build-android
+
+frontend-build-ios:
+	@$(MAKE) -C frontend build-ios
+
+frontend-build-macos:
+	@$(MAKE) -C frontend build-macos
+
+frontend-build-windows:
+	@$(MAKE) -C frontend build-windows
 
 frontend-deps:
 	@$(MAKE) -C frontend deps

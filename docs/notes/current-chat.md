@@ -52,10 +52,18 @@
 - Calculator code path removed; frontend entry screen renamed to `VersionScreen`.
 - Reminder: **AI must not run build/deploy/Expo/CocoaPods commands**—user owns `frontend-refresh-*`, `expo run`, etc.
 
+## 2025-11-27 Session Notes
+- Scaffolded the Flutter iOS shell via `fvm flutter create --project-name "$(scripts/cf-env-vars.sh CF_GLOBAL_PRODUCT_SLUG)" --platforms ios .`, keeping the hyphenated repo folder while feeding a slugged project name.
+- Added `scripts/frontend-ios-versioning.sh` + helper (`frontend-ios-info-plist-update.py`) so `make frontend deps` stamps `CFBundleShortVersionString`/`CFBundleVersion` alongside the Android manifest script (which now uses `frontend-android-manifest-version-update.py`).
+- Introduced `scripts/frontend-ios-simulator.sh` and `scripts/helpers/frontend-ios-simctl-utils.py`; `make frontend-start-ios` now auto-boots the preferred simulator, caches its UDID under `.local/state/`, and passes that ID into `flutter run`.
+- Documented the slug derivation workflow in `docs/notes/setup/flutter-app.md`, steering all `flutter create` commands through `scripts/cf-env-vars.sh CF_GLOBAL_PRODUCT_SLUG`.
+- Added platform-specific `frontend-build-*` passthrough targets plus `frontend-build` aggregator; repo-level Makefile detects individual platform builds cleanly.
+- iOS simulator bootstrap issues were traced to stale cache data—rerunning `scripts/frontend-ios-simulator.sh ensure` refreshes the UDID and unblocks `make frontend-start-ios`.
 ## TODO
 - Update scripts/README.md so new scripts (android-run, frontend-android-emulator, frontend-flutter-sync-client) are documented and tied back to the Make targets that invoke them.
 - Extract every inline Python helper into dedicated executables under `scripts/helpers/` so the bash entrypoints only handle environment setup.
+- Port the Flutter workflow to Windows once macOS/iOS reach parity (versioning, build/start targets, device helpers).
 
 
 ## Next Steps
-- Once Android is stable, repeat the integration work for macOS, then iOS, then Windows.
+- [NS-AZ] Map the Azure migration plan: inventory required services (equivalents for Lambda, DynamoDB, IAM), decide on IaC tooling (Bicep/Terraform), and outline an initial deployment target that satisfies the Azure Associate exam objectives.
