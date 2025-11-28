@@ -59,6 +59,10 @@
 - Documented the slug derivation workflow in `docs/notes/setup/flutter-app.md`, steering all `flutter create` commands through `scripts/cf-env-vars.sh CF_GLOBAL_PRODUCT_SLUG`.
 - Added platform-specific `frontend-build-*` passthrough targets plus `frontend-build` aggregator; repo-level Makefile detects individual platform builds cleanly.
 - iOS simulator bootstrap issues were traced to stale cache data—rerunning `scripts/frontend-ios-simulator.sh ensure` refreshes the UDID and unblocks `make frontend-start-ios`.
+## 2025-11-28 Session Notes
+- Product metadata now flows from `docs/about.json` → `scripts/update-version.sh` (hash sync) → `Directory.Build.props` / `frontend/version.json`; `cf-env-vars.sh` errors if `CF_GLOBAL_PRODUCT` is unset, and backend/frontend code reject missing product values at runtime.
+- Hardcoded “Chart Finder” strings were removed from backend csproj files, React/Flutter UI screens, and tooling scripts; backend static pages now use token replacement driven by assembly metadata.
+- Added multiple Python helpers (under `scripts/helpers/` and temporarily under `src/frontend/chart-finder-flutter/backend/clients/scripts/helpers/`) to replace inline heredocs, but the helper directory still needs to be created/moved to `backend/clients/scripts/helpers/` and remaining inline Python blocks must be lifted out in a follow-up session.
 ## TODO
 - Update scripts/README.md so new scripts (android-run, frontend-android-emulator, frontend-flutter-sync-client) are documented and tied back to the Make targets that invoke them.
 - Extract every inline Python helper into dedicated executables under `scripts/helpers/` so the bash entrypoints only handle environment setup.
@@ -66,4 +70,8 @@
 
 
 ## Next Steps
-- [NS-AZ] Map the Azure migration plan: inventory required services (equivalents for Lambda, DynamoDB, IAM), decide on IaC tooling (Bicep/Terraform), and outline an initial deployment target that satisfies the Azure Associate exam objectives.
+- Relocate the newly added helper scripts into `backend/clients/scripts/helpers/`, update the client shell scripts to reference the new paths, and remove the stray copies under `src/frontend/chart-finder-flutter/...`.
+- Continue extracting the remaining inline Python heredocs (e.g., in `scripts/update-version.sh`, `clients-prepare-dotnet.sh`, `clients-prepare-dart.sh`, etc.) into the structured helpers so every script follows the new pattern.
+- Regenerate frontend artifacts (`scripts/frontend-version-artifacts.sh` for React + Flutter) after the metadata sync so `versionInfo` files lose any lingering literals.
+
+Last saved Next Step: Migrate to Azure
