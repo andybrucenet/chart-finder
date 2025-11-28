@@ -4,7 +4,7 @@ using System.Reflection;
 namespace ChartFinder.Common.AppData;
 
 /// <summary>
-/// Provides appdata metadata describing a built Chart Finder component.
+/// Provides appdata metadata describing a built component.
 /// Consumers use this contract to surface build data across services.
 /// </summary>
 public class AppDataInstance : IAppDataInstance
@@ -15,7 +15,7 @@ public class AppDataInstance : IAppDataInstance
     public bool ExposeOpenAPI { get; }
 
     /// <summary>
-    /// Consruct instance
+    /// Construct instance
     /// </summary>
     /// <param name="exposeOpenAPI"></param>
     public AppDataInstance(bool exposeOpenAPI)

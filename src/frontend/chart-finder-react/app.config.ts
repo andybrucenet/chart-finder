@@ -1,18 +1,22 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { VersionInfo } from './src/versionInfo.ts';
 
-const DEFAULT_APP_NAME = 'Chart Finder';
-const DEFAULT_SLUG = 'chart-finder-react';
+const requireValue = <T>(value: T | undefined | null, key: string): T => {
+  if (!value) {
+    throw new Error(`VersionInfo missing ${key}`);
+  }
+  return value;
+};
 
-const versionShort = VersionInfo.versionShort || '1.0.0';
-const iosBuildNumber = VersionInfo.versionFullNumeric || '1';
-const androidVersionCode = Number(VersionInfo.versionShortNumeric || '1');
-const companySlug = VersionInfo.companySlug || 'softwareab';
-const productSlug = VersionInfo.productSlug || 'chartfinder';
+const versionShort = requireValue(VersionInfo.versionShort, 'versionShort');
+const iosBuildNumber = requireValue(VersionInfo.versionFullNumeric, 'versionFullNumeric');
+const androidVersionCode = Number(requireValue(VersionInfo.versionShortNumeric, 'versionShortNumeric'));
+const companySlug = requireValue(VersionInfo.companySlug, 'companySlug');
+const productSlug = requireValue(VersionInfo.productSlug, 'productSlug');
 const iosBundleId = `com.${companySlug}.${productSlug}`;
 const androidPackage = iosBundleId;
-const appName = VersionInfo.productName || DEFAULT_APP_NAME;
-const slug = DEFAULT_SLUG;
+const appName = requireValue(VersionInfo.productName, 'productName');
+const slug = `${productSlug}-react`;
 
 export default ({ config }: ConfigContext = {} as ConfigContext): ExpoConfig => ({
   ...config,

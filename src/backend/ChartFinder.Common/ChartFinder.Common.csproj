@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Description>Shared utilities for Chart Finder (e.g., versioning helpers).</Description>
+  <Description>Shared utilities for $(Product) (e.g., versioning helpers).</Description>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../common/ChartFinder.Common/AppData/IAppDataInstance.cs">

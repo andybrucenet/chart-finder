@@ -1,6 +1,6 @@
 #!/bin/bash
 # tls-renew.sh
-# Renew the Chart Finder wildcard certificate via Certbot and re-import it into ACM.
+# Renew the wildcard certificate via Certbot and re-import it into ACM.
 
 the_tls_renew_source="${BASH_SOURCE[0]}"
 while [ -h "$the_tls_renew_source" ]; do
@@ -13,6 +13,8 @@ the_tls_renew_root_dir="$( realpath "$the_tls_renew_script_dir"/.. )"
 
 source "$the_tls_renew_root_dir/scripts/lcl-os-checks.sh" 'source-only' || exit $?
 lcl_dot_local_settings_source "$the_tls_renew_root_dir" || exit $?
+source "$the_tls_renew_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
+the_tls_renew_product="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT missing}"
 
 the_tls_renew_certbot_bin="${TLS_RENEW_OPTION_CERTBOT_BIN:-/opt/homebrew/bin/certbot}"
 the_tls_renew_aws_bin="${TLS_RENEW_OPTION_AWS_BIN:-/opt/homebrew/bin/aws}"
@@ -126,7 +128,7 @@ tls_renew_run() {
     return $l_import_rc
   fi
 
-  tls_renew_log "TLS renewal complete."
+  tls_renew_log "${the_tls_renew_product} TLS renewal complete."
 }
 
 tls_renew_main() {

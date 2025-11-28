@@ -22,7 +22,7 @@ public class UtilsController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieve version details for the running Chart Finder backend.
+    /// Retrieve version details for the running backend.
     /// </summary>
     /// <returns>Structured version metadata.</returns>
     [HttpGet("version")]

@@ -49,21 +49,26 @@ clients_generate_dotnet_main() {
     return 1
   fi
 
-  python3 - <<'PY' "$l_spec_path" "$l_tmp_spec" "$l_base_uri"
-import json, sys
-src, dst, base_uri = sys.argv[1:]
-with open(src, 'r', encoding='utf-8') as fh:
-    data = json.load(fh)
-sanitized = base_uri.rstrip('/') or base_uri
-data['servers'] = [{'url': sanitized}]
-with open(dst, 'w', encoding='utf-8') as fh:
-    json.dump(data, fh, indent=2)
-PY
-  local l_py_status=$?
-  if [ $l_py_status -ne 0 ]; then
+  local l_spec_helper="$l_clients_dir/scripts/helpers/spec_update_servers.py"
+  if ! python3 "$l_spec_helper" "$l_spec_path" "$l_tmp_spec" "$l_base_uri"; then
     rm -f "$l_tmp_spec"
     echo "clients-generate-dotnet: unable to inject servers into spec" >&2
-    return $l_py_status
+    return 1
+  fi
+
+  local l_config_template="$l_clients_dir/csharp.config.json"
+  local l_tmp_config
+  if ! l_tmp_config="$(mktemp "$l_output_dir/csharp-config.XXXXXX.json")"; then
+    rm -f "$l_tmp_spec"
+    echo "clients-generate-dotnet: unable to allocate temp config" >&2
+    return 1
+  fi
+
+  local l_config_helper="$l_clients_dir/scripts/helpers/dotnet_config_hydrate.py"
+  if ! python3 "$l_config_helper" "$l_config_template" "$l_tmp_config" "$CF_GLOBAL_PRODUCT"; then
+    rm -f "$l_tmp_spec" "$l_tmp_config"
+    echo "clients-generate-dotnet: unable to hydrate config" >&2
+    return 1
   fi
 
   (
@@ -72,13 +77,13 @@ PY
       -i "$l_tmp_spec" \
       -g csharp \
       -o "$l_output_dir" \
-      -c "$l_clients_dir/csharp.config.json" \
+      -c "$l_tmp_config" \
       --skip-validate-spec \
       --global-property apiTests=false,modelTests=false \
       --additional-properties packageVersion="$l_nuget_version"
   )
   local l_generate_status=$?
-  rm -f "$l_tmp_spec"
+  rm -f "$l_tmp_spec" "$l_tmp_config"
   return $l_generate_status
 }
 

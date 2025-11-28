@@ -10,7 +10,6 @@ namespace ChartFinder.Common.Versioning;
 /// </summary>
 public sealed class VersionInfo : IVersionInfo
 {
-    private const string DefaultProduct = "Chart Finder";
     private const string DefaultCompany = "SoftwareAB";
     private const string DefaultCopyright = "Copyright (c) SoftwareAB";
     private static readonly string[] MetadataBranches = { "BackendBuildBranch", "BuildBranch" };
@@ -116,9 +115,11 @@ public sealed class VersionInfo : IVersionInfo
             throw new ArgumentNullException(nameof(assembly));
         }
 
-        var product = assembly.GetCustomAttribute<AssemblyProductAttribute>()?.Product
-                      ?? assembly.GetName().Name
-                      ?? DefaultProduct;
+        var product = assembly.GetCustomAttribute<AssemblyProductAttribute>()?.Product;
+        if (string.IsNullOrWhiteSpace(product))
+        {
+            throw new InvalidOperationException("Assembly missing Product metadata.");
+        }
         var description = assembly.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description ?? string.Empty;
         var company = assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company ?? DefaultCompany;
         var copyright = assembly.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright

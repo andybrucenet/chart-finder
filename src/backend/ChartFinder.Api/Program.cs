@@ -25,9 +25,14 @@ config
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+var programAssembly = typeof(Program).Assembly;
+var versionInfo = VersionInfo.FromAssembly(programAssembly);
+var productName = versionInfo.Product;
+var apiTitle = $"{productName} API";
+
 builder.Services.AddOpenApiDocument(settings =>
 {
-    settings.Title = "Chart Finder API";
+    settings.Title = apiTitle;
     settings.Version = "v1";
     settings.Description = "Musician-facing API for discovering and purchasing charts.";
 });
@@ -38,7 +43,6 @@ builder.Services.AddOptions<DynamoOptions>()
     .ValidateOnStart();
 
 // ChartFinderDev: Instance info specific to this app
-var programAssembly = typeof(Program).Assembly;
 builder.Services.AddChartFinderAppData(programAssembly);
 builder.Services.AddChartFinderVersion(programAssembly);
 
@@ -58,7 +62,7 @@ if (AppDataServiceCollectionExtensions.Instance!.ExposeOpenAPI)
     {
         settings.Path = "/swagger";
         settings.DocumentPath = "/swagger/v1/swagger.json";
-        settings.DocumentTitle = "Chart Finder API v1";
+        settings.DocumentTitle = $"{apiTitle} v1";
     });
 }
 app.UseAuthorization();
@@ -76,7 +80,13 @@ IResult ServeStaticPage(string path)
             statusCode: StatusCodes.Status500InternalServerError);
     }
 
-    return Results.File(path, "text/html; charset=utf-8");
+    const string productToken = "{{PRODUCT_NAME}}";
+    var content = File.ReadAllText(path);
+    if (content.Contains(productToken, StringComparison.Ordinal))
+    {
+        content = content.Replace(productToken, productName, StringComparison.Ordinal);
+    }
+    return Results.Text(content, "text/html; charset=utf-8");
 }
 
 app.MapGet("/", () => ServeStaticPage(aboutPagePath))

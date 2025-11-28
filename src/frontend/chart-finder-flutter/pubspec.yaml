@@ -1,5 +1,5 @@
 name: chart_finder_flutter
-description: Minimal Flutter shell for the Chart Finder client.
+description: Minimal Flutter shell for the mobile client.
 publish_to: "none"
 version: 0.1.0+1
 

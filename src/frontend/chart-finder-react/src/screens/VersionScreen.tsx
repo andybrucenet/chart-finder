@@ -10,13 +10,18 @@ import {
   Platform
 } from 'react-native';
 import { useVersion } from '../hooks/useVersion';
+import { VersionInfo } from '../versionInfo';
 
 export function VersionScreen(): JSX.Element {
   const { version, isLoading, handleSubmit } = useVersion();
+  const productName = VersionInfo.productName;
+  if (!productName) {
+    throw new Error('VersionInfo missing productName');
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Chart Finder Mobile</Text>
+      <Text style={styles.title}>{`${productName} Mobile`}</Text>
       <Text style={styles.subtitle}>Fetch backend version info through the utils endpoint.</Text>
 
       <View style={styles.form}>

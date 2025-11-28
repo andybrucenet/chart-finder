@@ -19,8 +19,12 @@ class ChartFinderApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final productName = versionInfo.productName;
+    if (productName.isEmpty) {
+      throw const FormatException('versionInfo missing productName');
+    }
     return MaterialApp(
-      title: 'Chart Finder',
+      title: productName,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
@@ -57,9 +61,13 @@ class _VersionScreenState extends State<VersionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final productName = versionInfo.productName;
+    if (productName.isEmpty) {
+      throw const FormatException('versionInfo missing productName');
+    }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chart Finder'),
+        title: Text(productName),
         actions: [
           IconButton(
             tooltip: 'Reload backend version',
@@ -319,8 +327,12 @@ class BackendVersion {
   final String? buildNumber;
 
   factory BackendVersion.fromJson(Map<String, dynamic> json) {
+    final product = json['product'] as String?;
+    if (product == null || product.isEmpty) {
+      throw const FormatException('Backend payload missing product name.');
+    }
     return BackendVersion(
-      product: json['product'] as String? ?? 'Chart Finder API',
+      product: product,
       version: json['version'] as String? ?? 'unknown',
       description: json['description'] as String? ?? '',
       branch: json['branch'] as String?,

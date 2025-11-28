@@ -24,6 +24,27 @@ frontend_version_file="$repo_root/frontend/version.json"
 frontend_version_artifacts_script="$repo_root/scripts/frontend-version-artifacts.sh"
 backend_props_rel_path="src/backend/Directory.Build.props"
 backend_props_file="$repo_root/$backend_props_rel_path"
+about_json_path="$repo_root/docs/about.json"
+about_state_dir="$repo_root/$g_DOT_LOCAL_DIR_NAME/state"
+about_product_hash_file="$about_state_dir/about-product.sha256"
+update_version_helper="$repo_root/scripts/helpers/update_version_helper.py"
+
+if [[ ! -f "$about_json_path" ]]; then
+  echo "ERROR: missing metadata file $about_json_path" >&2
+  exit 1
+fi
+
+about_get_field() {
+  local key="$1"
+  python3 "$update_version_helper" about-get "$about_json_path" "$key"
+}
+
+about_product_name="$(about_get_field "productName")"
+if [[ -z "$about_product_name" ]]; then
+  echo "ERROR: docs/about.json must define productName." >&2
+  exit 1
+fi
+export CF_GLOBAL_PRODUCT="$about_product_name"
 
 print_usage() {
   cat <<'USAGE'
@@ -50,36 +71,7 @@ update_props() {
   local comment="$4"
   local build_number="$5"
   local informational="$6"
-
-  NEW_ChartFinderVersion="$version" \
-  NEW_ChartFinderBuildBranch="$branch" \
-  NEW_ChartFinderBuildComment="$comment" \
-  NEW_ChartFinderBuildNumber="$build_number" \
-  NEW_ChartFinderInformationalVersion="$informational" \
-  python3 - "$file" <<'PY'
-import os
-import re
-import sys
-
-path = sys.argv[1]
-data = open(path, encoding="utf-8").read()
-
-def replace(tag: str, value: str) -> None:
-    global data
-    pattern = rf"(<{tag}[^>]*>)(.*?)(</{tag}>)"
-    data, count = re.subn(pattern, lambda m: f"{m.group(1)}{value}{m.group(3)}", data, count=1, flags=re.S)
-    if count != 1:
-        raise SystemExit(f"Failed to update {tag} in {path}")
-
-replace("ChartFinderVersion", os.environ["NEW_ChartFinderVersion"])
-replace("ChartFinderBackendBuildBranch", os.environ["NEW_ChartFinderBuildBranch"])
-replace("ChartFinderBackendBuildComment", os.environ["NEW_ChartFinderBuildComment"])
-replace("ChartFinderBackendBuildNumber", os.environ["NEW_ChartFinderBuildNumber"])
-replace("ChartFinderBackendInformationalVersion", os.environ["NEW_ChartFinderInformationalVersion"])
-
-with open(path, "w", encoding="utf-8") as handle:
-    handle.write(data)
-PY
+  python3 "$update_version_helper" update-backend-props "$file" "$version" "$branch" "$comment" "$build_number" "$informational"
 }
 
 frontend_get_field() {
@@ -89,14 +81,7 @@ frontend_get_field() {
     return
   fi
 
-  python3 - "$frontend_version_file" "$key" <<'PY'
-import json
-import sys
-path, key = sys.argv[1], sys.argv[2]
-with open(path, encoding="utf-8") as handle:
-    data = json.load(handle)
-print(data.get(key, ""))
-PY
+  python3 "$update_version_helper" frontend-get-field "$frontend_version_file" "$key"
 }
 
 run_frontend_version_artifacts() {
@@ -114,37 +99,77 @@ write_frontend_metadata() {
   mkdir -p "$(dirname "$frontend_version_file")"
   local tmp_file
   tmp_file="$(mktemp "${frontend_version_file}.XXXXXX")"
+  local resolved_company resolved_product
+  resolved_company="${6:-${CF_GLOBAL_COMPANY:-SoftwareAB}}"
+  if [[ -n "${7:-}" ]]; then
+    resolved_product="$7"
+  else
+    resolved_product="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT is required}"
+  fi
   NEW_FRONTEND_VERSION="$1" \
   NEW_FRONTEND_BRANCH="$2" \
   NEW_FRONTEND_COMMENT="$3" \
   NEW_FRONTEND_BUILD_NUMBER="$4" \
   NEW_FRONTEND_INFORMATIONAL="$5" \
-  NEW_FRONTEND_COMPANY="${6:-${CF_GLOBAL_COMPANY:-SoftwareAB}}" \
-  NEW_FRONTEND_PRODUCT="${7:-${CF_GLOBAL_PRODUCT:-Chart\ Finder}}" \
-  python3 - "$tmp_file" <<'PY'
-import json
-import os
-import sys
-path = sys.argv[1]
-data = {
-    "version": os.environ["NEW_FRONTEND_VERSION"],
-    "branch": os.environ["NEW_FRONTEND_BRANCH"],
-    "comment": os.environ["NEW_FRONTEND_COMMENT"],
-    "buildNumber": os.environ["NEW_FRONTEND_BUILD_NUMBER"],
-    "informationalVersion": os.environ["NEW_FRONTEND_INFORMATIONAL"],
-    "company": os.environ.get("NEW_FRONTEND_COMPANY", ""),
-    "product": os.environ.get("NEW_FRONTEND_PRODUCT", ""),
-}
-with open(path, "w", encoding="utf-8") as handle:
-    json.dump(data, handle, indent=2)
-    handle.write("\n")
-PY
+  NEW_FRONTEND_COMPANY="$resolved_company" \
+  NEW_FRONTEND_PRODUCT="$resolved_product" \
+  python3 "$update_version_helper" write-frontend-metadata "$tmp_file" "$1" "$2" "$3" "$4" "$5" "$resolved_company" "$resolved_product"
 
   if [[ ! -f "$frontend_version_file" ]] || ! cmp -s "$tmp_file" "$frontend_version_file"; then
     mv "$tmp_file" "$frontend_version_file"
   else
     rm "$tmp_file"
   fi
+}
+
+set_msbuild_property() {
+  local file="$1"
+  local tag="$2"
+  local value="$3"
+  if ! python3 "$update_version_helper" set-msbuild-property "$file" "$tag" "$value"; then
+    echo "ERROR: failed to update <$tag> in $file" >&2
+    return 1
+  fi
+}
+
+update_frontend_product_field() {
+  local value="$1"
+  if [[ ! -f "$frontend_version_file" ]]; then
+    echo "WARN: $frontend_version_file missing; run ./scripts/update-version.sh frontend to generate it." >&2
+    return 0
+  fi
+  python3 "$update_version_helper" update-frontend-product "$frontend_version_file" "$value"
+}
+
+compute_string_hash() {
+  local value="$1"
+  python3 "$update_version_helper" hash-string "$value"
+}
+
+sync_product_metadata() {
+  local value="$1"
+  local hash
+  hash="$(compute_string_hash "$value")"
+  local existing=""
+  if [[ -f "$about_product_hash_file" ]]; then
+    existing="$(<"$about_product_hash_file")"
+  fi
+  if [[ "$hash" == "$existing" ]]; then
+    return 0
+  fi
+
+  echo "Synchronizing product metadata from docs/about.json -> backend/frontend assets"
+  if set_msbuild_property "$backend_props_file" "Product" "$value"; then
+    echo "Updated $backend_props_rel_path Product"
+  else
+    local rc=$?
+    if [[ $rc -gt 1 ]]; then
+      return $rc
+    fi
+  fi
+  update_frontend_product_field "$value"
+  mkdir -p "$about_state_dir"
+  printf '%s' "$hash" >"$about_product_hash_file"
 }
 
 detect_branch() {
@@ -159,6 +184,8 @@ detect_branch() {
   fi
   echo "$branch"
 }
+
+sync_product_metadata "$about_product_name"
 
 update_backend() {
   local props_file="$backend_props_file"
@@ -388,7 +415,7 @@ update_frontend() {
   fi
 
   local company_name="${CF_GLOBAL_COMPANY:-SoftwareAB}"
-  local product_name="${CF_GLOBAL_PRODUCT:-Chart Finder}"
+  local product_name="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT is required}"
   write_frontend_metadata "$new_version" "${new_branch:-}" "${new_comment:-}" "$new_build_number" "$informational" "$company_name" "$product_name"
   run_frontend_version_artifacts || exit $?
 
@@ -408,19 +435,7 @@ main() {
       ;;
     backend-batch)
       : "${CHARTFINDER_BACKEND_BUILD_NUMBER:?CHARTFINDER_BACKEND_BUILD_NUMBER required}"
-      python3 - "$backend_props_file" "$CHARTFINDER_BACKEND_BUILD_NUMBER" <<'PY'
-import sys
-from xml.etree import ElementTree as ET
-
-path, build_number = sys.argv[1], sys.argv[2]
-tree = ET.parse(path)
-root = tree.getroot()
-elem = root.find('.//ChartFinderBackendBuildNumber')
-if elem is None:
-    raise SystemExit(f"ChartFinderBackendBuildNumber missing in {path}")
-elem.text = build_number
-tree.write(path, encoding='utf-8', xml_declaration=False)
-PY
+      python3 "$update_version_helper" set-msbuild-property "$backend_props_file" ChartFinderBackendBuildNumber "$CHARTFINDER_BACKEND_BUILD_NUMBER"
       echo "Updated ChartFinderBackendBuildNumber in $backend_props_rel_path (batch mode)"
       ;;
     frontend)
@@ -440,7 +455,7 @@ PY
         fi
       fi
     local company_name="${CF_GLOBAL_COMPANY:-SoftwareAB}"
-    local product_name="${CF_GLOBAL_PRODUCT:-Chart Finder}"
+    local product_name="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT is required}"
     write_frontend_metadata "${current_version:-}" "${current_branch:-}" "${current_comment:-}" "$CHARTFINDER_FRONTEND_BUILD_NUMBER" "$informational" "$company_name" "$product_name"
     run_frontend_version_artifacts || exit $?
     echo "Updated frontend build number in $frontend_version_file (batch mode)"

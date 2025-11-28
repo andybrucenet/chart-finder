@@ -55,21 +55,11 @@ clients_generate_dart_main() {
     return 1
   fi
 
-  python3 - <<'PY' "$l_spec_path" "$l_tmp_spec" "$l_base_uri"
-import json, sys
-src, dst, base_uri = sys.argv[1:]
-with open(src, 'r', encoding='utf-8') as fh:
-    data = json.load(fh)
-sanitized = base_uri.rstrip('/') or base_uri
-data['servers'] = [{'url': sanitized}]
-with open(dst, 'w', encoding='utf-8') as fh:
-    json.dump(data, fh, indent=2)
-PY
-  local l_py_status=$?
-  if [ $l_py_status -ne 0 ]; then
+  local l_spec_helper="$l_clients_dir/scripts/helpers/spec_update_servers.py"
+  if ! python3 "$l_spec_helper" "$l_spec_path" "$l_tmp_spec" "$l_base_uri"; then
     rm -f "$l_tmp_spec"
     echo "[clients] generate-dart: unable to inject servers into spec" >&2
-    return $l_py_status
+    return 1
   fi
 
   local l_config_template="$l_clients_dir/dart.config.json"
@@ -82,40 +72,11 @@ PY
   fi
 
   local l_about_json="$l_root_dir/docs/about.json"
-  python3 - <<'PY' "$l_config_template" "$l_tmp_config" "$l_pub_version" "$l_about_json"
-import json, sys, os
-
-tpl_path, out_path, pub_version, about_path = sys.argv[1:5]
-with open(tpl_path, 'r', encoding='utf-8') as fh:
-    data = json.load(fh)
-
-props = data.setdefault('additionalProperties', {})
-props['pubVersion'] = pub_version
-
-about = {}
-if os.path.exists(about_path):
-    with open(about_path, 'r', encoding='utf-8') as fh:
-        about = json.load(fh)
-
-def maybe_set(key, value):
-    if value:
-        props[key] = value
-
-maybe_set('pubDescription', about.get('productName', 'Chart Finder API client'))
-maybe_set('pubAuthor', about.get('authorName'))
-maybe_set('pubAuthorEmail', about.get('authorEmail'))
-maybe_set('pubHomepage', about.get('homepage'))
-maybe_set('pubRepository', about.get('repositoryUrl'))
-maybe_set('pubIssueTracker', about.get('supportUrl'))
-
-with open(out_path, 'w', encoding='utf-8') as fh:
-    json.dump(data, fh, indent=2)
-PY
-  local l_cfg_status=$?
-  if [ $l_cfg_status -ne 0 ]; then
+  local l_config_helper="$l_clients_dir/scripts/helpers/dart_config_hydrate.py"
+  if ! python3 "$l_config_helper" "$l_config_template" "$l_tmp_config" "$l_pub_version" "$l_about_json"; then
     rm -f "$l_tmp_spec" "$l_tmp_config"
     echo "[clients] generate-dart: unable to hydrate config" >&2
-    return $l_cfg_status
+    return 1
   fi
 
   local l_generator="dart-dio"

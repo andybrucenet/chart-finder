@@ -1,7 +1,7 @@
 {
   "packageName": "ChartFinder.Client",
-  "packageTitle": "Chart Finder API Client",
-  "packageDescription": "Generated client for the Chart Finder backend API.",
+  "packageTitle": "{{PRODUCT_NAME}} API Client",
+  "packageDescription": "Generated client for the {{PRODUCT_NAME}} backend API.",
   "packageTags": "chart-finder music charts sdk",
   "targetFramework": "net8.0",
   "nullableReferenceTypes": true,

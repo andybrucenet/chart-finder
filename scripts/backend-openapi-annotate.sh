@@ -1,6 +1,6 @@
 #!/bin/bash
 # backend-openapi-annotate.sh
-# Adds Chart Finder backend metadata fields to an OpenAPI document.
+# Adds backend metadata fields to an OpenAPI document.
 
 ##############################################################
 # OPTIONS
@@ -17,14 +17,15 @@ done
 the_backend_openapi_annotate_script_dir="$( cd -P "$( dirname "$the_backend_openapi_annotate_source" )" >/dev/null 2>&1 && pwd )"
 the_backend_openapi_annotate_root_dir="$( realpath "$the_backend_openapi_annotate_script_dir"/.. )"
 source "$the_backend_openapi_annotate_root_dir/scripts/cf-env-vars.sh" 'source-only' || exit $?
+the_backend_openapi_annotate_product="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT missing}"
 
 ##############################################################
 # functions
 backend_openapi_annotate_usage() {
-  cat <<'USAGE'
+  cat <<USAGE
 Usage: ./scripts/backend-openapi-annotate.sh <openapi-json-path>
 
-Adds Chart Finder backend metadata (version + build number) to the OpenAPI
+Adds ${the_backend_openapi_annotate_product} backend metadata (version + build number) to the OpenAPI
 info section. The JSON file is updated in-place unless BACKEND_OPENAPI_ANNOTATE_OPTION_STDOUT=1.
 USAGE
 }
@@ -54,29 +55,8 @@ backend_openapi_annotate_update_file() {
 
   local l_tmpfile="$l_tmpdir/backend-openapi-annotate-$$.json"
 
-  local l_python_cmd
-  l_python_cmd=$(
-    cat <<'PYCODE'
-import json
-import os
-import pathlib
-import sys
-
-def main():
-    source_path = pathlib.Path(sys.argv[1])
-    dest_path = pathlib.Path(sys.argv[2])
-    data = json.loads(source_path.read_text(encoding='utf-8'))
-    info = data.setdefault('info', {})
-    info['x-chartfinder-backend-version'] = os.environ.get('CF_BACKEND_VERSION_FULL', '')
-    info['x-chartfinder-backend-build-number'] = os.environ.get('CF_BACKEND_BUILD_NUMBER', '')
-    dest_path.write_text(json.dumps(data, indent=2) + '\n', encoding='utf-8')
-
-if __name__ == '__main__':
-    main()
-PYCODE
-  )
-
-  if ! python3 -c "$l_python_cmd" "$i_target_file" "$l_tmpfile"; then
+  local helper="$the_backend_openapi_annotate_root_dir/scripts/helpers/backend_openapi_metadata.py"
+  if ! python3 "$helper" "$i_target_file" "$l_tmpfile"; then
     backend_openapi_annotate_log "ERROR: failed to update $i_target_file"
     rm -f "$l_tmpfile"
     return 1

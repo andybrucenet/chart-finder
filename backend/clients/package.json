@@ -1,7 +1,7 @@
 {
   "name": "chart-finder-backend-clients",
   "private": true,
-  "description": "Tooling to generate Chart Finder client SDKs from the backend OpenAPI spec.",
+  "description": "Tooling to generate backend client SDKs from the OpenAPI spec.",
   "scripts": {
     "noop": "echo \"[clients] no-op\"",
     "generate:ts": "bash ./scripts/clients-generate-ts.sh",

@@ -1,13 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { useAuth } from '../providers/AuthProvider';
+import { VersionInfo } from '../versionInfo';
 
 export function AuthScreen(): JSX.Element {
   const { login } = useAuth();
+  const productName = VersionInfo.productName;
+  if (!productName) {
+    throw new Error('VersionInfo missing productName');
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Chart Finder</Text>
+      <Text style={styles.title}>{productName}</Text>
       <Text style={styles.subtitle}>Sign in to continue.</Text>
       <Button title="Mock Sign In" onPress={login} />
       <StatusBar style="light" />

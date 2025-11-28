@@ -13,6 +13,9 @@ clients_prepare_dotnet_main() {
   script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" || return 1
   clients_dir="$( cd "$script_dir/.." >/dev/null 2>&1 && pwd )" || return 1
   root_dir="$( cd "$clients_dir/../.." >/dev/null 2>&1 && pwd )" || return 1
+  source "$root_dir/scripts/lcl-os-checks.sh" 'source-only' || return 1
+  source "$root_dir/scripts/cf-env-vars.sh" 'source-only' || return 1
+  local product_name="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT missing}"
   project_dir="$root_dir/.local/backend/clients/dotnet/src/ChartFinder.Client"
   csproj_path="$project_dir/ChartFinder.Client.csproj"
   readme_path="$project_dir/README.md"
@@ -29,86 +32,24 @@ clients_prepare_dotnet_main() {
   if [ -f "$license_src" ]; then
     cp "$license_src" "$license_dst"
   else
-    cat >"$license_dst" <<'LICENSE'
-© 2025 Chart Finder. All rights reserved.
+    cat >"$license_dst" <<LICENSE
+© 2025 ${product_name}. All rights reserved.
 LICENSE
   fi
 
   if [ ! -f "$readme_path" ]; then
-    cat >"$readme_path" <<'README'
-# Chart Finder Client
+    cat >"$readme_path" <<README
+# ${product_name} Client
 
-Auto-generated SDK for the Chart Finder API.
+Auto-generated SDK for the ${product_name} API.
 README
   fi
 
-  python3 - "$csproj_path" "$about_json" <<'PY'
-import sys, json
-from xml.etree import ElementTree as ET
-
-csproj, about_path = sys.argv[1:3]
-tree = ET.parse(csproj)
-root = tree.getroot()
-
-prop_group = root.find('PropertyGroup')
-if prop_group is None:
-    prop_group = ET.SubElement(root, 'PropertyGroup')
-
-about = {}
-try:
-    with open(about_path, 'r', encoding='utf-8') as fh:
-        about = json.load(fh)
-except FileNotFoundError:
-    about = {}
-
-def ensure_prop(tag, value):
-    elem = prop_group.find(tag)
-    if elem is None:
-        elem = ET.SubElement(prop_group, tag)
-    elem.text = value
-
-ensure_prop('PackageLicenseFile', 'LICENSE.txt')
-ensure_prop('PackageReadmeFile', 'README.md')
-
-if about.get('authorName'):
-    ensure_prop('Authors', about['authorName'])
-    ensure_prop('Company', about['authorName'])
-if about.get('homepage'):
-    ensure_prop('PackageProjectUrl', about['homepage'])
-if about.get('repositoryUrl'):
-    ensure_prop('RepositoryUrl', about['repositoryUrl'])
-if about.get('productName'):
-    ensure_prop('Description', f"{about['productName']} API client")
-
-items = root.findall('ItemGroup')
-license_added = False
-readme_added = False
-for item in items:
-    for node in list(item):
-        if node.tag == 'None' and node.get('Include') == 'LICENSE.txt':
-            license_added = True
-        if node.tag == 'None' and node.get('Include') == 'README.md':
-            readme_added = True
-
-if not license_added or not readme_added:
-    item_group = None
-    for ig in root.findall('ItemGroup'):
-        item_group = ig
-        break
-    if item_group is None:
-        item_group = ET.SubElement(root, 'ItemGroup')
-    if not license_added:
-        node = ET.SubElement(item_group, 'None', Include='LICENSE.txt')
-        node.set('Pack', 'true')
-        node.set('PackagePath', '')
-    if not readme_added:
-        node = ET.SubElement(item_group, 'None', Include='README.md')
-        node.set('Pack', 'true')
-        node.set('PackagePath', '')
-
-ET.indent(tree, space="  ")
-tree.write(csproj, encoding='utf-8', xml_declaration=False)
-PY
+  local helper="$clients_dir/scripts/helpers/dotnet_csproj_metadata.py"
+  if ! python3 "$helper" "$csproj_path" "$about_json"; then
+    echo "[clients] prepare-dotnet: failed to update $csproj_path" >&2
+    return 1
+  fi
 }
 
 if [ "${1:-run}" = "source-only" ]; then

@@ -79,22 +79,8 @@ function cf_env_vars_frontend_version_prop_read {
 function cf_env_vars_dirbuildprops_read {
   local dirbuildprops_path="$1" ; shift
   local prop="$1"
-  python3 - <<'PY' "$prop" "$dirbuildprops_path"
-import sys
-from xml.etree import ElementTree as ET
-
-prop_name, path = sys.argv[1:]
-tree = ET.parse(path)
-
-for elem in tree.getroot().iter():
-  if elem.tag.endswith(prop_name):
-    value = (elem.text or '').strip()
-    if value:
-      print(value)
-      sys.exit(0)
-
-sys.exit(1)
-PY
+  local helper="$the_cf_env_vars_root_dir/scripts/helpers/dirbuildprops_read.py"
+  python3 "$helper" "$dirbuildprops_path" "$prop"
 }
 #
 # does msbuild props require cache?
@@ -236,6 +222,10 @@ if [ $the_cf_env_vars_optimization_flag -eq 0 ] ; then
   [ x"$CF_ENV_VARS_OPTION_REBUILD_BACKEND" = x1 ] && rm -f "$the_cf_env_vars_backend_dirbuildprops_dst_path"
   cf_env_vars_backend_dirbuildprops_auto_cache || exit $?
   source "$the_cf_env_vars_backend_version_dst_path" || exit $?
+  if [ x"${CF_GLOBAL_PRODUCT:-}" = x ]; then
+    echo "ERROR: CF_GLOBAL_PRODUCT not set; ensure docs/about.json and src/backend/Directory.Build.props provide a product value." >&2
+    exit 1
+  fi
   #
   # handle backend derived vars
   if [ x"$CF_BACKEND_EXPOSE_OPENAPI" = x ] ; then
@@ -290,4 +280,3 @@ unset \
   CF_ENV_VARS_OPTION_REBUILD_ALL \
   CF_ENV_VARS_OPTION_REBUILD_BACKEND \
   CF_ENV_VARS_OPTION_REBUILD_FRONTEND
-

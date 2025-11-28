@@ -15,6 +15,7 @@ clients_prepare_dart_main() {
   root_dir="$( cd "$clients_dir/../.." >/dev/null 2>&1 && pwd )" || return 1
   source "$root_dir/scripts/lcl-os-checks.sh" 'source-only' || return 1
   source "$root_dir/scripts/cf-env-vars.sh" 'source-only' || return 1
+  local product_name="${CF_GLOBAL_PRODUCT:?CF_GLOBAL_PRODUCT missing}"
   dart_dir="$root_dir/.local/backend/clients/dart"
   license_src="$root_dir/NOTICE.txt"
   license_dst="$dart_dir/LICENSE"
@@ -32,94 +33,44 @@ clients_prepare_dart_main() {
   if [ -f "$license_src" ]; then
     cp "$license_src" "$license_dst"
   else
-    cat >"$license_dst" <<'LICENSE'
-© 2025 Chart Finder. All rights reserved.
+    cat >"$license_dst" <<LICENSE
+© 2025 ${product_name}. All rights reserved.
 LICENSE
   fi
 
   if [ -f "$readme_src" ]; then
     cp "$readme_src" "$readme_path"
   elif [ ! -f "$readme_path" ]; then
-    cat >"$readme_path" <<'README'
-# Chart Finder Dart Client
+    cat >"$readme_path" <<README
+# ${product_name} Dart Client
 
-Auto-generated Flutter/Dart SDK for the Chart Finder API.
+Auto-generated Flutter/Dart SDK for the ${product_name} API.
 README
   fi
 
-  python3 - <<'PY' "$dart_dir/pubspec.yaml" "$about_json"
-import sys, json
-from pathlib import Path
-
-pubspec_path, about_path = sys.argv[1:3]
-pubspec = Path(pubspec_path)
-lines = pubspec.read_text(encoding='utf-8').splitlines()
-
-about = {}
-if Path(about_path).exists():
-    with open(about_path, 'r', encoding='utf-8') as fh:
-        about = json.load(fh)
-
-replacements = []
-if about.get('homepage'):
-    replacements.append(('homepage:', f"homepage: {about['homepage']}"))
-if about.get('repositoryUrl'):
-    replacements.append(('repository:', f"repository: {about['repositoryUrl']}"))
-if about.get('supportUrl'):
-    replacements.append(('issue_tracker:', f"issue_tracker: {about['supportUrl']}"))
-
-updated = []
-seen_keys = set()
-for line in lines:
-    stripped = line.strip()
-    replaced = False
-    for key, value in replacements:
-        if stripped.startswith(key):
-            updated.append(value)
-            seen_keys.add(key)
-            replaced = True
-            break
-    if not replaced:
-        updated.append(line)
-
-for key, value in replacements:
-    if key not in seen_keys:
-        updated.append(value)
-
-pubspec.write_text("\n".join(updated) + "\n", encoding='utf-8')
-PY
+  local pubspec_helper="$clients_dir/scripts/helpers/dart_pubspec_update.py"
+  if ! python3 "$pubspec_helper" "$dart_dir/pubspec.yaml" "$about_json"; then
+    echo "[clients] prepare-dart: failed to update pubspec metadata" >&2
+    return 1
+  fi
 
   # scrub known analyzer warnings before publish
   local utils_api_path="$dart_dir/lib/src/api/utils_api.dart"
   if [ -f "$utils_api_path" ]; then
-    python3 - "$utils_api_path" <<'PY'
-import sys, pathlib, re
-path = pathlib.Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-text = re.sub(r"import 'package:built_value/serializer\.dart';\n", "", text)
-text = re.sub(r"\n\s*final\s+Serializers\s+_serializers;\n", "\n", text)
-text = re.sub(r"const\s+UtilsApi\(\s*this\._dio\s*,\s*this\._serializers\s*\);", "const UtilsApi(this._dio);", text)
-text = re.sub(r"const\s+UtilsApi\(\s*this\._dio\s*\);", "const UtilsApi(this._dio);", text)
-text = re.sub(r"\s*,\s*this\._serializers", "", text)
-text = re.sub(r"import 'package:built_value/json_object\.dart';\n", "", text)
-path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
-PY
+    local utils_helper="$clients_dir/scripts/helpers/dart_utils_api_cleanup.py"
+    if ! python3 "$utils_helper" "$utils_api_path"; then
+      echo "[clients] prepare-dart: failed to scrub $utils_api_path" >&2
+      return 1
+    fi
   fi
 
   local api_path="$dart_dir/lib/src/api.dart"
   if [ -f "$api_path" ]; then
-    python3 - "$api_path" <<'PY'
-import sys, pathlib, re
-path = pathlib.Path(sys.argv[1])
-text = path.read_text(encoding="utf-8")
-text = re.sub(r"import 'package:built_value/serializer\.dart';\n", "", text)
-text = re.sub(r"import 'package:chart_finder_client/src/serializers\.dart';\n", "", text)
-text = re.sub(r"\n\s*final\s+Serializers\s+serializers;\n", "\n", text)
-text = re.sub(r",\s*Serializers\?\s*serializers", "", text)
-text = re.sub(r"this\.serializers\s*=\s*serializers\s*\?\?\s*standardSerializers,\s*", "", text)
-text = re.sub(r"UtilsApi\(\s*dio\s*,\s*serializers\s*\)", "UtilsApi(dio)", text)
-path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
-PY
+    local api_helper="$clients_dir/scripts/helpers/dart_api_cleanup.py"
+    if ! python3 "$api_helper" "$api_path"; then
+      echo "[clients] prepare-dart: failed to scrub $api_path" >&2
+      return 1
+    fi
   fi
 
   # ensure CHANGELOG.md exists with entry for current version
@@ -137,19 +88,11 @@ EOF
     return 1
   fi
 
-  python3 - "$changelog_path" "$pub_version" <<'PY'
-import sys, pathlib
-path = pathlib.Path(sys.argv[1])
-version = sys.argv[2]
-lines = path.read_text(encoding="utf-8").splitlines()
-entry = f"## {version}"
-if entry not in lines:
-    if lines and lines[-1].strip():
-        lines.append("")
-    lines.append(entry)
-    lines.append("- Auto-generated client for the Chart Finder API.")
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-PY
+  local changelog_helper="$clients_dir/scripts/helpers/dart_changelog_update.py"
+  if ! python3 "$changelog_helper" "$changelog_path" "$pub_version" "$product_name"; then
+    echo "[clients] prepare-dart: failed to update changelog" >&2
+    return 1
+  fi
 
   # ensure .pubignore exists so pub.dev doesn't treat pubspec/LICENSE as ignored
   cat >"$dart_dir/.pubignore" <<'PUBIGNORE'
