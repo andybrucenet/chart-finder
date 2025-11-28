@@ -35,7 +35,7 @@ Frontend development does not require AWS logins—work locally unless you are v
 | --- | --- | --- |
 | Install deps | `make frontend-install` (delegates to `frontend/Makefile-react`, which calls `scripts/frontend-npm-install.sh`) | `cd src/frontend/chart-finder-flutter && fvm flutter pub get` (see [`docs/notes/setup/flutter-fvm.md`](docs/notes/setup/flutter-fvm.md)) |
 | Build / lint | `make frontend-build`, `make frontend-lint`, `make frontend-test` | (Flutter targets TBD – drive via `fvm flutter test` / `flutter build <platform>`) |
-| Version artifacts | `make frontend-version` (updates `versionInfo.ts` from `frontend/version.json`) | Future Flutter target will regenerate the Dart equivalent |
+| Version artifacts | `make frontend-version` (updates language-specific version information from `frontend/version.json`) | Handles both React and Flutter frontends |
 | Dev server | `make frontend-start` / platform-specific variants | `fvm flutter run -d <device>` |
 
 Near-term roadmap items (tracked in `docs/notes/current-chat.md`):

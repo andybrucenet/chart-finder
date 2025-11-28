@@ -16,4 +16,4 @@ All test projects have 'Tests' at the end. To run these tests, `dotnet test src/
 
 ## Docs
 - Build and deploy routines: `docs/cookbooks/backend/aws.md`.
-- Version metadata + shared build settings: `src/backend/Directory.Build.props`.
+- Version metadata + shared build settings: `src/backend/Directory.Build.props`. This file is automatically maintained by the build system.
